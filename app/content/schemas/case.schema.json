@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LawKit Case",
+  "description": "L2 içerik katmanı — vaka DAG şeması. L3 case-engine bunu state machine olarak okur.",
+  "type": "object",
+  "required": ["id", "title", "branch", "rubricId", "startNode", "nodes"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "title": { "type": "string" },
+    "branch": { "type": "string", "enum": ["is_hukuku", "borclar", "medeni_usul", "ceza", "idare", "ticaret"] },
+    "difficulty": { "type": "integer", "minimum": 1, "maximum": 4 },
+    "estimatedMinutes": { "type": "integer", "minimum": 5, "maximum": 60 },
+    "rubricId": { "type": "string" },
+    "summary": { "type": "string" },
+    "facts": { "type": "array", "items": { "type": "string" } },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["label"],
+        "properties": {
+          "label": { "type": "string" },
+          "ref": { "type": "string" }
+        }
+      }
+    },
+    "startNode": { "type": "string" },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind"],
+        "properties": {
+          "id": { "type": "string" },
+          "kind": { "type": "string", "enum": ["decision", "outcome", "info"] },
+          "prompt": { "type": "string" },
+          "rubricTargets": { "type": "array", "items": { "type": "string" } },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "label", "next", "verdict"],
+              "properties": {
+                "id": { "type": "string" },
+                "label": { "type": "string" },
+                "scores": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 4 } },
+                "feedback": { "type": "string" },
+                "next": { "type": "string" },
+                "verdict": { "type": "string", "enum": ["good", "partial", "bad"] },
+                "sources": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          },
+          "summary": { "type": "string" },
+          "idealAnswer": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,318 @@
+LawKit: Türkiye Hukuk EdTech Pazarı Kapsamlı Araştırma Raporu
+Yönetici Özeti
+LawKit, Türkiye'de 2024'te hayata geçen HMGS (Hukuk Mesleklerine Giriş Sınavı) ile oluşan yapısal eğitim boşluğunu doldurmayı hedefleyen, case-based ve AI destekli bir legaltech eğitim platformu fikridir. İlk üç HMGS oturumunda 31.489 adaydan yalnızca 9.485'i (%30,13) başarılı olabilmiş; bu tablo, mevcut hiçbir dijital aracın karşılamadığı devasa bir hazırlık talebini somutlaştırmaktadır. Hem global hem de yerel piyasada interaktif, gamified ve AI güdümlü bir Türk hukuk eğitim platformu bulunmamaktadır — bu, gerçek anlamda savunulabilir bir "blue ocean" fırsatıdır.[1]
+--------------------------------------------------------------------------------
+1. HMGS: Pazar Tetikleyicisi
+Sınav İstatistikleri ve Kümülatif Tablo
+HMGS, 7188 sayılı Kanun'la 24 Ekim 2019'da mevzuata girmiş ve 31 Mart 2024 sonrası mezun olanlara fiilen zorunlu hale gelmiştir. Sınav, yılda iki kez (Nisan ve Eylül) ÖSYM tarafından uygulanmakta; 120 çoktan seçmeli sorudan oluşmakta ve 70/100 baraj puanı için en az 84 doğru cevap gerekmektedir.[2][1]
+Oturum
+Başvuru
+Başarılı
+Başarısız
+Oran
+Eylül 2024 (1. oturum)
+9.142
+3.901
+5.241
+%42,67[1]
+Nisan 2025 (2. oturum)
+5.912
+1.386
+4.432
+%23,81[3][4]
+Eylül 2025 (3. oturum)
+16.240
+4.198
+12.042
+~%25,86[1]
+TOPLAM
+31.489
+9.485
+22.004
+%30,13[1]
+Üçüncü oturumda başvuruların neredeyse üç katına çıkması, önceki oturumlarda başarısız olan adayların birikimli olarak sisteme geri dönmesinden kaynaklanmaktadır. Eylül 2025 için 2026 takviminde 26 Nisan 2026 ve 27 Eylül 2026 tarihleri planlanmaktadır.[1]
+Yapısal Arka Plan
+Türkiye'de 2024 itibarıyla yaklaşık 90 hukuk fakültesi bulunmakta; 2024 YKS ile 88 hukuk fakültesine 13.042 yeni öğrenci yerleştirilmiştir. Her yıl piyasaya yaklaşık 20.000 hukuk mezunu katılmaktadır. 1998'de 36.000 olan avukat sayısı, 2024'te 199.000'i aşmış; 26 yılda beş katına ulaşmıştır. Daha İyi Yargı Derneği, mevcut başarı oranı eğilimi devam ederse her yıl mezun olan 20.000 kişinin 15.000'inin mesleğe adım atamayacağı uyarısını yapmıştır.[5][6][7][1]
+Başarısızlığın yapısal nedenleri: HMGS'ye özel hazırlık programlarının fakültelerde bulunmaması, soru zorluğunun sınav sınav değişmesine rağmen barajın sabit kalması ve sınavın 25 ayrı hukuk disiplinini kapsayan çapraz yapısıdır.[8][1]
+--------------------------------------------------------------------------------
+2. Pazar Büyüklüğü: Türkiye ve Global
+Global LegalTech ve EdTech
+Global LegalTech pazarı 2025 itibarıyla 29,2 milyar dolar olarak değerlendirilmekte ve 2034'e kadar %10,5 CAGR ile 71,9 milyar dolara ulaşması beklenmektedir. Genel EdTech pazarı ise 2024'te 215,14 milyar dolar büyüklüğünde olup 2033'e kadar %17,34 CAGR ile 773 milyar dolara genişleyeceği tahmin edilmektedir. Online hukuk eğitim yazılımları alt segmenti 2025'te 2,5 milyar dolar değerinde olup 2033'e kadar 7 milyar dolara ulaşması öngörülmektedir.[9][10][11]
+Türkiye Pazarı
+Türkiye EdTech ve kurumsal öğrenme platformları pazarı 2,2 milyar dolar büyüklüğündedir. Eğitim uygulamaları alt segmenti 2024'te 54,39 milyon dolar olup 2033'e kadar %21,46 CAGR ile 312,90 milyon dolara büyümesi beklenmektedir. Türk startup ekosistemi 2025'in üçüncü çeyreğinde 240 yatırım turuyla 475 milyon dolar çekmiştir; 1.222 aktif AI startup'ının %35'i 2024–2025 döneminde kurulmuştur.[12][13][14][15]
+LawKit'in Adreslenebilir Pazarı (TAM/SAM/SOM Tahmini)
+Segment
+Aday Sayısı
+Tahmini Dönüşüm
+Aylık Gelir Potansiyeli
+Aktif HMGS hazırlığı
+~20.000/yıl
+%10 (200/ay)
+₺40.000–80.000
+1–3. sınıf hukuk öğrencileri
+~50.000 aktif
+%5 (250/ay)
+₺25.000–50.000
+Staj + erken kariyer
+~10.000
+%8
+₺16.000–35.000
+B2B (fakülte/baro)
+90 fakülte
+5–10 anlaşma/yıl
+Yüksek değer kontrat
+--------------------------------------------------------------------------------
+3. Türkiye'deki Mevcut Rakipler ve Boşluklar
+Mevcut Oyuncular
+AristoHocam (aristohocam.com), Türkiye'nin bu alandaki en kapsamlı oyuncusudur. 72 akademisyen, 12.277 soru, 254 saat video ders, 38 e-kitap ve 245 ders notunu tek seferlik bir pakette sunmaktadır. HMGS 2025 Eylül paketi 8.990 TL (liste fiyatı 12.240 TL) olarak fiyatlandırılmıştır. Model tamamen pasif video + soru bankası formatındadır; interaktif simülasyon, AI geri bildirimi veya case-based öğrenme öğesi bulunmamaktadır.[16][17][18]
+Hubox (hubox.com.tr), 2020'de kurulan ve 2022'de platforma geçen bir dijital hukuk eğitim platformudur. Abonelik modeli üzerinden çalışmakta; öğrenci aboneliği aylık 9 TL (2022 fiyatı) ile yıllık 18 TL arasında konumlandırılmıştır. İçerik statik ve kariyer/mesleki gelişim odaklıdır; HMGS'ye özel, gamified veya AI destekli bir deneyim sunmamaktadır.[19]
+TAA (Türkiye Adalet Akademisi), Adalet Bakanlığı bünyesinde 2024'te yayına giren bir devlet eğitim platformudur (sem.taa.gov.tr). Hem hukukçulara hem vatandaşlara yönelik ders içerikleri sunan bu platform ücretsizdir; ancak hukuk öğrencisi odaklı, interaktif veya sınav hazırlık amaçlı değildir.[20]
+Yakın Eğitim ve üniversite bağlantılı kurslar (YÜSEM, TAUSEM gibi), 80–496 saatlik, 25 dersten oluşan standart HMGS hazırlık kursları sunmaktadır. Bunlar genellikle seminer+video formatında ve dönemsel içeriktedir.[21][8]
+Rakip Karşılaştırma Matrisi
+Platform
+AI
+Case-Based
+Gamification
+HMGS Özel
+Sürekli Abonelik
+Staj Simülasyonu
+AristoHocam
+❌
+❌
+❌
+✅
+❌ (tek seferlik)
+❌
+Hubox
+❌
+❌
+❌
+❌
+✅
+❌
+TAA
+❌
+❌
+❌
+❌
+❌ (ücretsiz)
+❌
+YÜSEM/Kurslar
+❌
+Kısmi
+❌
+✅
+❌ (dönemsel)
+❌
+LawKit (hedef)
+✅
+✅
+✅
+✅
+✅
+✅
+Sonuç: Türkiye'de HMGS odaklı, AI destekli, case-based ve gamified hiçbir platform yoktur. AristoHocam soru bankasında güçlüdür ancak bir öğrenme deneyimi olarak değil, bir içerik deposu olarak konumlanmıştır.
+--------------------------------------------------------------------------------
+4. Global Rakipler: LegalTech EdTech Oyuncuları
+Bar Exam Hazırlık (ABD Odaklı)
+Bear the Bar, en yakın global muadildir. HMGS'nin ABD eşdeğeri olan bar sınavına yönelik AI-native bir platform olarak konumlanmış; her sorudan sonra AI destekli açıklama sunmakta ve adaptif öğrenme sağlamaktadır. Her sorunun hem doğru hem de yanlış seçeneklerini açıklayan AI tutor özelliği, Bear the Bar'ın en güçlü differentiator'ıdır. HMGS bağlamında en doğrudan ilham alınacak model budur.[22][23]
+Barbri / Themis / UWorld (geleneksel liderler): Barbri programları 1.999–4.199 dolar, Themis ise 1.299–2.599 dolar olup video ders + soru bankası modelindedir. Themis, 2021'de UWorld tarafından satın alınmıştır. Bu platformlar interaktif değil, pasif video tüketimine dayanmaktadır.[24][25]
+Cubby Law, Georgetown mezunu bir akademisyenin yazdığı binlerce gerçek sınav sorusu ve case brief üzerinde eğitilmiş, öğrenci başına kişiselleştirilmiş çalışma programı oluşturan bir AI öğretim asistanıdır (2025 lansmanı). ABD'deki 225 hukuk fakültesini kapsamaktadır.[26]
+CaseCub (casecub.com), 20.000'den fazla case brief, AI destekli çalışma araçları, flash kartlar ve quizler sunan bir hukuk okulu öğrenci platformudur. Deneme erişimi mevcuttur.[27][28]
+Moot Court ve Sözlü Savunma Simülasyonu
+MootQourt (mootqourt.com), avukatların ve hukuk öğrencilerinin yapay zeka hakim önünde sözlü savunma pratiği yapmasını sağlayan bir AI oral argument simülatörüdür. Brifleri yükleyip mahkeme seçerek AI hakim karşısında argüman geliştirilebilmektedir.[29]
+AdvocateGPT iMootCourt (advocategpt.ai), öğrenciler, profesyoneller ve kurumlar için AI destekli moot court ortamı simülasyonu sunmaktadır.[30]
+UBC Judicial Interrogatory Simulator (JIS), bir üniversite araştırma laboratuvarından çıkan, birinci sınıf hukuk öğrencileri için tasarlanmış web tabanlı simüle mahkeme ortamıdır. Akademik bir proje olmakla birlikte interaktif simülasyonun kanıtı niteliğindedir.[31]
+Küresel Rakip Özet Tablosu
+Platform
+Pazar
+Model
+LawKit'e Göre Boşluk
+Bear the Bar
+ABD bar sınavı
+AI tutored practice questions
+Türk hukuku yok, case-based değil
+Cubby Law
+ABD hukuk fakülteleri
+AI öğretim asistanı
+Türk mevzuatı yok
+CaseCub
+ABD hukuk fakülteleri
+Case brief + quiz
+Türkiye'ye uyarlama yok
+MootQourt
+Global
+Sözlü argümantasyon sim.
+Türkçe yok, staj simülasyonu yok
+Barbri/Themis
+ABD bar
+Video + soru bankası
+Pasif, gamification yok
+Legora Scholars
+Global
+AI hukuk aracı (öğrenci)
+Pratik hukuk yok, HMGS yok
+Hubox/AristoHocam
+Türkiye
+Pasif video/içerik
+AI, gamification, case-based yok
+--------------------------------------------------------------------------------
+5. Gamification Araştırması: Kanıta Dayalı Gerekçe
+Hukuk eğitiminde gamification uygulamalarını inceleyen ve Scopus/Web of Science'tan 27 makaleyi analiz eden kapsamlı bir literatür taramasına göre, gamification öğrenci motivasyonunu, kavrayışını ve beceri kalıcılığını anlamlı biçimde iyileştirmekte; çalışmalar genelinde ortalama %20 engagement artışı raporlanmaktadır. Araştırmalar, gamified ve interaktif öğretim yöntemlerinin hukuk öğrencilerinde hem analitik düşünce hem de pratik becerileri geliştirdiğini göstermektedir. Learning streak mekanizması, kontrol grubuna kıyasla +%19,41 retention farkı yaratmaktadır.[32][33][34]
+AI ve insan öğretimini birleştiren hibrit modellerin hukuk eğitimindeki potansiyeli konusunda akademik çalışmalar artmaktadır. Yapay zekanın sağladığı immersive simülasyonlar ve sanal mahkeme ortamları, klinik hukuk eğitiminin kaynak kısıtlarını ve mentor eksikliğini giderme kapasitesine sahiptir.[35][36]
+--------------------------------------------------------------------------------
+6. LawKit'in Rekabetçi Konumlandırması
+Temel Differentiator'lar
+LawKit'i global ve yerel rakiplerinden ayıran üç katman bulunmaktadır:
+Katman 1 — İçerik Özgünlüğü: Türk hukuk mevzuatına, HMGS formatına ve avukatlık stajı pratiklerine özgü case içerikleri. AristoHocam'ın soru bankası ve video içeriği bunu karşılıyor; ancak gerçek hayat senaryosu ve AI simülasyonu sunmuyor.[18][16]
+Katman 2 — Öğrenme Deneyimi: Case-based + AI guided + gamified döngüsü. Soru-cevap formatının ötesinde, öğrencinin müvekkil, hakim veya savcı senaryosunda aktif karar verdiği ve AI'ın geri bildirim verdiği bir öğrenme yapısı. Bu modeli küresel rakipler henüz HMGS için uyarlamamıştır.
+Katman 3 — Kariyer Sürekliliği: HMGS hazırlığından staj dönemine ve erken kariyer branşlaşmasına uzanan tek platform. AristoHocam sınavda bitiyor; LawKit öğrenciyle birlikte büyüyor.
+Tehditlerin Gerçekçi Değerlendirmesi
+AristoHocam'ın içerik genişliği (72 akademisyen, 12.277 soru) kopyalanması zor bir bariyer oluşturmaktadır. Ancak bu rakip tek seferlik satış modelindedir ve "öğrenme deneyimi" kategorisine girmeye isteksizdir — bu da LawKit için abonelik modeliyle sürekliliği tasarlamanın mantığını güçlendirmektedir. AristoHocam bir "kurs seti" olarak konumlanmıştır; LawKit ise "pratik avukat eğitmeni" kimliğiyle rakip değil tamamlayıcı konumuna girebilir.[18]
+--------------------------------------------------------------------------------
+7. GitHub Proje Kurgusu
+Repo Mimarisi
+Solo ya da küçük ekipli bir MVP geliştirme için en sağlıklı yapı, monorepo temelli hibrit bir kurgudur. Monorepo, kod paylaşımını ve bağımlılık yönetimini basitleştirirken ekip sınırları ve sürüm döngüleri ile hizalanmış bir organizasyon gerektirmektedir.[37][38]
+Önerilen Repo Yapısı:
+lawkit/                          ← Private monorepo
+├── README.md                    ← Vizyon, stack, hedef kitle
+├── CONTRIBUTING.md              ← Case içerik katkı rehberi
+├── ROADMAP.md                   ← Fazlar ve milestones
+├── .github/
+│   ├── workflows/               ← CI/CD (vercel preview, test)
+│   └── ISSUE_TEMPLATE/
+├── apps/
+│   ├── web/                     ← Next.js 14 App Router (frontend)
+│   └── api/                     ← FastAPI veya Node.js/Hono (backend)
+├── packages/
+│   ├── ai-engine/               ← OpenAI/Claude prompt zinciri
+│   ├── case-runner/             ← Case akışı motoru (state machine)
+│   └── ui/                      ← Shared component library
+└── content/
+    ├── schema/                  ← Case JSON/YAML şema tanımları
+    └── hmgs/
+        ├── anayasa-hukuku/
+        ├── ceza-hukuku/
+        └── medeni-hukuk/
+Ek Repo Önerisi (ayrı, public):
+lawkit-docs/                     ← Public
+├── content-spec.md              ← Nasıl case yazılır?
+└── sample-cases/                ← Örnek açık içerik şablonları
+Eğer topluluk katkısı isteniyorsa yalnızca lawkit-docs ve sample-cases klasörü public tutulmalı; AI prompt yapılandırmaları, case veritabanı ve backend kodu private kalmalıdır.[37]
+Branching Stratejisi
+Trunk-based development (main → feature branches → PR → merge) küçük ekipler için optimize edilmiştir. content/ dizini için ayrı bir content-review branch koruması, hukuk uzmanı incelemesini zorunlu kılabilir.[38]
+Önerilen Tech Stack
+Katman
+Araç
+Gerekçe
+Frontend
+Next.js 14 + TypeScript
+SSR/SSG, App Router, Vercel uyumlu
+Backend
+FastAPI (Python)
+AI entegrasyonu, hızlı prototipleme
+Veritabanı
+Supabase (PostgreSQL)
+Auth + Realtime + Row Level Security
+AI
+OpenAI GPT-4o / Claude 3.5
+Case feedback, mentor karakter
+Ödeme
+Stripe + iyzico
+Türkiye için iyzico zorunlu
+Deployment
+Vercel (web) + Railway (API)
+Düşük maliyet, kolay CI/CD
+Monorepo
+Turborepo
+Build cache, parallel tasks
+--------------------------------------------------------------------------------
+8. Ürün Modülü Mimarisi
+Önerilen 5 Modül
+Modül 1 — HMGS Arena: 25 hukuk dalından case-based sorular, timed mock sınavlar, AI destekli yanlış analizi ve kişiselleştirilmiş çalışma planı. Bu modül platformun kapısıdır; en geniş kitleye hitap eder ve freemium kancası olarak çalışır.
+Modül 2 — Staj Simülatörü: Müvekkil ilk görüşmesi, dilekçe taslağı yazımı, karşı taraf itirazına yanıt gibi gerçek staj senaryoları. AI hem müvekkil hem hakim rolü oynarken öğrenci avukat olarak yanıt verir. Duygusal bağ açısından en güçlü modül; global rakiplerde bu format Türk hukuku için mevcut değildir.[31][29]
+Modül 3 — Branş Akademisi: HMGS sonrası uzmanlaşma dönemi için ceza, aile, ticaret, iş hukuku ileri seviye case kütüphanesi. Mezuniyet sonrası kullanım anlamına geldiğinden churn'ü düşürür ve LTV'yi artırır.
+Modül 4 — Duruşma Sahnesi: AI hakim önünde sözlü savunma pratiği; voice input veya metin bazlı. MootQourt'un global deneyiminden ilham alınmış ancak Türk yargı terminolojisi ve usul hukukuna özgü bir yapı.[29]
+Modül 5 — Portfolyo & Dijital Karne: Tamamlanan her case ve dilekçe, paylaşılabilir bir dijital portfolyoya eklenir. Staj başvurularında kanıt işlevi görür; viral loop yaratır.
+Hakim/Savcı Yoluna Genişleme: Karar Çerçevesi
+Hakim ve savcı adaylığı, HMGS'den sonra Adalet Bakanlığı'nın ayrı sınavıyla (Adli/İdari Hakimlik) devam etmektedir. Bu segment farklı bir hazırlık psikolojisi ve içerik kümesi gerektirmektedir. Aşağıdaki eşiklere ulaşılmadıkça ayrı uygulama ya da sub-brand'e geçilmemesi önerilir:[2]
+Kriter
+Karar
+Avukat modüllerinde 500+ aktif kullanıcı
+Hakim/Savcı modülünü değerlendirmeye başla
+Hakim/Savcı segmentinden ayrı waitlist talebi
+"LawKit Yargı" sub-brand beta listesi aç
+İçerik ekibinde 3+ kişi
+Ayrı uygulama mimari olarak mantıklı hale gelir
+--------------------------------------------------------------------------------
+9. Abonelik ve Fiyatlandırma Stratejisi
+Benchmark Analizi
+AristoHocam HMGS paketi 8.990 TL tek seferlik (liste fiyatı 12.240 TL) olarak fiyatlandırılmıştır. Bu model, öğrencinin bir kez para ödeyip platform bağlılığının koptuğu bir yapıdır. Hubox, aylık 9 TL öğrenci aboneliği ile düşük bir giriş noktası denemiş ancak içerik derinliğinden yoksun kalmıştır. ABD'de Barbri/Themis 1.299–4.199 dolar bandında tek seferlik satmakta; Bear the Bar aylık abonelik modeline yönelmiştir.[17][22][24][19]
+LawKit Önerilen Fiyat Katmanları
+Tier
+Fiyat
+İçerik
+Hedef
+Free
+₺0
+5 case/ay, 10 soru/gün, temel HMGS analitik
+Waitlist → dönüşüm
+Aktif
+₺199/ay
+Sınırsız case, AI geri bildirimi, progress tracking
+Ana segment
+Pro
+₺349/ay
+Aktif + mock HMGS, study plan, Staj Simülatörü
+Yoğun hazırlık
+Yıllık Pro
+₺2.490/yıl (~₺208/ay)
+%40 indirim, tüm modüller
+LTV maksimizasyonu
+B2B Kurumsal
+Görüşme
+Fakülte/Baro lisansı, öğretim görevlisi paneli
+Kurumsal satış
+Önemli Not: AristoHocam'ın 8.990 TL tek seferlik fiyatı, aylık ₺199 Pro aboneliğin yaklaşık 45 ay karşılığıdır. Bununla birlikte LawKit, AristoHocam'ın sağlamadığı üç değer unsunu sunmaktadır: AI geri bildirimi, interaktif simülasyon ve staj dönemine taşınan portfolyo. Bu farklılaşma, ödeme istekliliğini artıracak temel etkendir.
+--------------------------------------------------------------------------------
+10. Go-to-Market Stratejisi
+Faz 1 — Validation (1–2 ay)
+GitHub'da monorepo açmak, README'ye vizyon yazmak ve 10–15 hukuk öğrencisiyle User Research görüşmesi yapmak ilk adımlardır. Tally veya Typeform üzerinde bir waitlist landing page kurulmalı; hedef 200+ kayıt olmalıdır. HMGS'nin %70 başarısızlık anlatısı, lansman mesajını organik olarak yazıyor: "Her 10 mezundan 7'si engelleniyor. Sen 3'te olmalısın."
+Faz 2 — MVP (2–3 ay)
+3 hukuk dalında (Ceza, Medeni, İdare) 20 case içeriği üretilmeli; AI guided soru-cevap akışı ve temel kullanıcı hesabı + tek ücretli tier ile lansman yapılmalıdır. Müfredat kalitesi için hukuk fakültelerindeki araştırma görevlileriyle içerik ortaklığı kurulması, hem ölçek hem güvenilirlik sağlar.
+Faz 3 — Growth
+Haftalık "Vaka Challenge" mekanizması (tüm kullanıcılar aynı vakayla karşılaşır, leaderboard sıfırlanır) hem community hem retention aracı olarak çalışır. Öğrencilerin LinkedIn'de paylaştığı dijital portfolyo, viral loop yaratır. B2B satış döngüsünün başlatılması için hukuk fakülteleri ve barolarla görüşme başlatılmalıdır.
+Acquisition Kanalları
+Birincil: TikTok ve Instagram (#HMGS, #avukatlık, #hukuköğrencisi içerikleri) — içerik pazarlaması
+İkincil: Hukuk öğrencisi WhatsApp/Discord grupları
+Organik: HMGS sonuç açıklanma günleri — sosyal medyada doğal dalga
+--------------------------------------------------------------------------------
+11. Risk ve Azaltma Stratejileri
+Risk
+Olasılık
+Etki
+Azaltma
+AristoHocam benzer ürün çıkarır
+Orta
+Yüksek
+Gamification + AI deneyimi hızla klonlanamaz; marka güveni kritik
+AI hallucination (hatalı hukuki bilgi)
+Yüksek
+Çok Yüksek
+Her case için hukuk uzmanı onayı; AI "üret değil, kılavuzla" rolünde kullanılır
+Aboneliğe Türkiye direnci
+Orta
+Orta
+Güçlü freemium + sınav dönemi öncesi fiyat artışı stratejisi
+HMGS formatı değişir
+Düşük
+Orta
+Modüler içerik mimarisi; branş akademisi HMGS'ye bağımlı değil
+Devlet (TAA) ücretsiz platform güçlendirir
+Düşük
+Orta
+TAA pasif içerik, LawKit interaktif deneyim — tamamlayıcı konumlanma
+--------------------------------------------------------------------------------
+12. Sonuç ve Öncelikli Eylemler
+LawKit, tam zamanında ve gerçek bir pazar ihtiyacına yanıt veren bir fikirdir. HMGS'nin kümülatif %30 başarı oranı, Türkiye'nin 2,2 milyar dolarlık EdTech pazarı ve küresel hukuk EdTech'te case-based AI platformların yükselişi, fikrin üç bağımsız kaynaktan doğrulandığı anlamına gelmektedir.[13][22][26][1]
+Öncelikli üç eylem şöyle sıralanabilir: (1) GitHub'da private monorepo açmak ve README'ye vizyon + tech stack yazmak; (2) 10–15 hukuk öğrencisiyle user interview yaparak "en çok neye para öderdin?" sorusunun yanıtını veriye dönüştürmek; (3) waitlist landing page'i kurup HMGS anlatısıyla organik içerik üretmeye başlamak. Lansman mesajı hazırdır: 22.004 başarısız aday, platforma bekleyen bir kalabalıktır.[1]

@@ -1,0 +1,61 @@
+{
+  "$schema": "../schemas/eval.schema.json",
+  "caseId": "is_hukuku_001",
+  "version": "1.0.0",
+  "description": "AI Auditor regression tests. Her senaryo bir kullanıcı yolu + beklenen ledger/verdict/Auditor durumu tanımlar.",
+  "scenarios": [
+    {
+      "name": "Doğru yol — full mark",
+      "path": [
+        { "type": "pick", "node": "n1", "optionId": "a" },
+        { "type": "advance" },
+        { "type": "pick", "node": "n2", "optionId": "a" },
+        { "type": "advance" }
+      ],
+      "expect": {
+        "currentNode": "n3",
+        "done": true,
+        "ledger": {
+          "mesele": { "min": 3, "max": 3 },
+          "usul": { "min": 4, "max": 4 },
+          "risk": { "min": 3, "max": 3 }
+        }
+      }
+    },
+    {
+      "name": "Hint ceiling — hint k3 sonrası mesele tavanı 2",
+      "path": [
+        { "type": "open-hint", "node": "n1", "rung": 3 },
+        { "type": "pick", "node": "n1", "optionId": "a" },
+        { "type": "advance" },
+        { "type": "pick", "node": "n2", "optionId": "a" },
+        { "type": "advance" }
+      ],
+      "expect": {
+        "currentNode": "n3",
+        "done": true,
+        "ledger": {
+          "mesele": { "min": 2, "max": 2 },
+          "usul": { "min": 2, "max": 2, "note": "n1 rubricTargets içinde olduğu için 2'ye düştü" }
+        }
+      }
+    },
+    {
+      "name": "Yanlış usul — verdict bad",
+      "path": [
+        { "type": "pick", "node": "n1", "optionId": "c" },
+        { "type": "advance" },
+        { "type": "pick", "node": "n2", "optionId": "b" },
+        { "type": "advance" }
+      ],
+      "expect": {
+        "currentNode": "n3",
+        "done": true,
+        "ledger": {
+          "mesele": { "min": 1, "max": 1 },
+          "usul": { "min": 0, "max": 0 }
+        }
+      }
+    }
+  ]
+}

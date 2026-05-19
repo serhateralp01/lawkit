@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LawKit Legal Source",
+  "type": "object",
+  "required": ["id", "kind", "shortTitle", "body"],
+  "properties": {
+    "id": { "type": "string" },
+    "kind": { "type": "string", "enum": ["kanun", "ictihat", "doktrin", "yonetmelik"] },
+    "shortTitle": { "type": "string" },
+    "fullTitle": { "type": "string" },
+    "body": { "type": "string" },
+    "url": { "type": "string", "format": "uri" },
+    "verifiedAt": { "type": "string", "format": "date" },
+    "verifier": { "type": "string" }
+  }
+}

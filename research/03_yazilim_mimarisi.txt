@@ -1,0 +1,27 @@
+ÖNERİLER:
+Kaynaklarımızın da vurguladığı gibi, "her şeyi aynı anda yapmaya çalışmak" yerine Minimum Uygulanabilir Ürün (MVP) yaklaşımıyla, örneğin sadece "İş Mahkemeleri" veya "Borçlar Hukuku Genel Hükümler" gibi dar bir alanda, tek bir ana platform çatısı altında faz faz ilerlemek en mantıklısıdır.
+Agentic RAG, rubrikler ve B2C odaklanması konusundaki heyecanınız kesinlikle doğru yönde. Öğrencinin verdiği yanıtlara göre senaryonun şekil değiştirmesi (branching scenarios), platformu sadece bir sınav hazırlık aracı olmaktan çıkarıp bir "uçuş simülatörü" haline getirecektir.
+İstediğiniz iki ana başlık olan Yazılım Mimarisi ve Global Rakiplerden Adapte Edilecek Özellikler konusunda araştırmalara dayalı stratejik çerçeve şu şekildedir:
+1. Kapasiteyi Yormayan, Geliştirilebilir Yazılım Mimarisi Önerileri
+Küçük bir ekiple (veya tek başınıza) büyük bir sistem kuracağınız için, kaynaklar modüler bir monorepo (tek depo) mimarisini şiddetle tavsiye ediyor. Kodlar bir arada duracak ama mantıksal olarak birbirinden tamamen izole olacak.
+Klasör ve Yapı Mimarisi (Turborepo): Sisteminizi uygulama kodu, hukuki içerik ve yapay zeka davranışı olarak baştan ayırmalısınız.
+apps/ klasöründe sadece öğrencinin gördüğü arayüz (Web) ve sizin içerik girdiğiniz Admin paneli yer almalı.
+packages/ klasöründe veritabanı, yetkilendirme (auth) ve en önemlisi case-engine (vaka motoru) olmalı.
+content/ klasöründe ise sadece hukuki vakalar ve rubrikler JSON formatında durmalı. Böylece yeni bir hukuk dalı eklerken veya HMGS müfredatı değiştiğinde koda hiç dokunmadan sadece içerik klasörünü güncelleyeceksiniz.
+Teknoloji Yığını (Tech Stack):
+Frontend (Arayüz): Next.js 14 ve React. Hızlı prototipleme ve SEO/performans açısından rakipsiz.
+Backend (Arka Plan) ve AI Orkestrasyonu: Python tabanlı FastAPI. Yapay zeka servisleri ve mikro-ajanlarla (LangChain veya CrewAI kullanarak) en iyi haberleşen yapıdır.
+Veritabanı: Auth (Giriş), Realtime ve RLS (Satır Bazlı Güvenlik) özellikleri için Supabase (PostgreSQL) son derece pratiktir.
+Agentic AI Çalışma Ortamı: Arka planda asenkron görevler (örneğin öğrencinin dilekçesini okuyup rubrik puanı verme) için Redis; binlerce sayfalık içtihat ve kanun metinleri içinde AI'ın doğru hukuki maddeyi bulması için Qdrant veya Supabase içi pgvector gibi bir Vektör Veritabanı (Vector DB) kullanmalısınız.
+Katı Çıktı Kuralı (Structured Outputs): Öğrenci deneyimindeki en kritik yazılım hamlesi şudur: Yapay zekanın size serbest, uzun metinler üretmesine izin vermeyin. Prompt mühendisliğinde AI'ı sadece JSON şeması üretmeye zorlayın. Hangi maddede hata yapıldığı, rubrik skoru ve bir sonraki sorunun ne olacağı (branching) her zaman yapılandırılmış bir obje olarak dönmeli. Bu, halüsinasyonu (yanlış kanun uydurmayı) önlemenin en teknik ve temiz yoludur.
+2. Bear the Bar ve Quimbee'den "Kopyalanacak" Başarı Reçeteleri
+Hedefimizin Türk pazarına yepyeni bir şey icat etmek olmasına hiç gerek yok, devrimsel teknolojimizin ve fikrimizin yanı sıra özellikle bu iki devin başarısı kanıtlanmış kilit özelliklerini Türk HMGS ve stajyer pazarına klonlamak da gayet tabii iş modelimizin daha başarılı olmasına katkı sağlayacaktır.
+Bear the Bar'dan Alınacaklar (Öğrenme Deneyimi):
+Anında ve Çift Yönlü AI Açıklaması (Tutor): Bear the Bar'ın ABD pazarını sarsan en büyük gücü, öğrenci bir soruyu çözdüğünde (örneğin A şıkkını işaretlediğinde) sadece "Yanlış, cevap B" dememesidir. AI Tutor anında devreye girerek; neden seçtiği A şıkkının o olay örgüsünde hatalı olduğunu, B şıkkının neden doğru olduğunu ve C ile D şıklarının hangi durumlarda doğru sayılabileceğini açıklar. LawKit'te her vaka adımında bu "açıklayıcı rehber" olmalı.
+Abonelik Psikolojisi: Geleneksel ABD'li rakipleri (Barbri vb.) binlerce dolarlık tek seferlik satışlar yaparken, Bear the Bar doğrudan "Aylık Abonelik" modeline geçerek hem girişi kolaylaştırmış hem de sürekli gelir modeli kurmuştur.
+Adaptif Pratik: Senin de "felaaaket iyi fikir" dediğin nokta. Bear the Bar pasif video izletmez; AI'ın sürekli öğrencinin zayıf alanını tespit edip o yönde sorular/vakalar getirmesi sistemine dayanır.
+Quimbee'den Alınacaklar (Ürün Konumlandırması):
+Bütünleşik Değer (Single App, Strong Modules): Quimbee'nin harika olduğu konu "tek kapıdan girip her şeyi bulma" hissidir. Vaka özetleri, video dersler, pratik araçları ve deneme testleri ayrı ayrı ürünler değildir; hepsi tek bir abonelik altındadır.
+Parçalı Piyasayı Tekte Toplama: Türkiye'de şu an pahalı kurslar (14.000 - 47.000 TL), ucuz soru bankaları (aylık 500 TL) ve pahalı AI araçları (aylık 1.500 TL+) ayrı yerlerde duruyor. Quimbee'nin modelini Türkiye'ye uyarlayıp HMGS Arena (soru/vaka pratiği), Staj Simülatörü ve Dilekçe Lab'ı LawKit altında modüler sekmeler olarak (ama tek abonelikte) sunmak rakipleri ezip geçecek ana stratejidir.
+Özetle Yol Haritası: Yazılımda backend tarafında Python/FastAPI ile sıkı bir yapılandırılmış AI (Agentic RAG ve JSON çıktılar) kurup, frontend'i Next.js ile hızlıca ayağa kaldırmak; ürün tarafında ise Bear the Bar'ın "her adımda anında yapay zeka geri bildirimi" ile Quimbee'nin "hepsi bir arada abonelik paketi" hissini kopyalayarak lansman yapmak, mevcut boşluktaki en büyük fırsattır.
+Başka bir deyişle; ilk kullanıcılara AI hukuk asistanı ya da binlerce statik soruya sahip bir test çözme platformu asla satmayacağız, doğrudan bir "case-runner" ve öğrenme platformunun kullanım olanağını satacağız.

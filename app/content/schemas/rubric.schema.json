@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LawKit Rubric",
+  "type": "object",
+  "required": ["id", "version", "dimensions"],
+  "properties": {
+    "id": { "type": "string" },
+    "version": { "type": "string" },
+    "description": { "type": "string" },
+    "dimensions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "label", "short", "definition", "levels"],
+        "properties": {
+          "key": { "type": "string" },
+          "label": { "type": "string" },
+          "short": { "type": "string" },
+          "definition": { "type": "string" },
+          "levels": {
+            "type": "object",
+            "properties": {
+              "0": { "type": "string" },
+              "1": { "type": "string" },
+              "2": { "type": "string" },
+              "3": { "type": "string" },
+              "4": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "studentVisibleDimensions": { "type": "array", "items": { "type": "string" } }
+  }
+}
