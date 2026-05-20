@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { AlertCircle, ArrowRight, CheckCircle2, Circle, XCircle } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -11,7 +11,11 @@ import { RubricMeter } from "@/components/composite/RubricMeter";
 import { HintLadder } from "@/components/composite/HintLadder";
 import { SourceCallout } from "@/components/composite/SourceCallout";
 import { FeedbackPanel } from "@/components/composite/FeedbackPanel";
-import type { CaseOption } from "@/content/types";
+import { CaseIntro, hasSeenIntro, markIntroSeen } from "@/components/composite/CaseIntro";
+import { DialogueBubble, SceneCaption } from "@/components/composite/DialogueBubble";
+import { CharacterPortrait, roleLabel } from "@/components/composite/CharacterPortrait";
+import { FloatingScore } from "@/components/composite/FloatingScore";
+import type { CaseOption, CharacterDef, LegalCase } from "@/content/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/vaka/$caseId")({
@@ -34,6 +38,35 @@ export const Route = createFileRoute("/vaka/$caseId")({
 
 function CasePage() {
   const { case: legalCase } = Route.useLoaderData();
+
+  // Intro durumu — sadece client'ta okunur (SSR safe).
+  const [introDone, setIntroDone] = useState<boolean | null>(null);
+  useEffect(() => {
+    setIntroDone(hasSeenIntro(legalCase.id) || !legalCase.intro);
+  }, [legalCase]);
+
+  if (introDone === null) {
+    return <div className="p-12 text-center text-ink-3">Vaka yükleniyor…</div>;
+  }
+
+  if (!introDone) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-12 lg:py-16">
+        <CaseIntro
+          case={legalCase}
+          onStart={() => {
+            markIntroSeen(legalCase.id);
+            setIntroDone(true);
+          }}
+        />
+      </div>
+    );
+  }
+
+  return <CaseRunner legalCase={legalCase} />;
+}
+
+function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
   const {
     session,
     node,
@@ -46,7 +79,14 @@ function CasePage() {
     reset,
   } = useCaseSession(legalCase);
 
-  // Vaka tamamlandığında gamification'a yaz — sadece ilk seferinde.
+  // Karakter lookup'ı
+  const castById = useMemo(() => {
+    const m = new Map<string, CharacterDef>();
+    legalCase.cast?.forEach((c) => m.set(c.id, c));
+    return m;
+  }, [legalCase]);
+
+  // Gamification
   const recordedRef = useRef<string | null>(null);
   const recordAttempt = useGamificationStore((s) => s.recordAttempt);
   useEffect(() => {
@@ -55,6 +95,11 @@ function CasePage() {
       recordAttempt(session);
     }
   }, [session.done, session, recordAttempt]);
+
+  // Floating score signal — her yeni pick'te değişsin
+  const floatingSignal = chosenOption
+    ? `${node?.id}-${chosenOption.id}-${currentStep?.at}`
+    : "idle";
 
   if (!node) {
     return (
@@ -80,13 +125,29 @@ function CasePage() {
     );
   }
 
+  // Konuşan ve sahnedeki diğer karakterler
+  const speakerId = node.speakerId;
+  const speaker = speakerId ? castById.get(speakerId) : undefined;
+  const sceneOthers = (node.sceneCharacters ?? [])
+    .map((id) => castById.get(id))
+    .filter((c): c is CharacterDef => !!c && c.id !== speakerId);
+
+  // Speaker'ın mood'u verdict'e göre değişsin (sadece kararı verdikten sonra)
+  const speakerMood = chosenOption
+    ? chosenOption.verdict === "good"
+      ? "happy"
+      : chosenOption.verdict === "partial"
+        ? "tense"
+        : "sad"
+    : "thinking";
+
   return (
     <CaseScreenLayout
       case={legalCase}
       left={
         <>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-3">Olay sahnesi</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-3">Dosya özeti</p>
             <p className="mt-2 text-sm leading-relaxed text-ink-2">{legalCase.summary}</p>
           </div>
           <div>
@@ -113,69 +174,134 @@ function CasePage() {
               </ul>
             </div>
           ) : null}
+          {legalCase.cast && legalCase.cast.length > 0 ? (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-3">
+                Sahnedekiler
+              </p>
+              <ul className="mt-2 space-y-2">
+                {legalCase.cast.map((c) => (
+                  <li key={c.id} className="flex items-center gap-2">
+                    <CharacterPortrait
+                      character={c}
+                      size="sm"
+                      highlighted={c.id === speakerId}
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-semibold text-ink-1">{c.name}</p>
+                      <p className="truncate text-[10px] text-ink-3">
+                        {roleLabel(c.role)}
+                        {c.archetype ? ` · ${c.archetype}` : ""}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </>
       }
       center={
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`decision-${node.id}`}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="space-y-5"
-          >
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo">
-                Karar noktası · {node.id}
-              </p>
-              <h2 className="mt-2 font-display text-xl font-semibold text-ink-1">
-                {node.prompt}
-              </h2>
-            </div>
+        <div className="relative">
+          <FloatingScore
+            awarded={currentStep?.awarded}
+            verdict={chosenOption?.verdict}
+            signal={floatingSignal}
+          />
 
-            <ul className="space-y-2">
-              {node.options?.map((o) => (
-                <OptionRow
-                  key={o.id}
-                  option={o}
-                  picked={chosenOption?.id === o.id}
-                  disabled={!!currentStep?.chosenOptionId && chosenOption?.id !== o.id}
-                  onPick={() => pick(o)}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`scene-${node.id}`}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+              className="space-y-5"
+            >
+              {node.scene ? <SceneCaption text={node.scene} /> : null}
+
+              {/* Konuşan kişi bubble'ı */}
+              {speaker && node.prompt ? (
+                <DialogueBubble
+                  character={speaker}
+                  text={node.prompt}
+                  mood={speakerMood}
+                  emphasis
                 />
-              ))}
-            </ul>
-
-            <AnimatePresence>
-              {chosenOption?.feedback ? (
-                <motion.div
-                  key={`fb-${node.id}`}
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="space-y-3 overflow-hidden rounded-md border border-line bg-surface-sunken/40 p-4"
-                >
-                  <p className="text-sm leading-relaxed text-ink-1">
-                    <span className="font-semibold">Geri bildirim. </span>
-                    {chosenOption.feedback}
+              ) : (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo">
+                    Karar noktası · {node.id}
                   </p>
-                  {chosenOption.sources?.map((sid) =>
-                    sources[sid] ? <SourceCallout key={sid} sourceId={sid} /> : null,
-                  )}
-                  <motion.button
-                    type="button"
-                    onClick={advance}
-                    whileHover={{ x: 2 }}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-ink-1 px-4 py-2 text-xs font-bold text-surface-raised hover:bg-ink-1/90"
-                  >
-                    Sonraki adım <ArrowRight className="size-3.5" />
-                  </motion.button>
+                  <h2 className="mt-2 font-display text-xl font-semibold text-ink-1">
+                    {node.prompt}
+                  </h2>
+                </div>
+              )}
+
+              {/* Sahnedeki diğer karakterler — küçük portrait şeridi */}
+              {sceneOthers.length > 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.15 }}
+                  className="flex items-center gap-2 pl-1 text-[10px] text-ink-3"
+                >
+                  <span className="uppercase tracking-widest">Sahnede</span>
+                  {sceneOthers.map((c) => (
+                    <CharacterPortrait
+                      key={c.id}
+                      character={c}
+                      size="sm"
+                      mood={chosenOption && c.role === "muvekkil" ? speakerMood : "neutral"}
+                    />
+                  ))}
                 </motion.div>
               ) : null}
-            </AnimatePresence>
-          </motion.div>
-        </AnimatePresence>
+
+              <ul className="space-y-2 pt-1">
+                {node.options?.map((o) => (
+                  <OptionRow
+                    key={o.id}
+                    option={o}
+                    picked={chosenOption?.id === o.id}
+                    disabled={!!currentStep?.chosenOptionId && chosenOption?.id !== o.id}
+                    onPick={() => pick(o)}
+                  />
+                ))}
+              </ul>
+
+              <AnimatePresence>
+                {chosenOption?.feedback ? (
+                  <motion.div
+                    key={`fb-${node.id}`}
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="space-y-3 overflow-hidden rounded-md border border-line bg-surface-sunken/40 p-4"
+                  >
+                    <p className="text-sm leading-relaxed text-ink-1">
+                      <span className="font-semibold">Geri bildirim. </span>
+                      {chosenOption.feedback}
+                    </p>
+                    {chosenOption.sources?.map((sid) =>
+                      sources[sid] ? <SourceCallout key={sid} sourceId={sid} /> : null,
+                    )}
+                    <motion.button
+                      type="button"
+                      onClick={advance}
+                      whileHover={{ x: 2 }}
+                      className="inline-flex items-center gap-1.5 rounded-md bg-ink-1 px-4 py-2 text-xs font-bold text-surface-raised hover:bg-ink-1/90"
+                    >
+                      Sonraki sahne <ArrowRight className="size-3.5" />
+                    </motion.button>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </motion.div>
+          </AnimatePresence>
+        </div>
       }
       right={
         <>
@@ -190,14 +316,14 @@ function CasePage() {
             />
           ) : (
             <div className="rounded-md border border-line bg-surface-sunken/40 p-3 text-xs text-ink-3">
-              İpucu merdiveni: kilitli — bu adımda seçim yapıldı.
+              İpucu merdiveni: kilitli — bu sahnede seçim yapıldı.
             </div>
           )}
 
           <div className="rounded-md border border-line bg-surface-sunken/40 p-3">
             <p className="text-[10px] font-bold uppercase tracking-widest text-ink-3">İlerleme</p>
             <p className="mt-1 text-xs text-ink-2">
-              Adım {session.history.length} /{" "}
+              Sahne {session.history.length} /{" "}
               {legalCase.nodes.filter((n) => n.kind !== "outcome").length}
               {hintLevel > 0 ? ` · ipucu k.${hintLevel}` : null}
             </p>
@@ -242,8 +368,14 @@ function OptionRow({
   return (
     <motion.li
       whileHover={!disabled && !picked ? { x: 2 } : undefined}
-      animate={picked ? { scale: [1, 1.02, 1] } : { scale: 1 }}
-      transition={{ duration: 0.3 }}
+      animate={
+        picked
+          ? option.verdict === "bad"
+            ? { x: [0, -4, 4, -2, 2, 0] }
+            : { scale: [1, 1.02, 1] }
+          : { scale: 1, x: 0 }
+      }
+      transition={{ duration: 0.35 }}
     >
       <button
         type="button"
@@ -269,10 +401,6 @@ function OptionRow({
   );
 }
 
-/**
- * Mock hint provider. Aşama 3'te bu Grounded Explanation orchestrator
- * çağrısına bağlanacak; içeriği vaka editöründen veya AI'dan gelecek.
- */
 function hintForNode(_nodeId: string, branch: string) {
   if (branch === "is_hukuku") {
     return {

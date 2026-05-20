@@ -27,6 +27,46 @@ export const medeni001: LegalCase = {
     { label: "Apartman yönetim planı", ref: "Tapu Sicil — 2010 onaylı" },
     { label: "Belediye işyeri ruhsatı", ref: "08.2025 · komşu daire" },
   ],
+  cast: [
+    {
+      id: "fatma",
+      role: "muvekkil",
+      name: "Fatma Hanım",
+      archetype: "Emekli öğretmen · 12 yıldır o evde",
+      initials: "FH",
+    },
+    {
+      id: "isletmeci",
+      role: "karsi_taraf",
+      name: "Ozan Bey",
+      archetype: "Komşu kuru temizlemeci",
+      initials: "OB",
+    },
+    {
+      id: "patron",
+      role: "staj_patron",
+      name: "Av. Tülin Demir",
+      archetype: "Kıdemli avukat",
+      initials: "TD",
+    },
+  ],
+  intro: {
+    setting: "Avukatlık ofisi. Müvekkilin gözleri uykusuzluktan kızarmış.",
+    beats: [
+      {
+        speakerId: "fatma",
+        text: "Avukatım, 12 yıldır huzur içinde oturduğum dairemde uyuyamaz oldum. Yan dairemize bir kuru temizlemeci taşındı. Makineleri gece bile çalışıyor, koku evin içine giriyor.",
+      },
+      {
+        speakerId: "fatma",
+        text: "Yöneticiye söyledim, ihtar çektim, hiçbir şey değişmedi. Belediye ruhsat vermiş diyorlar. Benim de bir hakkım yok mu?",
+      },
+      {
+        speakerId: "patron",
+        text: "Belediye ruhsatı, özel hukuk komşuluk haklarını ortadan kaldırmaz. Şimdi sıra sende: doğru dayanağı bulup mahkemeye doğru kapıyı çalmak.",
+      },
+    ],
+  },
   startNode: "n1",
   nodes: [
     {
@@ -34,6 +74,10 @@ export const medeni001: LegalCase = {
       kind: "decision",
       prompt: "Müvekkilin önündeki uyuşmazlığın hukuki çerçevesi nedir?",
       rubricTargets: ["mesele", "maddi"],
+      speaker: "staj_patron",
+      speakerId: "patron",
+      sceneCharacters: ["fatma"],
+      scene: "Fatma Hanım dosyayı önüne koymuş, bekliyor.",
       options: [
         {
           id: "a",
@@ -72,6 +116,10 @@ export const medeni001: LegalCase = {
       kind: "decision",
       prompt: "Hangi talep + hangi mahkeme yolu öncelikli olmalı?",
       rubricTargets: ["usul", "gerekce"],
+      speaker: "staj_patron",
+      speakerId: "patron",
+      sceneCharacters: ["fatma"],
+      scene: "Saat geç. Patron sana baktı: 'Görevli mahkemeyi yanlış seçersen dava geri döner.'",
       options: [
         {
           id: "a",
@@ -109,6 +157,10 @@ export const medeni001: LegalCase = {
       kind: "decision",
       prompt: "İspat ve risk yönetiminde öncelikli hamlen ne olur?",
       rubricTargets: ["risk", "ifade"],
+      speaker: "staj_patron",
+      speakerId: "patron",
+      sceneCharacters: ["fatma", "isletmeci"],
+      scene: "Karşı taraf 'yerel âdete uygun' savunması yapacak. Hazırlığını ona göre kur.",
       options: [
         {
           id: "a",
@@ -137,6 +189,9 @@ export const medeni001: LegalCase = {
       id: "n4",
       kind: "outcome",
       prompt: "Strateji notu hazır.",
+      speaker: "narrator",
+      sceneCharacters: ["fatma", "patron"],
+      scene: "Fatma Hanım dosyasını topluyor, ilk kez umutlu.",
       summary:
         "Sulh Hukuk Mahkemesi'nde el atmanın önlenmesi + tazminat + ihtiyati tedbir.",
       idealAnswer:

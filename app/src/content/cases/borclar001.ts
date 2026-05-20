@@ -26,6 +26,46 @@ export const borclar001: LegalCase = {
     { label: "Banka EFT dekontu", ref: "12.04.2026" },
     { label: "Müvekkilin kredi kartı ekstresi", ref: "15.04.2026 ödeme kaydı" },
   ],
+  cast: [
+    {
+      id: "kerem",
+      role: "muvekkil",
+      name: "Kerem Bey",
+      archetype: "Esnaf · 38 yaşında",
+      initials: "KB",
+    },
+    {
+      id: "karsi",
+      role: "karsi_vekil",
+      name: "Av. Çağrı Erdem",
+      archetype: "Karşı tarafın avukatı",
+      initials: "ÇE",
+    },
+    {
+      id: "patron",
+      role: "staj_patron",
+      name: "Av. Tülin Demir",
+      archetype: "Kıdemli avukat",
+      initials: "TD",
+    },
+  ],
+  intro: {
+    setting: "Avukatlık ofisi, akşamüstü. Müvekkil endişeli görünüyor.",
+    beats: [
+      {
+        speakerId: "kerem",
+        text: "Avukatım, başıma garip bir iş geldi. Geçen hafta hesabıma 18.500 lira düştü. Açıklama yok, gönderen kişiyi tanımıyorum.",
+      },
+      {
+        speakerId: "kerem",
+        text: "Beş gün sonra adam aradı, 'yanlış kişiye gönderdim, geri ver' dedi. Ben de o parayla kredi kartı borcumu kapatmıştım. Şimdi avukatı ihtar gönderdi. Ne yapacağım?",
+      },
+      {
+        speakerId: "patron",
+        text: "Önce hukuki çerçeveyi doğru kuracağız. Yanlış teşhis koyarsan müvekkili daha kötü durumda bırakırsın.",
+      },
+    ],
+  },
   startNode: "n1",
   nodes: [
     {
@@ -34,6 +74,10 @@ export const borclar001: LegalCase = {
       prompt:
         "Gönderen kişinin avukatı yazılı talep gönderdi. Müvekkilin hukuki durumunu nasıl çerçevelersin?",
       rubricTargets: ["mesele", "maddi"],
+      speaker: "staj_patron",
+      speakerId: "patron",
+      sceneCharacters: ["kerem"],
+      scene: "Patron sana dönüyor: 'Yanlış teşhis = yanlış strateji.'",
       options: [
         {
           id: "a",
@@ -71,8 +115,12 @@ export const borclar001: LegalCase = {
       id: "n2",
       kind: "decision",
       prompt:
-        "İade kapsamı sorulduğunda hangi argümanı kurarsın?",
+        "Karşı vekil şimdi tüm parayı geri istiyor. Hangi argümanı kurarsın?",
       rubricTargets: ["maddi", "gerekce", "risk"],
+      speaker: "karsi_vekil",
+      speakerId: "karsi",
+      sceneCharacters: ["kerem", "patron"],
+      scene: "Karşı vekil masaya bir liste bıraktı: '18.500 TL, tamamı, derhal.'",
       options: [
         {
           id: "a",
@@ -112,6 +160,9 @@ export const borclar001: LegalCase = {
       id: "n3",
       kind: "outcome",
       prompt: "Strateji notu hazır.",
+      speaker: "narrator",
+      sceneCharacters: ["kerem", "patron"],
+      scene: "Müvekkil ilk kez gülümsedi — bir yol haritası var.",
       summary:
         "İyiniyetli sebepsiz zenginleşme savunması + iade kapsamı + ödeme planı önerisi.",
       idealAnswer:

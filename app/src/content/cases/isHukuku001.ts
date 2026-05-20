@@ -21,6 +21,46 @@ export const isHukuku001: LegalCase = {
     { label: "İş sözleşmesi", ref: "2018-01-15" },
     { label: "SGK hizmet dökümü", ref: "7 yıl, kesintisiz" },
   ],
+  cast: [
+    {
+      id: "ayse",
+      role: "muvekkil",
+      name: "Ayşe Hanım",
+      archetype: "Tekstil işçisi · 7 yıl kıdemli",
+      initials: "AH",
+    },
+    {
+      id: "patron",
+      role: "staj_patron",
+      name: "Av. Tülin Demir",
+      archetype: "Kıdemli avukat · seninle çalışıyor",
+      initials: "TD",
+    },
+    {
+      id: "hakim",
+      role: "hakim",
+      name: "Hâkim Yıldız",
+      archetype: "İş Mahkemesi başkanı",
+      initials: "HY",
+    },
+  ],
+  intro: {
+    setting: "Avukatlık ofisinde, Pazartesi sabahı. Kapı çalınıyor.",
+    beats: [
+      {
+        speakerId: "ayse",
+        text: "Merhaba avukatım. Adım Ayşe. 7 yıldır aynı fabrikada çalışıyordum, geçen hafta müdür beni odasına çağırdı. Tek kelimeyle, 'bugünden itibaren gelmiyorsun' dedi.",
+      },
+      {
+        speakerId: "ayse",
+        text: "Hiçbir kağıt imzalatmadılar. Üstüne son ayımın maaşı da yatmadı. Ne yapacağımı bilmiyorum, bana yardım eder misiniz?",
+      },
+      {
+        speakerId: "patron",
+        text: "Tamam, derin nefes al. Önce olguları toparlayalım, sonra hamleyi seçeceksin. Hazır mısın?",
+      },
+    ],
+  },
   startNode: "n1",
   nodes: [
     {
@@ -28,6 +68,10 @@ export const isHukuku001: LegalCase = {
       kind: "decision",
       prompt: "Müvekkili dinledin. İlk hamlen ne olmalı?",
       rubricTargets: ["mesele", "usul"],
+      speaker: "staj_patron",
+      speakerId: "patron",
+      sceneCharacters: ["ayse"],
+      scene: "Ofiste, Ayşe Hanım masanın karşısında oturuyor.",
       options: [
         {
           id: "a",
@@ -63,8 +107,12 @@ export const isHukuku001: LegalCase = {
     {
       id: "n2",
       kind: "decision",
-      prompt: "Hangi süreye dikkat etmen gerekir?",
+      prompt: "Hangi süreye dikkat etmen gerekir? Süreyi kaçırırsan müvekkilin işe iade hakkı yanar.",
       rubricTargets: ["usul", "risk"],
+      speaker: "staj_patron",
+      speakerId: "patron",
+      sceneCharacters: ["ayse"],
+      scene: "Patron seni uyarıyor; Ayşe Hanım dosyasına bakıyor.",
       options: [
         {
           id: "a",
@@ -91,6 +139,9 @@ export const isHukuku001: LegalCase = {
       id: "n3",
       kind: "outcome",
       prompt: "Strateji özeti hazır.",
+      speaker: "narrator",
+      sceneCharacters: ["ayse", "patron"],
+      scene: "Ofiste; Ayşe Hanım yüzü biraz rahatlamış.",
       summary:
         "Arabuluculuk + işe iade davası + birikmiş maaş + ihbar/kıdem tazminatı talepleri.",
       idealAnswer:
