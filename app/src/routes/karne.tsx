@@ -74,11 +74,10 @@ function KarnePage() {
             Senin Karne'n
           </p>
           <h1 className="font-display text-3xl font-semibold text-ink-1 lg:text-4xl">
-            Yetkinlik gelişimini gör
+            Nasıl gidiyorsun?
           </h1>
           <p className="max-w-2xl text-sm leading-relaxed text-ink-2">
-            Topladığın XP, ardışık günlerin, boyut bazlı ortalaman ve mastery rozetlerin.
-            Verin tarayıcında lokal tutulur — Tur 2'de hesabınla cloud'a senkronize olur.
+            Topladığın puan, üst üste girdiğin günler, becerilerinin ortalaması ve aldığın rozetler bir bakışta burada.
           </p>
         </motion.div>
 
@@ -128,7 +127,7 @@ function KarnePage() {
           >
             <header className="flex items-baseline justify-between">
               <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-ink-3">
-                Yetkinlik radarı
+                Beceri haritan
               </h2>
               <span className="text-[10px] text-ink-3">Son 10 vakanın ortalaması · 0–4</span>
             </header>
@@ -170,10 +169,10 @@ function KarnePage() {
           >
             <header>
               <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-ink-3">
-                Mastery rozetleri
+                Ustalaştığın alanlar
               </h2>
               <p className="mt-1 text-[10px] text-ink-3">
-                Bir boyutta son 3 vakada 3.5+ ortalama → rozet
+                Bir beceride son 3 vakada 3.5+ ortalama → rozet
               </p>
             </header>
             <ul className="mt-4 space-y-2">
@@ -195,7 +194,7 @@ function KarnePage() {
                       <div>
                         <p className="text-xs font-semibold text-ink-1">{d.label}</p>
                         <p className="text-[10px] text-ink-3">
-                          {avg !== undefined ? `Ort: ${avg.toFixed(2)}` : "Henüz veri yok"}
+                          {avg !== undefined ? `Ortalaman: ${avg.toFixed(2)}` : "Henüz vaka oynamadın"}
                         </p>
                       </div>
                       {mastered ? (
@@ -226,9 +225,9 @@ function KarnePage() {
         >
           <header className="mb-4 flex items-baseline justify-between">
             <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-ink-3">
-              Vaka kütüphanesi
+              Tüm vakalar
             </h2>
-            <span className="text-[10px] text-ink-3">{listCases().length} vaka</span>
+            <span className="text-[10px] text-ink-3">{listCases().length} vaka hazır</span>
           </header>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {listCases().map((c, i) => {
@@ -283,7 +282,7 @@ function KarnePage() {
         >
           <header className="mb-4">
             <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-ink-3">
-              Son denemeler
+              Son oynadıkların
             </h2>
           </header>
           {hydrated && attempts.length > 0 ? (

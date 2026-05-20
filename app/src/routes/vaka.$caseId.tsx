@@ -303,7 +303,7 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
                   ) : node.prompt ? (
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo">
-                        Karar noktası · {node.id}
+                        Sıra sende
                       </p>
                       <h2 className="mt-2 font-display text-xl font-semibold text-ink-1">
                         {node.prompt}
@@ -346,7 +346,7 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
                           whileHover={{ x: 2 }}
                           className="inline-flex items-center gap-1.5 rounded-md bg-ink-1 px-4 py-2 text-xs font-bold text-surface-raised hover:bg-ink-1/90"
                         >
-                          Sonraki sahne <ArrowRight className="size-3.5" />
+                          Devam et <ArrowRight className="size-3.5" />
                         </motion.button>
                       </motion.div>
                     ) : null}
@@ -370,23 +370,23 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
             />
           ) : (
             <div className="rounded-md border border-line bg-surface-sunken/40 p-3 text-xs text-ink-3">
-              İpucu merdiveni: kilitli — bu sahnede seçim yapıldı.
+              İpuçları bu adımda kilitli — kararını verdin.
             </div>
           )}
 
           <div className="rounded-md border border-line bg-surface-sunken/40 p-3">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-ink-3">İlerleme</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-ink-3">Nerede kaldın</p>
             <p className="mt-1 text-xs text-ink-2">
-              Sahne {session.history.length} /{" "}
+              Adım {session.history.length} /{" "}
               {legalCase.nodes.filter((n) => n.kind !== "outcome").length}
-              {hintLevel > 0 ? ` · ipucu k.${hintLevel}` : null}
+              {hintLevel > 0 ? ` · ${hintLevel} ipucu açıldı` : null}
             </p>
             <button
               type="button"
               onClick={reset}
               className="mt-2 text-[10px] font-medium uppercase tracking-widest text-ink-3 underline-offset-2 hover:underline"
             >
-              Vakayı sıfırla
+              Baştan başla
             </button>
           </div>
         </>

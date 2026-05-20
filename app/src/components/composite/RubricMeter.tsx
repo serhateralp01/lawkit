@@ -26,9 +26,9 @@ export function RubricMeter({ scores, variant = "student", className }: Props) {
     <div className={cn("space-y-3", className)}>
       <div className="flex items-baseline justify-between">
         <h4 className="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-3">
-          Rubrik · Boyut bazlı
+          Becerilerin
         </h4>
-        <span className="text-[10px] font-medium text-ink-3">/ 4</span>
+        <span className="text-[10px] font-medium text-ink-3">üst sınır 4</span>
       </div>
       <ul className="space-y-2.5">
         {dims.map((d) => {

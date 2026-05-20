@@ -47,22 +47,22 @@ export function HintLadder({
     {
       n: 1,
       icon: Lightbulb,
-      label: "Yumuşak yönlendirme",
-      cost: "Ceiling değişmez",
+      label: "Hafif ipucu",
+      cost: "Puan etkilenmez",
       body: hint.nudge,
     },
     {
       n: 2,
       icon: BookOpenCheck,
-      label: "Spesifik işaret",
-      cost: `${ceilingLabel}: tavan 3`,
+      label: "Net ipucu",
+      cost: `${ceilingLabel} puanı en fazla 3 olur`,
       body: hint.specific,
     },
     {
       n: 3,
       icon: Eye,
-      label: "Tam açıklama",
-      cost: `${ceilingLabel}: tavan 2`,
+      label: "Açık ipucu",
+      cost: `${ceilingLabel} puanı en fazla 2 olur`,
       body: hint.worked,
     },
   ] as const;
@@ -71,7 +71,7 @@ export function HintLadder({
     <div className={cn("space-y-3", className)}>
       <div className="flex items-baseline justify-between">
         <h4 className="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-3">
-          İpucu Merdiveni
+          Takıldın mı? İpucu al
         </h4>
         <span className="text-[10px] text-ink-3">Senin kararın</span>
       </div>
@@ -92,15 +92,17 @@ export function HintLadder({
                     : "border-line bg-surface-raised hover:border-indigo/40 hover:bg-indigo-soft/30",
                 )}
               >
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-start justify-between gap-3">
                   <span className="flex items-center gap-2 text-xs font-semibold text-ink-1">
                     <Icon className="size-3.5 text-indigo" />
-                    Kademe {r.n} · {r.label}
+                    {r.label}
                   </span>
-                  <span className="text-[10px] font-medium text-ink-3">{r.cost}</span>
+                  <span className="text-right text-[10px] font-medium text-ink-3 leading-tight">
+                    {r.cost}
+                  </span>
                 </div>
                 {open ? (
-                  <p className="lk-reveal mt-2 text-xs leading-relaxed text-ink-2">{r.body}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-ink-2">{r.body}</p>
                 ) : null}
               </button>
             </li>

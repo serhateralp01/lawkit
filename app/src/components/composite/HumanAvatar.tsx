@@ -1,42 +1,50 @@
 /**
- * HumanAvatar — SVG insan silüeti, yüzü blur.
+ * HumanAvatar — DiceBear illustrated karakter avatarı.
  *
  * Tasarım kararı:
- *   - Yüz detayı yok (gender/etnik bias kaçınmak için)
- *   - Kafa + omuz silüeti, role rengi gradyan wash
- *   - Yüz alanı blur filter ile yumuşatılmış → "kim olduğu önemli değil,
- *     ne dediği önemli" mesajı
- *   - 3 boyut: sm (40), md (72), lg (128)
- *   - Mood badge sağ alt — küçük renkli daire
+ *   - DiceBear "notionists-neutral" stili — minimal, profesyonel, cinsiyet/etnik
+ *     bias minimum, hukuk/iş kontekstine uygun çizim
+ *   - Avatar deterministik: seed = character.id, aynı karakter her yerde aynı görünür
+ *   - Role hue → background frame rengi (sadece çerçeve, içerik aynı)
+ *   - 3 boyut (sm/md/lg) + mood badge sağ alt
  *
- * Public API: CharacterPortrait ile uyumlu (drop-in replacement).
+ * Performans: SVG runtime'da generate edilir (`useMemo`), URL fetch yok.
  */
 
+import { useMemo } from "react";
 import { motion } from "framer-motion";
+import { createAvatar } from "@dicebear/core";
+import { notionistsNeutral } from "@dicebear/collection";
 import type { CharacterDef, CharacterMood, Speaker } from "@/content/types";
 import { cn } from "@/lib/utils";
 
 interface Props {
-  character: Pick<CharacterDef, "name" | "initials" | "hue" | "role">;
+  character: Pick<CharacterDef, "name" | "initials" | "hue" | "role" | "id"> & {
+    id?: string;
+  };
   mood?: CharacterMood;
   size?: "sm" | "md" | "lg";
   className?: string;
   highlighted?: boolean;
-  /** Bubble yönü için: sola bakar / sağa bakar (ileride pozisyon için). */
+  /** İleride sahne pozisyonu için flip (sağa/sola bakış). */
   facing?: "left" | "right";
 }
 
 const ROLE_HUE: Record<Speaker, number> = {
   narrator: 230,
-  muvekkil: 24,
-  hakim: 280,
+  muvekkil: 30,
+  hakim: 270,
   karsi_vekil: 350,
   karsi_taraf: 350,
-  staj_patron: 200,
-  katip: 140,
+  staj_patron: 210,
+  katip: 150,
 };
 
-const sizePx = { sm: 40, md: 72, lg: 128 } as const;
+const sizePx = { sm: 40, md: 64, lg: 112 } as const;
+
+function seedFor(c: Props["character"]): string {
+  return c.id ?? c.name;
+}
 
 export function HumanAvatar({
   character,
@@ -48,12 +56,22 @@ export function HumanAvatar({
 }: Props) {
   const hue = character.hue ?? ROLE_HUE[character.role] ?? 230;
   const px = sizePx[size];
-  const gradientId = `g-${character.name.replace(/\s+/g, "-")}-${size}`;
-  const blurId = `b-${character.name.replace(/\s+/g, "-")}-${size}`;
+  const seed = seedFor(character);
 
-  const baseColor = `oklch(0.62 0.14 ${hue})`;
-  const lightColor = `oklch(0.72 0.10 ${hue})`;
-  const darkColor = `oklch(0.48 0.16 ${hue})`;
+  // DiceBear SVG'yi useMemo ile cache et — render başına yeniden generate etme.
+  const svg = useMemo(
+    () =>
+      createAvatar(notionistsNeutral, {
+        seed,
+        size: px,
+        radius: 50,
+        backgroundColor: ["transparent"],
+      }).toString(),
+    [seed, px],
+  );
+
+  const frameColor = `oklch(0.92 0.05 ${hue})`;
+  const ringColor = `oklch(0.55 0.18 ${hue})`;
 
   return (
     <motion.div
@@ -62,72 +80,23 @@ export function HumanAvatar({
       animate={{ scale: highlighted ? 1.04 : 1 }}
       transition={{ duration: 0.25 }}
     >
-      <svg
-        viewBox="0 0 100 100"
-        width={px}
-        height={px}
+      <div
         className={cn(
-          "overflow-visible rounded-full shadow-sm",
-          highlighted ? "ring-2 ring-offset-2 ring-offset-paper" : "ring-1 ring-black/5",
+          "h-full w-full overflow-hidden rounded-full transition-shadow",
+          highlighted ? "ring-2 ring-offset-2 ring-offset-paper shadow-md" : "ring-1 ring-black/5",
         )}
         style={{
+          backgroundColor: frameColor,
           // @ts-expect-error custom prop
-          "--tw-ring-color": baseColor,
-          transform: facing === "left" ? "scaleX(-1)" : undefined,
+          "--tw-ring-color": ringColor,
         }}
       >
-        <defs>
-          <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor={lightColor} />
-            <stop offset="100%" stopColor={darkColor} />
-          </linearGradient>
-          <filter id={blurId} x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="2" />
-          </filter>
-        </defs>
-
-        {/* Arka dolgu — yuvarlak daire */}
-        <circle cx="50" cy="50" r="50" fill={`url(#${gradientId})`} />
-
-        {/* İnsan silüeti: omuzlar (yarım elips) + kafa (daire) — yüzü blur */}
-        <g filter={`url(#${blurId})`}>
-          {/* Omuzlar */}
-          <ellipse cx="50" cy="95" rx="42" ry="28" fill={baseColor} opacity="0.95" />
-          {/* Boyun */}
-          <rect x="42" y="55" width="16" height="20" rx="4" fill={baseColor} opacity="0.9" />
-          {/* Kafa */}
-          <circle cx="50" cy="38" r="22" fill="oklch(0.92 0.02 60)" opacity="0.85" />
-          {/* Saç (üst yarım) — role hue ile koyu */}
-          <path
-            d={[
-              "M 28 38",
-              "Q 28 16 50 16",
-              "Q 72 16 72 38",
-              "Q 72 30 65 28",
-              "Q 50 24 35 28",
-              "Q 28 30 28 38",
-              "Z",
-            ].join(" ")}
-            fill={darkColor}
-            opacity="0.7"
-          />
-          {/* Yüz detayları için çok soluk gölge — gözler/burun belirsiz */}
-          <ellipse cx="42" cy="38" rx="2" ry="1.5" fill="oklch(0.3 0.02 60)" opacity="0.35" />
-          <ellipse cx="58" cy="38" rx="2" ry="1.5" fill="oklch(0.3 0.02 60)" opacity="0.35" />
-          <ellipse cx="50" cy="48" rx="3" ry="1" fill="oklch(0.4 0.06 20)" opacity="0.4" />
-        </g>
-
-        {/* Hafif vinyet — çerçeve hissi */}
-        <circle
-          cx="50"
-          cy="50"
-          r="50"
-          fill="none"
-          stroke="oklch(0 0 0)"
-          strokeOpacity="0.04"
-          strokeWidth="1"
+        <div
+          style={{ transform: facing === "left" ? "scaleX(-1)" : undefined }}
+          className="h-full w-full"
+          dangerouslySetInnerHTML={{ __html: svg }}
         />
-      </svg>
+      </div>
 
       {/* Mood badge */}
       {mood !== "neutral" ? (
@@ -137,7 +106,7 @@ export function HumanAvatar({
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: "spring", stiffness: 320, damping: 18 }}
           className={cn(
-            "absolute -right-0.5 -bottom-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-paper text-[10px]",
+            "absolute -right-0.5 -bottom-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-paper text-[10px] font-bold",
             mood === "happy" && "bg-signal-positive text-white",
             mood === "sad" && "bg-signal-critical text-white",
             mood === "tense" && "bg-signal-warning text-ink-1",

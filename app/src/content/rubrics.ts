@@ -9,8 +9,8 @@ export const defaultRubric: Rubric = {
   dimensions: [
     {
       key: "olay",
-      label: "Olayı Anlama",
-      short: "Olgu",
+      label: "Olayı Okuma",
+      short: "Olay",
       definition: "Olgu örgüsünü doğru ve eksiksiz okuma, taraf-zaman-yer ilişkilerini kurma.",
       levels: {
         "0": "Temel olgular kaçırıldı.",
@@ -22,8 +22,8 @@ export const defaultRubric: Rubric = {
     },
     {
       key: "mesele",
-      label: "Hukuki Mesele Tespiti",
-      short: "Mesele",
+      label: "Hukuki Teşhis",
+      short: "Teşhis",
       definition: "Olayda doğan asıl ve tali hukuki meseleleri tanımlama.",
       levels: {
         "0": "Asıl mesele kaçırıldı.",
@@ -35,7 +35,7 @@ export const defaultRubric: Rubric = {
     },
     {
       key: "usul",
-      label: "Usul Hukuku",
+      label: "Usul Bilgisi",
       short: "Usul",
       definition: "Görev/yetki, dava şartları, süreler, taraf ehliyeti.",
       levels: {
@@ -48,8 +48,8 @@ export const defaultRubric: Rubric = {
     },
     {
       key: "maddi",
-      label: "Maddi Hukuk",
-      short: "Maddi",
+      label: "Hukuki Dayanak",
+      short: "Dayanak",
       definition: "Uygulanacak kanun maddesi/içtihat seçimi ve subsumption.",
       levels: {
         "0": "İlgisiz mevzuat seçildi.",
@@ -61,8 +61,8 @@ export const defaultRubric: Rubric = {
     },
     {
       key: "gerekce",
-      label: "Gerekçelendirme",
-      short: "Gerekçe",
+      label: "Mantık Zinciri",
+      short: "Mantık",
       definition: "Önermeler arası mantıksal bağ ve çıkarım kalitesi.",
       levels: {
         "0": "Çıkarım yok.",
@@ -74,7 +74,7 @@ export const defaultRubric: Rubric = {
     },
     {
       key: "risk",
-      label: "Risk Farkındalığı",
+      label: "Risk Yönetimi",
       short: "Risk",
       definition: "Müvekkilin yararı/zararı, dava sonucu belirsizliği, alternatif yollar.",
       levels: {

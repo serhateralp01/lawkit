@@ -143,7 +143,7 @@ export function OpenTextStage({ caseId, node, session, speaker, onSubmit }: Prop
             className="space-y-3 rounded-lg border border-line bg-surface-sunken/40 p-4"
           >
             <p className="text-[10px] font-bold uppercase tracking-widest text-ink-3">
-              AI Değerlendirme · Rubric
+              Cevabın değerlendirildi
             </p>
             <ul className="space-y-2">
               {result.scores.map((s) => {
@@ -195,7 +195,7 @@ export function OpenTextStage({ caseId, node, session, speaker, onSubmit }: Prop
               whileHover={{ x: 2 }}
               className="inline-flex items-center gap-1.5 rounded-md bg-ink-1 px-4 py-2 text-xs font-bold text-surface-raised hover:bg-ink-1/90"
             >
-              Sonraki sahne <ArrowRight className="size-3.5" />
+              Devam et <ArrowRight className="size-3.5" />
             </motion.button>
           </motion.div>
         ) : null}

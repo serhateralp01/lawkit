@@ -124,7 +124,7 @@ export function FeedbackPanel({
           {missedDims.length > 0 ? (
             <div className="border-t border-line pt-4">
               <p className="text-[10px] font-bold uppercase tracking-widest text-ink-3">
-                Üzerine çalış
+                Geliştirmen gereken alanlar
               </p>
               <ul className="mt-2 space-y-1.5">
                 {missedDims.map((k: RubricKey) => {
@@ -153,7 +153,7 @@ export function FeedbackPanel({
         <div className="space-y-4">
           <div className="rounded-lg border border-line bg-surface-sunken/40 p-5">
             <p className="text-[10px] font-bold uppercase tracking-widest text-ink-3">
-              {selectedOutcome ? "Worked example · doğru yol" : "İdeal cevap · worked example"}
+              Doğru cevap nasıl yazılırdı
             </p>
             <p className="mt-2 text-sm leading-relaxed text-ink-1">
               {idealAnswer}
@@ -179,7 +179,7 @@ export function FeedbackPanel({
       {/* Kararlar şeridi */}
       <div>
         <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-ink-3">
-          Kararların
+          Hangi adımda ne yaptın
         </p>
         <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {session.history.map((h, i) => {

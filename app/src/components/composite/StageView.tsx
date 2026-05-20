@@ -1,34 +1,36 @@
 /**
- * StageView — vaka sahnesinin "tartışma odası" üst kısmı.
+ * StageView — vaka sahnesi başı: sahne arka planı + konuşma kartı.
  *
- * Karakterler ekranda pozisyon alır (konuşan büyük + öne, dinleyenler küçük
- * + arkada). Sahne arka planı perde yapısına göre değişir. Bubble karakterin
- * yanında — konuşan kim, yön ona göre.
+ * Tasarım:
+ *   - Üst sol: aktif konuşmacının avatar + isim + arketip kartı
+ *   - Üst sağ: sahnedeki diğer karakterler (küçük avatar şeridi)
+ *   - Alt orta: sahne caption (italik, subtitle gibi)
+ *   - Arka plan: perde yapısına göre subtle illustration
  *
- * Bu component sadece görsel — etkileşim yok. Vaka route'unun center'ı
- * altında basit bir "sahne kart"ı olarak kullanılır.
+ * Bubble metni burada DEĞİL — vaka route'unun aşağısında orijinal bubble
+ * kalıyor. Bu component sadece "kim, nerede" sahne kurar.
  */
 
 import { motion, AnimatePresence } from "framer-motion";
 import type { CharacterDef } from "@/content/types";
-import { HumanAvatar } from "./HumanAvatar";
+import { HumanAvatar, roleLabel } from "./HumanAvatar";
 import { StageBackdrop } from "./StageBackdrop";
-import { roleLabel } from "./HumanAvatar";
 import { cn } from "@/lib/utils";
 
 interface Props {
-  /** Aktif perde — arka plan seçimi için. */
   act?: 1 | 2 | 3;
-  /** Sahnenin "ana" konuşan karakteri. Büyük ve ön planda. */
   speaker?: CharacterDef;
-  /** Sahnedeki diğer karakterler — küçük, arka planda. */
   others: CharacterDef[];
-  /** Speaker'ın mood'u — verdict sonrası reaksiyon. */
   speakerMood?: "neutral" | "happy" | "sad" | "tense" | "thinking";
-  /** Sahne açıklayıcı satır (subtitle gibi). */
   caption?: string;
   className?: string;
 }
+
+const ACT_LABEL: Record<1 | 2 | 3, string> = {
+  1: "Ofiste · ilk görüşme",
+  2: "Strateji masasında",
+  3: "Duruşma salonunda",
+};
 
 export function StageView({
   act = 1,
@@ -38,92 +40,90 @@ export function StageView({
   caption,
   className,
 }: Props) {
-  // Sahne pozisyonu kuralları:
-  //   - Speaker varsa: orta-sol veya orta-sağ (rolüne göre)
-  //   - Others: arkada, sağ-sol dağılım
-  //   - 2'den fazla kişi varsa side-pozisyon alır
-
-  const speakerSide: "left" | "right" =
-    speaker?.role === "muvekkil" || speaker?.role === "karsi_taraf" ? "left" : "right";
-
   return (
     <div
       className={cn(
-        "relative h-56 overflow-hidden rounded-xl border border-line bg-surface-sunken/20 lg:h-64",
+        "relative overflow-hidden rounded-2xl border border-line bg-surface-raised",
         className,
       )}
     >
+      {/* Arka plan illustration */}
       <StageBackdrop act={act} />
 
-      {/* Karakter katmanı */}
-      <div className="absolute inset-0 z-10">
-        {/* Arka plandaki diğer karakterler — küçük, sönük */}
-        <div className="absolute left-0 right-0 top-4 flex justify-around px-12">
-          {others.slice(0, 3).map((c, i) => (
-            <motion.div
-              key={c.id}
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 0.55, y: 0 }}
-              transition={{ delay: 0.1 + i * 0.08 }}
-              className="flex flex-col items-center gap-1"
-            >
-              <HumanAvatar character={c} size="sm" mood="neutral" />
-              <span className="rounded bg-paper/70 px-1.5 py-0.5 text-[9px] font-semibold text-ink-2 backdrop-blur-sm">
-                {c.name.split(" ")[0]}
+      {/* İçerik katmanı */}
+      <div className="relative z-10 flex flex-col gap-3 p-4 sm:p-5">
+        {/* Üst şerit: konum etiketi */}
+        <div className="flex items-center justify-between">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-paper/85 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-ink-3 backdrop-blur">
+            <span className="size-1.5 rounded-full bg-amber" />
+            {ACT_LABEL[act]}
+          </span>
+
+          {/* Sağ üst: diğer karakterler (küçük) */}
+          {others.length > 0 ? (
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-ink-3">
+                Sahnede
               </span>
-            </motion.div>
-          ))}
+              <div className="flex -space-x-2">
+                {others.slice(0, 4).map((c) => (
+                  <div key={c.id} title={`${c.name} · ${roleLabel(c.role)}`}>
+                    <HumanAvatar
+                      character={c}
+                      size="sm"
+                      mood="neutral"
+                      className="ring-2 ring-paper"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
 
-        {/* Speaker — büyük, ön, mood ile */}
+        {/* Sol: konuşmacı kartı */}
         <AnimatePresence mode="wait">
           {speaker ? (
             <motion.div
-              key={`speaker-${speaker.id}-${speakerMood}`}
-              initial={{ opacity: 0, x: speakerSide === "left" ? -40 : 40, scale: 0.9 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.45, ease: "easeOut" }}
-              className={cn(
-                "absolute bottom-3 flex items-end gap-2.5",
-                speakerSide === "left" ? "left-6" : "right-6 flex-row-reverse",
-              )}
+              key={`speaker-${speaker.id}`}
+              initial={{ opacity: 0, x: -16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 16 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+              className="flex items-center gap-3 rounded-xl bg-paper/90 p-3 backdrop-blur-sm shadow-sm ring-1 ring-line"
             >
               <HumanAvatar
                 character={speaker}
                 size="lg"
                 mood={speakerMood}
-                facing={speakerSide === "left" ? "right" : "left"}
                 highlighted
               />
-              <div
-                className={cn(
-                  "mb-2 rounded-lg bg-paper/95 px-2.5 py-1.5 text-left shadow-sm backdrop-blur-sm",
-                  speakerSide === "left" ? "text-left" : "text-right",
-                )}
-              >
-                <p className="text-xs font-display font-semibold text-ink-1">
+              <div className="min-w-0 flex-1">
+                <p className="font-display text-base font-bold text-ink-1 truncate">
                   {speaker.name}
                 </p>
-                <p className="text-[10px] font-medium uppercase tracking-widest text-ink-3">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-indigo">
                   {roleLabel(speaker.role)}
                 </p>
+                {speaker.archetype ? (
+                  <p className="text-[11px] text-ink-3 truncate">{speaker.archetype}</p>
+                ) : null}
               </div>
             </motion.div>
           ) : null}
         </AnimatePresence>
 
-        {/* Caption — alt orta */}
+        {/* Alt: caption */}
         {caption ? (
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
+          <motion.p
+            key={caption}
+            initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute bottom-1 left-1/2 -translate-x-1/2"
+            transition={{ delay: 0.15 }}
+            className="rounded-md bg-paper/80 px-3 py-2 text-center text-[11px] italic text-ink-2 backdrop-blur"
           >
-            <span className="rounded-full bg-paper/80 px-3 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-ink-3 backdrop-blur">
-              ※ {caption}
-            </span>
-          </motion.div>
+            {caption}
+          </motion.p>
         ) : null}
       </div>
     </div>
