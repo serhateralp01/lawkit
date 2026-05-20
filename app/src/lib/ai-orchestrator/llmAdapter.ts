@@ -1,14 +1,16 @@
 /**
- * OpenRouterAdapter — AIOrchestrator interface'inin canlı LLM implementasyonu.
+ * Generic LLM Adapter — OpenAI uyumlu herhangi bir provider'la çalışır.
+ *
+ * Şu an DeepSeek. Sağlayıcı değişince env değişkenleri (LLM_BASE_URL +
+ * LLM_API_KEY + LLM_MODEL) değiştirilir; bu dosyaya dokunulmaz.
  *
  * Tasarım:
- *   - OpenAI SDK + custom base URL (https://openrouter.ai/api/v1)
- *   - Yapılandırılmış çıktı: zod schema → response_format JSON (modele uygun fallback)
- *   - Auditor middleware: response'taki source claim'lerini knownSources'a karşı doğrular.
- *   - Sunucu-only: bu modül asla client'a bundle edilmemeli (api/* route'larından çağrılır).
- *
- * Model değiştirmek için: env OPENROUTER_MODEL=... ya da OPENAI'a geçişte
- * tek dosyada base URL + key swap.
+ *   - OpenAI SDK + custom base URL
+ *   - Yapılandırılmış çıktı: zod schema → response_format JSON
+ *   - Auditor middleware: source claim'lerini knownSources'a karşı doğrular
+ *   - RolePlay'de chat completion format (user/assistant rolleri net) —
+ *     bu sayede müvekkil rolündeyken model avukat gibi soru sormaz.
+ *   - Sunucu-only: bu modül asla client'a bundle edilmemeli.
  */
 
 import OpenAI from "openai";
@@ -79,29 +81,29 @@ function auditSourceRefs(refs: string[]): { kept: string[]; flagged: boolean } {
 
 /* ─────────── Adapter ─────────── */
 
-export function createOpenRouterAdapter(env: ServerEnv): AIOrchestrator {
-  if (!env.OPENROUTER_API_KEY) {
-    throw new Error("OPENROUTER_API_KEY missing — adapter cannot be initialized.");
+export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
+  if (!env.LLM_API_KEY) {
+    throw new Error("LLM_API_KEY missing — adapter cannot be initialized.");
   }
 
   const client = new OpenAI({
-    apiKey: env.OPENROUTER_API_KEY,
-    baseURL: "https://openrouter.ai/api/v1",
+    apiKey: env.LLM_API_KEY,
+    baseURL: env.LLM_BASE_URL,
     defaultHeaders: {
-      "HTTP-Referer": env.OPENROUTER_SITE_URL,
-      "X-Title": env.OPENROUTER_APP_NAME,
+      "HTTP-Referer": env.LLM_SITE_URL,
+      "X-Title": env.LLM_APP_NAME,
     },
   });
 
-  const model = env.OPENROUTER_MODEL;
+  const model = env.LLM_MODEL;
+
+  type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
 
   async function chatJson<T>(
     schema: z.ZodType<T>,
     system: string,
     user: string,
   ): Promise<T> {
-    // OpenRouter çoğu modelde response_format json_object destekler.
-    // Schema validation bizim tarafta.
     const completion = await client.chat.completions.create({
       model,
       response_format: { type: "json_object" },
@@ -112,30 +114,63 @@ export function createOpenRouterAdapter(env: ServerEnv): AIOrchestrator {
       temperature: 0.2,
     });
 
-    // OpenRouter bazen 200 ile ama choices'sız error dönebiliyor.
     if (!completion?.choices || completion.choices.length === 0) {
       const errMsg =
         (completion as unknown as { error?: { message?: string } })?.error?.message ??
-        "OpenRouter response has no choices — model may be invalid or rate-limited.";
-      throw new Error(`OpenRouter (${model}): ${errMsg}`);
+        "LLM response has no choices — model may be invalid or rate-limited.";
+      throw new Error(`LLM (${model}): ${errMsg}`);
     }
     const text = completion.choices[0]?.message?.content ?? "{}";
     let parsed: unknown;
     try {
       parsed = JSON.parse(text);
-    } catch (err) {
-      throw new Error(`OpenRouter response not valid JSON: ${text.slice(0, 200)}`);
+    } catch {
+      throw new Error(`LLM response not valid JSON: ${text.slice(0, 200)}`);
     }
     const result = schema.safeParse(parsed);
     if (!result.success) {
-      throw new Error(
-        `OpenRouter response failed schema: ${result.error.message}`,
-      );
+      throw new Error(`LLM response failed schema: ${result.error.message}`);
     }
     return result.data;
   }
 
-  function knownSourcesContext(caseId: string): string {
+  /**
+   * Multi-turn JSON chat — RolePlay için. Transcript user/assistant rolleriyle
+   * gönderilir; model rolünü karıştırmaz.
+   */
+  async function chatTurnsJson<T>(
+    schema: z.ZodType<T>,
+    system: string,
+    turns: ChatMsg[],
+  ): Promise<T> {
+    const completion = await client.chat.completions.create({
+      model,
+      response_format: { type: "json_object" },
+      messages: [{ role: "system", content: system }, ...turns],
+      temperature: 0.6, // role-play daha doğal hissi için biraz yüksek
+    });
+
+    if (!completion?.choices || completion.choices.length === 0) {
+      const errMsg =
+        (completion as unknown as { error?: { message?: string } })?.error?.message ??
+        "LLM response has no choices.";
+      throw new Error(`LLM (${model}): ${errMsg}`);
+    }
+    const text = completion.choices[0]?.message?.content ?? "{}";
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      throw new Error(`LLM response not valid JSON: ${text.slice(0, 200)}`);
+    }
+    const result = schema.safeParse(parsed);
+    if (!result.success) {
+      throw new Error(`LLM response failed schema: ${result.error.message}`);
+    }
+    return result.data;
+  }
+
+  function knownSourcesContext(_caseId: string): string {
     return Object.values(sources)
       .map((s) => `- ${s.id}: ${s.shortTitle} — ${s.body.slice(0, 220)}…`)
       .join("\n");
@@ -171,38 +206,59 @@ export function createOpenRouterAdapter(env: ServerEnv): AIOrchestrator {
     },
 
     async rolePlay(req: RolePlayRequest): Promise<RolePlayResponse> {
+      // Persona briefleri — KESİN talimat
       const personaMap: Record<typeof req.persona, string> = {
-        muvekkil:
-          "Sen müvekkilsin — hukukçu değilsin, duygusalsın, bilgin eksik olabilir. Avukatın sorularına gerçek hayattaki bir müvekkil gibi cevap ver.",
-        hakim:
-          "Sen tarafsız bir hâkimsin — usul kurallarına sıkı bağlısın, kısa ve direkt konuşursun, gerekirse meslektaşa açık uyarı yaparsın.",
-        karsi_vekil:
-          "Sen karşı tarafın vekilisin — agresif, mantık hatası bulmaya çalışan, müvekkilinin çıkarını koruyan tonda.",
-        staj_patron:
-          "Sen kıdemli avukatsın, stajyere yol gösteriyorsun — pedagojik, eleştirel ama yapıcı.",
+        muvekkil: [
+          "Sen MÜVEKKİL rolündesin — hukukçu değilsin, bir gerçek kişisin.",
+          "Avukat sana sorular sorar; sen sadece SORULANA YANIT verirsin.",
+          "ASLA avukata 'siz ne yapacaksınız', 'hangi belgeyi sunmalıyım' gibi soru SORMA.",
+          "Bilmediğin hukuki kavramları bilmiyormuş gibi konuş ('hukukunu pek bilmem ama...').",
+          "Olguları net hatırlıyorsun. Duygusal yorgun ve kırılgansın.",
+          "Avukatın sorusu muğlaksa 'tam anlamadım' diyebilirsin.",
+          "Cevapların kısa olsun (2-4 cümle). Lafı uzatma.",
+        ].join(" "),
+        hakim: [
+          "Sen HÂKİM rolündesin — tarafsız, usul kurallarına bağlı, kısa konuşur.",
+          "Sadece sana yönelen beyana cevap ver; meslektaşa profesyonel ton.",
+          "Soru sormaktan kaçınma — usuli bir soru yöneltebilirsin ama bunu hâkim olarak yapacaksın.",
+        ].join(" "),
+        karsi_vekil: [
+          "Sen KARŞI TARAFIN VEKİLİSİN — agresif, mantık hatası bulmaya çalışan.",
+          "Müvekkilinin çıkarını koruyan tonda; teknik hukuki ifadeler kullan.",
+        ].join(" "),
+        staj_patron: [
+          "Sen KIDEMLİ AVUKATSIN — pedagojik, eleştirel ama yapıcı.",
+          "Stajyere yol gösteriyorsun. Soru sorabilirsin, doğru hamleye yönlendirirsin.",
+        ].join(" "),
       };
 
       const system = [
         personaMap[req.persona],
-        "Türkçe konuş.",
-        "Cevabını JSON olarak döndür:",
-        '{"reply": "...", "observed": {"askedForFactsAbout": [], "missedKeyFacts": []}}',
-      ].join("\n");
-
-      const transcript = req.transcript
-        .map((t) => `${t.speaker === "user" ? "Avukat" : "Sen"}: ${t.text}`)
-        .join("\n");
-      const user = [
-        `Vaka: ${req.case.title}`,
+        "",
+        "TÜRKÇE konuş.",
+        "Cevabını ZORUNLU olarak şu JSON şemasıyla döndür:",
+        '{"reply": "rolündeki cevabın", "observed": {"askedForFactsAbout": [], "missedKeyFacts": []}}',
+        "observed alanı meta — sadece kullanıcının (avukatın) ne sorduğunu/atladığını işaretler, role-play'in dışı.",
+        "",
+        `Vaka bağlamı: ${req.case.title}`,
         `Özet: ${req.case.summary}`,
-        "",
-        "Önceki replikler:",
-        transcript || "(henüz konuşma yok)",
-        "",
-        `Avukatın son söylediği: ${req.userTurn}`,
       ].join("\n");
 
-      return chatJson(RolePlaySchema, system, user);
+      // Transcript'i chat completion format'ında gönder — kullanıcı = avukat,
+      // assistant = persona (sen). Böylece model rolünü karıştırmaz.
+      const turns: ChatMsg[] = [];
+      for (const t of req.transcript) {
+        turns.push({
+          role: t.speaker === "user" ? "user" : "assistant",
+          // assistant turn'leri JSON formatta dönmüş olabilir ama burada
+          // history için sadece reply'in metni gerek. Eski formattaysa
+          // direkt geçer.
+          content: t.text,
+        });
+      }
+      turns.push({ role: "user", content: req.userTurn });
+
+      return chatTurnsJson(RolePlaySchema, system, turns);
     },
 
     async assess(req: AssessmentRequest): Promise<AssessmentResponse> {

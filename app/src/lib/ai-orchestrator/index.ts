@@ -8,17 +8,19 @@
 
 export * from "./types";
 export { mockAdapter } from "./mockAdapter";
-export { createOpenRouterAdapter } from "./openrouterAdapter";
+export { createLlmAdapter } from "./llmAdapter";
 
 import { mockAdapter } from "./mockAdapter";
-import { createOpenRouterAdapter } from "./openrouterAdapter";
+import { createLlmAdapter } from "./llmAdapter";
 import { hasAiCredentials, readServerEnv } from "@/lib/env";
 import type { AIOrchestrator } from "./types";
 
-export function getOrchestrator(workerEnv?: Record<string, string | undefined>): AIOrchestrator {
+export function getOrchestrator(
+  workerEnv?: Record<string, string | undefined>,
+): AIOrchestrator {
   const env = readServerEnv(workerEnv);
   if (hasAiCredentials(env)) {
-    return createOpenRouterAdapter(env);
+    return createLlmAdapter(env);
   }
   return mockAdapter;
 }

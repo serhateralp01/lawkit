@@ -18,6 +18,7 @@ import { FloatingScore } from "@/components/composite/FloatingScore";
 import { OpenTextStage } from "@/components/composite/OpenTextStage";
 import { AiBranchStage } from "@/components/composite/AiBranchStage";
 import { ClientChatStage } from "@/components/composite/ClientChatStage";
+import { StageView } from "@/components/composite/StageView";
 import type { CaseOption, CharacterDef, LegalCase } from "@/content/types";
 import { cn } from "@/lib/utils";
 
@@ -221,6 +222,19 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
             <ActStrip acts={legalCase.acts} currentAct={node.act} />
           ) : null}
 
+          {/* Sahne görünümü — karakter pozisyon koreografisi */}
+          {(speaker || sceneOthers.length > 0) ? (
+            <div className="mb-5">
+              <StageView
+                act={node.act ?? 1}
+                speaker={speaker}
+                others={sceneOthers}
+                speakerMood={speakerMood}
+                caption={node.scene}
+              />
+            </div>
+          ) : null}
+
           <AnimatePresence mode="wait">
             <motion.div
               key={`scene-${node.id}`}
@@ -230,7 +244,7 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
               transition={{ duration: 0.35, ease: "easeOut" }}
               className="space-y-5"
             >
-              {node.scene ? <SceneCaption text={node.scene} /> : null}
+              {/* scene caption artık StageView içinde, burada yedek olarak gizli */}
 
               {/* Sahne yapısı — node tipine göre */}
               {node.kind === "open_text" ? (
@@ -295,25 +309,6 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
                         {node.prompt}
                       </h2>
                     </div>
-                  ) : null}
-
-                  {sceneOthers.length > 0 ? (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.15 }}
-                      className="flex items-center gap-2 pl-1 text-[10px] text-ink-3"
-                    >
-                      <span className="uppercase tracking-widest">Sahnede</span>
-                      {sceneOthers.map((c) => (
-                        <CharacterPortrait
-                          key={c.id}
-                          character={c}
-                          size="sm"
-                          mood={chosenOption && c.role === "muvekkil" ? speakerMood : "neutral"}
-                        />
-                      ))}
-                    </motion.div>
                   ) : null}
 
                   <ul className="space-y-2 pt-1">

@@ -1,63 +1,60 @@
 /**
  * Env okuyucu — Cloudflare Workers + Node + Vite dev üçü için.
  *
- * Worker prod'da `env` parametresi runtime'a fetch'in 2. arg'ı olarak gelir.
- * Vite dev'de process.env kullanılır.
- * TanStack Start server functions h3 event context'inden cloudflare env'e ulaşır
- * ama burada ufak bir helper yeterli; gerektiğinde caller bağlamı verir.
+ * LLM_* generic; sağlayıcı değişince URL+KEY+MODEL editlersin, kod aynı kalır.
+ * Geriye uyumluluk: eski OPENROUTER_* değişkenleri hala okunur.
  */
 
 export interface ServerEnv {
-  OPENROUTER_API_KEY: string;
-  OPENROUTER_MODEL: string;
-  OPENROUTER_SITE_URL: string;
-  OPENROUTER_APP_NAME: string;
+  LLM_API_KEY: string;
+  LLM_BASE_URL: string;
+  LLM_MODEL: string;
+  LLM_SITE_URL: string;
+  LLM_APP_NAME: string;
   SUPABASE_URL?: string;
   SUPABASE_ANON_KEY?: string;
   SUPABASE_SERVICE_ROLE_KEY?: string;
 }
 
 const DEFAULTS = {
-  OPENROUTER_MODEL: "deepseek/deepseek-chat-v3-0324:free",
-  OPENROUTER_SITE_URL: "https://lawkit.app",
-  OPENROUTER_APP_NAME: "LawKit",
+  LLM_BASE_URL: "https://api.deepseek.com",
+  LLM_MODEL: "deepseek-v4-pro",
+  LLM_SITE_URL: "https://lawkit.app",
+  LLM_APP_NAME: "LawKit",
 } as const;
 
 type EnvSource = Record<string, string | undefined>;
 
-function pick(source: EnvSource, key: string, fallback?: string): string | undefined {
-  const value = source[key];
-  return value && value.trim().length > 0 ? value : fallback;
+function pick(source: EnvSource, keys: string[], fallback?: string): string | undefined {
+  for (const k of keys) {
+    const v = source[k];
+    if (v && v.trim().length > 0) return v;
+  }
+  return fallback;
 }
 
-/**
- * Cloudflare Worker fetch handler'ının 2. parametresinden gelen env veya
- * Node/Vite ortamında process.env'i kabul eder. Birini geç — uygun olanı seçer.
- */
 export function readServerEnv(workerEnv?: EnvSource): ServerEnv {
   const source: EnvSource =
-    workerEnv ??
-    // Node/Vite dev fallback
-    (typeof process !== "undefined" ? (process.env as EnvSource) : {});
+    workerEnv ?? (typeof process !== "undefined" ? (process.env as EnvSource) : {});
 
-  const apiKey = pick(source, "OPENROUTER_API_KEY");
+  // Yeni LLM_* öncelikli; eski OPENROUTER_* fallback.
+  const apiKey = pick(source, ["LLM_API_KEY", "OPENROUTER_API_KEY"]);
   if (!apiKey) {
-    // Çağıran yer (örn. /api/ai route'u) yumuşak hata döndürmeli — burada
-    // throw etmiyoruz ki uygulama AI olmadan da render edilebilsin.
-    console.warn("[env] OPENROUTER_API_KEY tanımsız — AI uçları 503 dönecek.");
+    console.warn("[env] LLM_API_KEY tanımsız — AI uçları 503 dönecek.");
   }
 
   return {
-    OPENROUTER_API_KEY: apiKey ?? "",
-    OPENROUTER_MODEL: pick(source, "OPENROUTER_MODEL", DEFAULTS.OPENROUTER_MODEL)!,
-    OPENROUTER_SITE_URL: pick(source, "OPENROUTER_SITE_URL", DEFAULTS.OPENROUTER_SITE_URL)!,
-    OPENROUTER_APP_NAME: pick(source, "OPENROUTER_APP_NAME", DEFAULTS.OPENROUTER_APP_NAME)!,
-    SUPABASE_URL: pick(source, "SUPABASE_URL"),
-    SUPABASE_ANON_KEY: pick(source, "SUPABASE_ANON_KEY"),
-    SUPABASE_SERVICE_ROLE_KEY: pick(source, "SUPABASE_SERVICE_ROLE_KEY"),
+    LLM_API_KEY: apiKey ?? "",
+    LLM_BASE_URL: pick(source, ["LLM_BASE_URL"], DEFAULTS.LLM_BASE_URL)!,
+    LLM_MODEL: pick(source, ["LLM_MODEL", "OPENROUTER_MODEL"], DEFAULTS.LLM_MODEL)!,
+    LLM_SITE_URL: pick(source, ["LLM_SITE_URL", "OPENROUTER_SITE_URL"], DEFAULTS.LLM_SITE_URL)!,
+    LLM_APP_NAME: pick(source, ["LLM_APP_NAME", "OPENROUTER_APP_NAME"], DEFAULTS.LLM_APP_NAME)!,
+    SUPABASE_URL: pick(source, ["SUPABASE_URL"]),
+    SUPABASE_ANON_KEY: pick(source, ["SUPABASE_ANON_KEY"]),
+    SUPABASE_SERVICE_ROLE_KEY: pick(source, ["SUPABASE_SERVICE_ROLE_KEY"]),
   };
 }
 
 export function hasAiCredentials(env: ServerEnv): boolean {
-  return env.OPENROUTER_API_KEY.length > 0;
+  return env.LLM_API_KEY.length > 0;
 }
