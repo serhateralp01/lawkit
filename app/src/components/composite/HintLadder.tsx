@@ -16,6 +16,9 @@ interface Props {
   /** Hangi rubrik boyutuna ceiling cezası uygulanır */
   ceilingLabel?: string;
   className?: string;
+  /** Controlled mod: engine'e bağlandığında bu prop'lar geçer. */
+  controlledLevel?: 0 | 1 | 2 | 3;
+  onOpen?: (rung: 1 | 2 | 3) => void;
 }
 
 /**
@@ -23,9 +26,22 @@ interface Props {
  * Bilim: Vygotsky ZPD + Pea (scaffolding fading).
  * SDT: autonomy — açma kararı kullanıcıya bırakılır.
  * Her kademe açılınca rubrik tavanı düşer (öğrenciye şeffaf).
+ *
+ * Controlled (engine'e bağlı) veya uncontrolled (mini demo) çalışabilir.
  */
-export function HintLadder({ hint, ceilingLabel = "Mesele Tespiti", className }: Props) {
-  const [level, setLevel] = useState<0 | 1 | 2 | 3>(0);
+export function HintLadder({
+  hint,
+  ceilingLabel = "Mesele Tespiti",
+  className,
+  controlledLevel,
+  onOpen,
+}: Props) {
+  const [localLevel, setLocalLevel] = useState<0 | 1 | 2 | 3>(0);
+  const level = controlledLevel ?? localLevel;
+  const setLevel = (rung: 1 | 2 | 3) => {
+    if (onOpen) onOpen(rung);
+    else setLocalLevel((l) => (l >= rung ? l : rung));
+  };
 
   const rungs = [
     {
@@ -67,7 +83,7 @@ export function HintLadder({ hint, ceilingLabel = "Mesele Tespiti", className }:
             <li key={r.n}>
               <button
                 type="button"
-                onClick={() => setLevel((l) => (l >= (r.n as 1 | 2 | 3) ? l : (r.n as 1 | 2 | 3)))}
+                onClick={() => setLevel(r.n as 1 | 2 | 3)}
                 disabled={open}
                 className={cn(
                   "group w-full rounded-md border px-3 py-2.5 text-left transition-colors",

@@ -45,4 +45,26 @@ export const sources: Record<string, LegalSource> = {
     verifiedAt: "2026-01-01",
     verifier: "LawKit içerik ekibi",
   },
+  tmk_m730: {
+    id: "tmk_m730",
+    kind: "kanun",
+    shortTitle: "TMK m. 730",
+    fullTitle: "4721 sayılı Türk Medeni Kanunu — Madde 730: Mülkiyet hakkının taşkın kullanılmasının sorumluluğu",
+    body:
+      "Bir taşınmaz malikinin mülkiyet hakkını bu hakkın yasal kısıtlamalarına aykırı kullanması sonucunda zarar gören veya zarar tehlikesi ile karşılaşan kimse, durumun eski hâline getirilmesini, tehlikenin ve uğradığı zararın giderilmesini dava edebilir. Hâkim, yerel âdete uygun ve kaçınılmaz taşkınlıklardan doğan zararların uygun bir bedelle denkleştirilmesine karar verebilir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4721&MevzuatTur=1",
+    verifiedAt: "2026-01-01",
+    verifier: "LawKit içerik ekibi",
+  },
+  tmk_m737: {
+    id: "tmk_m737",
+    kind: "kanun",
+    shortTitle: "TMK m. 737",
+    fullTitle: "4721 sayılı Türk Medeni Kanunu — Madde 737: Komşu hakkı / Kullanmaya ilişkin",
+    body:
+      "Herkes, taşınmaz mülkiyetinden doğan yetkileri kullanırken ve özellikle işletme faaliyetini sürdürürken, komşularını olumsuz şekilde etkileyecek taşkınlıktan kaçınmakla yükümlüdür. Özellikle, taşınmazın durumuna, niteliğine ve yerel âdete göre komşular arasında hoş görülebilecek dereceyi aşan duman, buğu, kurum, toz, koku çıkartarak, gürültü veya sarsıntı yaparak rahatsızlık vermek yasaktır.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4721&MevzuatTur=1",
+    verifiedAt: "2026-01-01",
+    verifier: "LawKit içerik ekibi",
+  },
 };

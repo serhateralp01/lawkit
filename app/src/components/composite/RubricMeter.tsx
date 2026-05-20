@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { defaultRubric } from "@/content/rubrics";
 import type { RubricKey } from "@/content/types";
@@ -41,20 +42,26 @@ export function RubricMeter({ scores, variant = "student", className }: Props) {
               </span>
               <div className="h-1.5 overflow-hidden rounded-full bg-surface-sunken">
                 {evaluated ? (
-                  <div
-                    className="lk-fill h-full rounded-full bg-indigo"
-                    style={{ width: `${pct}%` }}
+                  <motion.div
+                    className="h-full rounded-full bg-indigo"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
                   />
                 ) : null}
               </div>
-              <span
+              <motion.span
+                key={`${d.key}-${v ?? "none"}`}
+                initial={{ scale: 1.4, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
                 className={cn(
                   "text-right text-[11px] tabular-nums",
                   evaluated ? "font-semibold text-ink-1" : "text-ink-3",
                 )}
               >
                 {evaluated ? v : "—"}
-              </span>
+              </motion.span>
             </li>
           );
         })}

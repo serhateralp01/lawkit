@@ -17,6 +17,7 @@
 export { createContext, startSession, step, applyStep } from "./engine";
 export { awardForChoice, ceilingFor, mergeLedger, ledgerPercentages } from "./scoring";
 export { validateCase } from "./validate";
+export { useCaseSession } from "./useCaseSession";
 export type {
   CaseSession,
   StepEvent,

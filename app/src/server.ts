@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { handleAi } from "./lib/api/handlers";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -69,6 +70,18 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+
+      // /api/ai/* — AI orchestrator uçları. Cloudflare Worker env'i ile çalışır,
+      // Vite dev'de process.env fallback'i kullanılır.
+      if (url.pathname.startsWith("/api/ai/")) {
+        const workerEnv =
+          env && typeof env === "object"
+            ? (env as Record<string, string | undefined>)
+            : undefined;
+        return handleAi(request, workerEnv, url.pathname);
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

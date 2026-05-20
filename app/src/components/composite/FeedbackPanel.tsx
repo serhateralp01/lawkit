@@ -6,6 +6,7 @@ import type { CaseNode, LegalCase, RubricKey } from "@/content/types";
 import type { CaseSession } from "@/lib/case-engine";
 import { RubricMeter } from "./RubricMeter";
 import { SourceCallout } from "./SourceCallout";
+import { AiTutor } from "./AiTutor";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -113,6 +114,12 @@ export function FeedbackPanel({
               )}
             </div>
           ) : null}
+
+          <AiTutor
+            caseId={legalCase.id}
+            session={session}
+            defaultTopic={`${legalCase.title} — kararlarımdaki kritik noktaları açıkla.`}
+          />
         </div>
       </div>
 

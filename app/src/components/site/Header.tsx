@@ -6,6 +6,7 @@ const navLinks = [
   { to: "/urun/case-studio", label: "Case Studio" },
   { to: "/urun/hmgs-arena", label: "HMGS Arena" },
   { to: "/urun/dilekce-lab", label: "Dilekçe Lab" },
+  { to: "/karne", label: "Karne" },
   { to: "/metodoloji", label: "Metodoloji" },
   { to: "/fiyatlandirma", label: "Fiyat" },
 ] as const;

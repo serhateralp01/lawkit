@@ -57,7 +57,7 @@ export interface CaseNode {
 export interface LegalCase {
   id: string;
   title: string;
-  branch: "is_hukuku" | "borclar" | "medeni_usul" | "ceza" | "idare" | "ticaret";
+  branch: "is_hukuku" | "borclar" | "medeni" | "medeni_usul" | "ceza" | "idare" | "ticaret";
   difficulty: 1 | 2 | 3 | 4;
   estimatedMinutes: number;
   rubricId: string;

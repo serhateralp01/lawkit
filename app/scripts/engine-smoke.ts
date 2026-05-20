@@ -10,6 +10,7 @@
 
 import { isHukuku001 } from "../src/content/cases/isHukuku001";
 import { borclar001 } from "../src/content/cases/borclar001";
+import { medeni001 } from "../src/content/cases/medeni001";
 import {
   applyStep,
   createContext,
@@ -33,7 +34,7 @@ console.log("\nLawKit engine smoke");
 console.log("─────────────────────");
 
 // Validation
-for (const c of [isHukuku001, borclar001]) {
+for (const c of [isHukuku001, borclar001, medeni001]) {
   const v = validateCase(c);
   run(`validate(${c.id}) → ok=${v.ok}, issues=${v.issues.length}`, v.ok);
 }
@@ -77,6 +78,24 @@ for (const c of [isHukuku001, borclar001]) {
   s = applyStep(ctx, s, { type: "advance" });
   run(`borclar_001 happy: done=${s.done}`, s.done);
   run(`borclar_001 ledger.maddi=${s.ledger.maddi}`, s.ledger.maddi === 4);
+}
+
+// Medeni happy
+{
+  const ctx = createContext(medeni001);
+  let s = startSession(medeni001);
+  const n1 = ctx.resolveNode("n1")!;
+  s = applyStep(ctx, s, { type: "pick", option: findOption(n1, "a") });
+  s = applyStep(ctx, s, { type: "advance" });
+  const n2 = ctx.resolveNode("n2")!;
+  s = applyStep(ctx, s, { type: "pick", option: findOption(n2, "a") });
+  s = applyStep(ctx, s, { type: "advance" });
+  const n3 = ctx.resolveNode("n3")!;
+  s = applyStep(ctx, s, { type: "pick", option: findOption(n3, "a") });
+  s = applyStep(ctx, s, { type: "advance" });
+  run(`medeni_001 happy: done=${s.done}`, s.done);
+  run(`medeni_001 ledger.maddi=${s.ledger.maddi}`, s.ledger.maddi === 4);
+  run(`medeni_001 ledger.usul=${s.ledger.usul}`, s.ledger.usul === 4);
 }
 
 console.log("─────────────────────\n");
