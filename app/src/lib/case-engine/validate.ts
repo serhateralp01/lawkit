@@ -81,9 +81,26 @@ export function validateCase(c: LegalCase): ValidationReport {
   }
   if (!hasOutcome) issues.push({ code: "no-outcome" });
 
-  // Reachability + cycle (DFS)
+  // Reachability + cycle (DFS) — yeni node tiplerinin de next'lerini takip et
   const visited = new Set<string>();
   const stack = new Set<string>();
+  function nextIds(id: string): string[] {
+    const n = nodes.get(id);
+    if (!n) return [];
+    const ids: string[] = [];
+    if (n.options) for (const o of n.options) ids.push(o.next);
+    if (n.kind === "open_text" && n.openText) ids.push(n.openText.next);
+    if (n.kind === "ai_branch" && n.aiBranch) {
+      for (const b of n.aiBranch.branches) ids.push(b.nodeId);
+      ids.push(n.aiBranch.fallbackNodeId);
+    }
+    if (n.kind === "client_chat" && n.clientChat) ids.push(n.clientChat.next);
+    if (n.kind === "checkpoint" && n.checkpoint) {
+      for (const b of n.checkpoint.branches) ids.push(b.nodeId);
+      ids.push(n.checkpoint.fallbackNodeId);
+    }
+    return ids;
+  }
   function visit(id: string): boolean {
     if (stack.has(id)) {
       issues.push({ code: "cycle", nodeId: id });
@@ -92,12 +109,39 @@ export function validateCase(c: LegalCase): ValidationReport {
     if (visited.has(id)) return true;
     visited.add(id);
     stack.add(id);
-    const n = nodes.get(id);
-    if (n?.options) for (const o of n.options) visit(o.next);
+    for (const next of nextIds(id)) visit(next);
     stack.delete(id);
     return true;
   }
   visit(c.startNode);
+
+  // Bad-next: yeni node tiplerinin referansları geçerli mi
+  for (const n of c.nodes) {
+    const refs: { ref: string; via: string }[] = [];
+    if (n.kind === "open_text" && n.openText)
+      refs.push({ ref: n.openText.next, via: "open_text.next" });
+    if (n.kind === "ai_branch" && n.aiBranch) {
+      for (const b of n.aiBranch.branches) refs.push({ ref: b.nodeId, via: `ai_branch:${b.label}` });
+      refs.push({ ref: n.aiBranch.fallbackNodeId, via: "ai_branch.fallback" });
+    }
+    if (n.kind === "client_chat" && n.clientChat)
+      refs.push({ ref: n.clientChat.next, via: "client_chat.next" });
+    if (n.kind === "checkpoint" && n.checkpoint) {
+      for (const b of n.checkpoint.branches)
+        refs.push({ ref: b.nodeId, via: "checkpoint.branch" });
+      refs.push({ ref: n.checkpoint.fallbackNodeId, via: "checkpoint.fallback" });
+    }
+    for (const r of refs) {
+      if (!nodes.has(r.ref)) {
+        issues.push({
+          code: "bad-next",
+          nodeId: n.id,
+          optionId: r.via,
+          next: r.ref,
+        });
+      }
+    }
+  }
 
   for (const n of c.nodes) {
     if (!visited.has(n.id)) issues.push({ code: "unreachable", nodeId: n.id });

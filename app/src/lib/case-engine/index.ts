@@ -14,7 +14,14 @@
  * Engine asla render yapmaz, ağ erişmez. React hook'u dışarıda yazılır.
  */
 
-export { createContext, startSession, step, applyStep } from "./engine";
+export {
+  createContext,
+  startSession,
+  step,
+  applyStep,
+  selectOutcome,
+  matchesCondition,
+} from "./engine";
 export { awardForChoice, ceilingFor, mergeLedger, ledgerPercentages } from "./scoring";
 export { validateCase } from "./validate";
 export { useCaseSession } from "./useCaseSession";

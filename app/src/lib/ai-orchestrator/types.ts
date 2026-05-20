@@ -91,13 +91,47 @@ export interface AssessmentResponse {
   flaggedForReview: boolean;
 }
 
+/* ─────────────── AI Branch ─────────────── */
+
+export interface AiBranchRequest {
+  case: LegalCase;
+  session: CaseSession;
+  /** Öğrencinin serbest cevabı. */
+  userText: string;
+  /** Sahne içeriği — "Karşı vekil: müvekkilim haklı sebeple feshetti diyor." */
+  context: string;
+  /** AI'ın seçebileceği geçerli node id listesi + her birinin kısa açıklaması. */
+  candidates: {
+    nodeId: string;
+    label: string;
+    hint?: string;
+    verdict: "good" | "partial" | "bad";
+  }[];
+  /** Tüm dallar AI başarısız olursa düşülecek. */
+  fallbackNodeId: string;
+  /** Puanlanacak rubric boyutları (opsiyonel). */
+  scoreDimensions?: RubricKey[];
+}
+
+export interface AiBranchResponse {
+  /** Seçilen node id (auditor doğrulandı). */
+  chosenNodeId: string;
+  /** Bu seçimi neden yaptın. */
+  reason: string;
+  /** AI'ın tavsiye ettiği rubric puanları. */
+  scoreHint?: Partial<Record<RubricKey, number>>;
+  /** Bu dalın verdict'i. */
+  verdict: "good" | "partial" | "bad";
+  /** Auditor reddetti mi. */
+  flaggedForReview: boolean;
+}
+
 /* ─────────────── Adapter ─────────────── */
 
 /**
- * Tek arayüz, üç rol. Implementasyonlar:
+ * Tek arayüz, dört rol. Implementasyonlar:
  *   - MockAdapter (bu repo, demo/test için)
- *   - OpenAIAdapter (Aşama 3, gerçek API)
- *   - AnthropicAdapter (alternatif)
+ *   - OpenRouterAdapter (canlı LLM)
  *
  * Her implementasyon Auditor middleware'i kendi içinde çağırır.
  * Çıktı flaggedForReview=true ise UI sadece "denetimde" yazar.
@@ -106,6 +140,7 @@ export interface AIOrchestrator {
   ground(req: GroundedRequest): Promise<GroundedResponse>;
   rolePlay(req: RolePlayRequest): Promise<RolePlayResponse>;
   assess(req: AssessmentRequest): Promise<AssessmentResponse>;
+  branch(req: AiBranchRequest): Promise<AiBranchResponse>;
 }
 
 /* ─────────────── Auditor ─────────────── */

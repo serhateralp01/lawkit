@@ -15,6 +15,9 @@ import { CaseIntro, hasSeenIntro, markIntroSeen } from "@/components/composite/C
 import { DialogueBubble, SceneCaption } from "@/components/composite/DialogueBubble";
 import { CharacterPortrait, roleLabel } from "@/components/composite/CharacterPortrait";
 import { FloatingScore } from "@/components/composite/FloatingScore";
+import { OpenTextStage } from "@/components/composite/OpenTextStage";
+import { AiBranchStage } from "@/components/composite/AiBranchStage";
+import { ClientChatStage } from "@/components/composite/ClientChatStage";
 import type { CaseOption, CharacterDef, LegalCase } from "@/content/types";
 import { cn } from "@/lib/utils";
 
@@ -77,6 +80,10 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
     openHint,
     advance,
     reset,
+    submitText,
+    aiBranchDecided,
+    chatTurn,
+    chatFinish,
   } = useCaseSession(legalCase);
 
   // Karakter lookup'ı
@@ -209,6 +216,11 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
             signal={floatingSignal}
           />
 
+          {/* Act şeridi */}
+          {legalCase.acts && node.act ? (
+            <ActStrip acts={legalCase.acts} currentAct={node.act} />
+          ) : null}
+
           <AnimatePresence mode="wait">
             <motion.div
               key={`scene-${node.id}`}
@@ -220,85 +232,132 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
             >
               {node.scene ? <SceneCaption text={node.scene} /> : null}
 
-              {/* Konuşan kişi bubble'ı */}
-              {speaker && node.prompt ? (
-                <DialogueBubble
-                  character={speaker}
-                  text={node.prompt}
-                  mood={speakerMood}
-                  emphasis
+              {/* Sahne yapısı — node tipine göre */}
+              {node.kind === "open_text" ? (
+                <OpenTextStage
+                  caseId={legalCase.id}
+                  node={node}
+                  session={session}
+                  speaker={speaker}
+                  onSubmit={(data) => {
+                    submitText({
+                      freeText: data.freeText,
+                      awarded: data.awarded,
+                      verdict: data.verdict,
+                    });
+                    advance();
+                  }}
+                />
+              ) : node.kind === "ai_branch" ? (
+                <AiBranchStage
+                  caseId={legalCase.id}
+                  node={node}
+                  session={session}
+                  speaker={speaker}
+                  onSubmit={(data) =>
+                    aiBranchDecided({
+                      freeText: data.freeText,
+                      chosenNodeId: data.chosenNodeId,
+                      reason: data.reason,
+                      awarded: data.awarded,
+                      verdict: data.verdict,
+                    })
+                  }
+                />
+              ) : node.kind === "client_chat" ? (
+                <ClientChatStage
+                  caseId={legalCase.id}
+                  node={node}
+                  session={session}
+                  speaker={speaker}
+                  onTurn={chatTurn}
+                  onFinish={(awarded) => {
+                    chatFinish(awarded);
+                    advance();
+                  }}
                 />
               ) : (
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo">
-                    Karar noktası · {node.id}
-                  </p>
-                  <h2 className="mt-2 font-display text-xl font-semibold text-ink-1">
-                    {node.prompt}
-                  </h2>
-                </div>
-              )}
-
-              {/* Sahnedeki diğer karakterler — küçük portrait şeridi */}
-              {sceneOthers.length > 0 ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.15 }}
-                  className="flex items-center gap-2 pl-1 text-[10px] text-ink-3"
-                >
-                  <span className="uppercase tracking-widest">Sahnede</span>
-                  {sceneOthers.map((c) => (
-                    <CharacterPortrait
-                      key={c.id}
-                      character={c}
-                      size="sm"
-                      mood={chosenOption && c.role === "muvekkil" ? speakerMood : "neutral"}
+                <>
+                  {/* decision veya info: bubble + sahnedekiler + seçenekler */}
+                  {speaker && node.prompt ? (
+                    <DialogueBubble
+                      character={speaker}
+                      text={node.prompt}
+                      mood={speakerMood}
+                      emphasis
                     />
-                  ))}
-                </motion.div>
-              ) : null}
+                  ) : node.prompt ? (
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-indigo">
+                        Karar noktası · {node.id}
+                      </p>
+                      <h2 className="mt-2 font-display text-xl font-semibold text-ink-1">
+                        {node.prompt}
+                      </h2>
+                    </div>
+                  ) : null}
 
-              <ul className="space-y-2 pt-1">
-                {node.options?.map((o) => (
-                  <OptionRow
-                    key={o.id}
-                    option={o}
-                    picked={chosenOption?.id === o.id}
-                    disabled={!!currentStep?.chosenOptionId && chosenOption?.id !== o.id}
-                    onPick={() => pick(o)}
-                  />
-                ))}
-              </ul>
-
-              <AnimatePresence>
-                {chosenOption?.feedback ? (
-                  <motion.div
-                    key={`fb-${node.id}`}
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="space-y-3 overflow-hidden rounded-md border border-line bg-surface-sunken/40 p-4"
-                  >
-                    <p className="text-sm leading-relaxed text-ink-1">
-                      <span className="font-semibold">Geri bildirim. </span>
-                      {chosenOption.feedback}
-                    </p>
-                    {chosenOption.sources?.map((sid) =>
-                      sources[sid] ? <SourceCallout key={sid} sourceId={sid} /> : null,
-                    )}
-                    <motion.button
-                      type="button"
-                      onClick={advance}
-                      whileHover={{ x: 2 }}
-                      className="inline-flex items-center gap-1.5 rounded-md bg-ink-1 px-4 py-2 text-xs font-bold text-surface-raised hover:bg-ink-1/90"
+                  {sceneOthers.length > 0 ? (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.15 }}
+                      className="flex items-center gap-2 pl-1 text-[10px] text-ink-3"
                     >
-                      Sonraki sahne <ArrowRight className="size-3.5" />
-                    </motion.button>
-                  </motion.div>
-                ) : null}
-              </AnimatePresence>
+                      <span className="uppercase tracking-widest">Sahnede</span>
+                      {sceneOthers.map((c) => (
+                        <CharacterPortrait
+                          key={c.id}
+                          character={c}
+                          size="sm"
+                          mood={chosenOption && c.role === "muvekkil" ? speakerMood : "neutral"}
+                        />
+                      ))}
+                    </motion.div>
+                  ) : null}
+
+                  <ul className="space-y-2 pt-1">
+                    {node.options?.map((o) => (
+                      <OptionRow
+                        key={o.id}
+                        option={o}
+                        picked={chosenOption?.id === o.id}
+                        disabled={!!currentStep?.chosenOptionId && chosenOption?.id !== o.id}
+                        onPick={() => pick(o)}
+                      />
+                    ))}
+                  </ul>
+
+                  <AnimatePresence>
+                    {chosenOption?.feedback ? (
+                      <motion.div
+                        key={`fb-${node.id}`}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                        className="space-y-3 overflow-hidden rounded-md border border-line bg-surface-sunken/40 p-4"
+                      >
+                        <p className="text-sm leading-relaxed text-ink-1">
+                          <span className="font-semibold">Geri bildirim. </span>
+                          {chosenOption.feedback}
+                        </p>
+                        {chosenOption.sources?.map((sid) =>
+                          sources[sid] ? <SourceCallout key={sid} sourceId={sid} /> : null,
+                        )}
+                        <motion.button
+                          type="button"
+                          onClick={advance}
+                          whileHover={{ x: 2 }}
+                          className="inline-flex items-center gap-1.5 rounded-md bg-ink-1 px-4 py-2 text-xs font-bold text-surface-raised hover:bg-ink-1/90"
+                        >
+                          Sonraki sahne <ArrowRight className="size-3.5" />
+                        </motion.button>
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
+                </>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -338,6 +397,48 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
         </>
       }
     />
+  );
+}
+
+function ActStrip({
+  acts,
+  currentAct,
+}: {
+  acts: { number: 1 | 2 | 3; title: string }[];
+  currentAct: 1 | 2 | 3;
+}) {
+  return (
+    <div className="mb-5 flex items-center gap-2 rounded-lg border border-line bg-surface-sunken/40 p-2.5">
+      {acts.map((a, i) => {
+        const active = a.number === currentAct;
+        const past = a.number < currentAct;
+        return (
+          <div key={a.number} className="flex flex-1 items-center gap-2">
+            <div
+              className={cn(
+                "flex items-center gap-2 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-widest",
+                active && "bg-indigo text-surface-raised",
+                past && "text-ink-3",
+                !active && !past && "text-ink-3",
+              )}
+            >
+              <span
+                className={cn(
+                  "flex size-4 items-center justify-center rounded-full text-[9px]",
+                  active ? "bg-surface-raised text-indigo" : "bg-line text-ink-3",
+                )}
+              >
+                {a.number}
+              </span>
+              <span>{a.title}</span>
+            </div>
+            {i < acts.length - 1 ? (
+              <span className={cn("h-px flex-1", past ? "bg-indigo" : "bg-line")} />
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

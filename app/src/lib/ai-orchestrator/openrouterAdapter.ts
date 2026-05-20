@@ -17,6 +17,8 @@ import { sources } from "@/content/sources";
 import { defaultRubric } from "@/content/rubrics";
 import type {
   AIOrchestrator,
+  AiBranchRequest,
+  AiBranchResponse,
   AssessmentRequest,
   AssessmentResponse,
   GroundedRequest,
@@ -53,6 +55,18 @@ const AssessmentSchema = z.object({
   missedIssues: z.array(z.string()),
   sourceRefs: z.array(z.string()),
   nextStep: z.string(),
+});
+
+const BranchSchema = z.object({
+  chosenNodeId: z.string(),
+  reason: z.string(),
+  verdict: z.enum(["good", "partial", "bad"]),
+  scoreHint: z
+    .record(
+      z.enum(["olay", "mesele", "usul", "maddi", "gerekce", "risk", "ifade"]),
+      z.number().int().min(0).max(4),
+    )
+    .optional(),
 });
 
 /* ─────────── Auditor middleware ─────────── */
@@ -233,6 +247,60 @@ export function createOpenRouterAdapter(env: ServerEnv): AIOrchestrator {
         sourceRefs: audit.kept,
         nextStep: raw.nextStep,
         flaggedForReview: audit.flagged,
+      };
+    },
+
+    async branch(req: AiBranchRequest): Promise<AiBranchResponse> {
+      const validIds = new Set([
+        ...req.candidates.map((c) => c.nodeId),
+        req.fallbackNodeId,
+      ]);
+
+      const candidateList = req.candidates
+        .map(
+          (c) =>
+            `- ${c.nodeId} | verdict=${c.verdict} | ${c.label}${c.hint ? ` — ${c.hint}` : ""}`,
+        )
+        .join("\n");
+
+      const system = [
+        "Sen LawKit'in 'AI Branch' yönlendiricisisin.",
+        "Öğrencinin avukat olarak verdiği serbest cevabı oku.",
+        "Aşağıdaki olası dallardan TAM OLARAK BİRİNİ seç. Yeni node id üretme; yalnız listelenenlerden birini döndür.",
+        "Türk hukuku açısından öğrencinin cevabının ne kadar güçlü olduğunu değerlendir.",
+        "Cevabını ZORUNLU olarak şu JSON şemasıyla döndür:",
+        '{"chosenNodeId": "...", "reason": "...", "verdict": "good|partial|bad", "scoreHint": {"dim": 0-4}}',
+      ].join("\n");
+
+      const user = [
+        `Vaka: ${req.case.title}`,
+        `Özet: ${req.case.summary}`,
+        "",
+        `Sahne / bağlam:`,
+        req.context || "(yok)",
+        "",
+        `Olası dallar:`,
+        candidateList,
+        `(eğer hiçbiri uygun değilse: ${req.fallbackNodeId} fallback)`,
+        "",
+        "Öğrencinin serbest cevabı:",
+        req.userText,
+        "",
+        req.scoreDimensions && req.scoreDimensions.length > 0
+          ? `Puanlanacak rubric boyutları: ${req.scoreDimensions.join(", ")}`
+          : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      const raw = await chatJson(BranchSchema, system, user);
+      const valid = validIds.has(raw.chosenNodeId);
+      return {
+        chosenNodeId: valid ? raw.chosenNodeId : req.fallbackNodeId,
+        reason: raw.reason,
+        scoreHint: raw.scoreHint,
+        verdict: raw.verdict,
+        flaggedForReview: !valid,
       };
     },
   };

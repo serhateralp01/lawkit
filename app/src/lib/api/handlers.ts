@@ -10,6 +10,7 @@ import { z } from "zod";
 import { getOrchestrator } from "@/lib/ai-orchestrator";
 import { getCase } from "@/content/cases";
 import type {
+  AiBranchRequest,
   AssessmentRequest,
   GroundedRequest,
   RolePlayRequest,
@@ -59,6 +60,27 @@ const AssessmentBody = z.object({
   dimensions: z.array(
     z.enum(["olay", "mesele", "usul", "maddi", "gerekce", "risk", "ifade"]),
   ),
+});
+
+const BranchBody = z.object({
+  caseId: z.string(),
+  session: SessionShape,
+  userText: z.string().min(1),
+  context: z.string(),
+  candidates: z
+    .array(
+      z.object({
+        nodeId: z.string(),
+        label: z.string(),
+        hint: z.string().optional(),
+        verdict: z.enum(["good", "partial", "bad"]),
+      }),
+    )
+    .min(2),
+  fallbackNodeId: z.string(),
+  scoreDimensions: z
+    .array(z.enum(["olay", "mesele", "usul", "maddi", "gerekce", "risk", "ifade"]))
+    .optional(),
 });
 
 async function readBody(req: Request) {
@@ -115,6 +137,26 @@ export async function handleAi(
         userTurn: parsed.data.userTurn,
       };
       const res = await orchestrator.rolePlay(req);
+      return json(res);
+    }
+
+    if (pathname === "/api/ai/branch") {
+      const parsed = BranchBody.safeParse(body);
+      if (!parsed.success) {
+        return json({ error: parsed.error.flatten() }, { status: 400 });
+      }
+      const legalCase = getCase(parsed.data.caseId);
+      if (!legalCase) return json({ error: "case not found" }, { status: 404 });
+      const req: AiBranchRequest = {
+        case: legalCase,
+        session: parsed.data.session as AiBranchRequest["session"],
+        userText: parsed.data.userText,
+        context: parsed.data.context,
+        candidates: parsed.data.candidates,
+        fallbackNodeId: parsed.data.fallbackNodeId,
+        scoreDimensions: parsed.data.scoreDimensions,
+      };
+      const res = await orchestrator.branch(req);
       return json(res);
     }
 

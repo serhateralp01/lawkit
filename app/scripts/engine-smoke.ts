@@ -9,6 +9,7 @@
  */
 
 import { isHukuku001 } from "../src/content/cases/isHukuku001";
+import { isHukuku002 } from "../src/content/cases/isHukuku002";
 import { borclar001 } from "../src/content/cases/borclar001";
 import { medeni001 } from "../src/content/cases/medeni001";
 import {
@@ -34,7 +35,7 @@ console.log("\nLawKit engine smoke");
 console.log("─────────────────────");
 
 // Validation
-for (const c of [isHukuku001, borclar001, medeni001]) {
+for (const c of [isHukuku001, borclar001, medeni001, isHukuku002]) {
   const v = validateCase(c);
   run(`validate(${c.id}) → ok=${v.ok}, issues=${v.issues.length}`, v.ok);
 }
@@ -96,6 +97,77 @@ for (const c of [isHukuku001, borclar001, medeni001]) {
   run(`medeni_001 happy: done=${s.done}`, s.done);
   run(`medeni_001 ledger.maddi=${s.ledger.maddi}`, s.ledger.maddi === 4);
   run(`medeni_001 ledger.usul=${s.ledger.usul}`, s.ledger.usul === 4);
+}
+
+// is_hukuku_002 — derin vaka happy path (sadece decision'lara dokunup tam zafer al)
+{
+  const ctx = createContext(isHukuku002);
+  let s = startSession(isHukuku002);
+
+  // n1 client_chat — sadece bitir, en az olay skoru ile geç
+  s = applyStep(ctx, s, { type: "chat_finish", awarded: { olay: 4, mesele: 3 } });
+  s = applyStep(ctx, s, { type: "advance" });
+
+  // n2 decision a
+  let n = ctx.resolveNode("n2")!;
+  s = applyStep(ctx, s, { type: "pick", option: findOption(n, "a") });
+  s = applyStep(ctx, s, { type: "advance" });
+
+  // n3 open_text — mock submit
+  s = applyStep(ctx, s, {
+    type: "submit_text",
+    freeText: "Mock cevap.",
+    awarded: { mesele: 4, gerekce: 4, ifade: 3 },
+    verdict: "good",
+  });
+  s = applyStep(ctx, s, { type: "advance" });
+
+  // n4 decision a (arabuluculuk)
+  n = ctx.resolveNode("n4")!;
+  s = applyStep(ctx, s, { type: "pick", option: findOption(n, "a") });
+  s = applyStep(ctx, s, { type: "advance" });
+
+  // n5 decision a (1 ay süre)
+  n = ctx.resolveNode("n5")!;
+  s = applyStep(ctx, s, { type: "pick", option: findOption(n, "a") });
+  s = applyStep(ctx, s, { type: "advance" });
+  // n6 checkpoint geçildi → n7b'ye gitmeli
+
+  // n7b open_text — mock submit
+  s = applyStep(ctx, s, {
+    type: "submit_text",
+    freeText: "Talep sonucu detayı.",
+    awarded: { gerekce: 4, ifade: 4, risk: 4 },
+    verdict: "good",
+  });
+  s = applyStep(ctx, s, { type: "advance" });
+
+  // n8 decision a (süre tutum)
+  n = ctx.resolveNode("n8")!;
+  s = applyStep(ctx, s, { type: "pick", option: findOption(n, "a") });
+  s = applyStep(ctx, s, { type: "advance" });
+
+  // n9 ai_branch — mock branch decided to n10_strong
+  s = applyStep(ctx, s, {
+    type: "ai_branch_decided",
+    freeText: "Güçlü savunma metni.",
+    chosenNodeId: "n10_strong",
+    awarded: { risk: 4, ifade: 4 },
+    verdict: "good",
+  });
+
+  // n10_strong info — pick 'a'
+  n = ctx.resolveNode("n10_strong")!;
+  s = applyStep(ctx, s, { type: "pick", option: findOption(n, "a") });
+  s = applyStep(ctx, s, { type: "advance" });
+
+  // n11 info — pick 'go'
+  n = ctx.resolveNode("n11")!;
+  s = applyStep(ctx, s, { type: "pick", option: findOption(n, "go") });
+  s = applyStep(ctx, s, { type: "advance" });
+
+  run(`is_hukuku_002 happy: done=${s.done}`, s.done);
+  run(`is_hukuku_002 outcomeId=${s.outcomeId}`, s.outcomeId === "zafer");
 }
 
 console.log("─────────────────────\n");

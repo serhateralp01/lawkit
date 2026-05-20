@@ -74,9 +74,70 @@ export interface CaseOption {
   sources?: string[];
 }
 
+/* ───────── Yeni node tipleri (Tur 1.7) ───────── */
+
+export type NodeKind =
+  | "decision"
+  | "outcome"
+  | "info"
+  | "open_text"
+  | "ai_branch"
+  | "client_chat"
+  | "checkpoint";
+
+/** AI veya rubric ile değerlendirilecek serbest metin sahnesi. */
+export interface OpenTextConfig {
+  /** Hangi rubric boyutları puanlanacak. */
+  assessDimensions: RubricKey[];
+  /** İstek minimum karakter sayısı (UI validate eder). */
+  minChars?: number;
+  /** Patron / hâkim'in puanlama sonrası tek satır geri bildirimi. */
+  graderHint?: string;
+  /** Sonraki node id (assess sonucu hangi olursa olsun). */
+  next: string;
+}
+
+/** AI'ın öğrencinin serbest cevabına göre dal seçeceği sahne. */
+export interface AiBranchConfig {
+  /** Olası dallar — AI bunlardan birini seçmek zorunda. */
+  branches: {
+    nodeId: string;
+    label: string;
+    hint?: string; // AI'a verilen kısa açıklama
+    verdict: Verdict;
+  }[];
+  /** AI'a verilecek ek bağlam — "karşı vekil iddiası: ...". */
+  context?: string;
+  /** Tüm AI başarısız olursa düşülecek default node. */
+  fallbackNodeId: string;
+}
+
+/** Müvekkille N tur sohbet. AI persona = speaker. */
+export interface ClientChatConfig {
+  /** Maksimum tur sayısı (öğrenci-AI ikili). */
+  maxTurns: number;
+  /** Bu kadarı zorunlu olgu — sorulmazsa risk skoru düşer. */
+  requiredFacts?: string[];
+  /** AI persona açıklaması (ek prompt). */
+  personaBrief: string;
+  /** Sohbet bitince devam edilecek node. */
+  next: string;
+}
+
+/** Ledger durumuna göre engine'in otomatik route ettiği görünmez sahne. */
+export interface CheckpointConfig {
+  /** Sıralı kurallar — ilk eşleşen kazanır. */
+  branches: {
+    condition: Condition;
+    nodeId: string;
+  }[];
+  /** Hiçbir kural eşleşmezse buraya. */
+  fallbackNodeId: string;
+}
+
 export interface CaseNode {
   id: string;
-  kind: "decision" | "outcome" | "info";
+  kind: NodeKind;
   prompt?: string;
   rubricTargets?: RubricKey[];
   options?: CaseOption[];
@@ -90,6 +151,50 @@ export interface CaseNode {
   sceneCharacters?: string[];
   /** Sahne açıklayıcı tek satır — "Avukat odası, müvekkil masaya oturmuş." */
   scene?: string;
+  /** kind === 'open_text' için. */
+  openText?: OpenTextConfig;
+  /** kind === 'ai_branch' için. */
+  aiBranch?: AiBranchConfig;
+  /** kind === 'client_chat' için. */
+  clientChat?: ClientChatConfig;
+  /** kind === 'checkpoint' için. */
+  checkpoint?: CheckpointConfig;
+  /** Hangi perdeye ait (UI üst şerit ilerlemesi için). */
+  act?: 1 | 2 | 3;
+}
+
+/* ───────── Çoklu outcome (vaka sonu seçimi) ───────── */
+
+export type OutcomeMood = "triumph" | "neutral" | "warning" | "loss";
+
+/** Outcome condition — saf JSON, engine değerlendirir. */
+export interface Condition {
+  /** 5 öğrenci-görünür boyutun ortalaması ≥. */
+  minLedgerAvg?: number;
+  /** Toplam ipucu k.3'lerin sayısı ≤. */
+  maxHints?: number;
+  /** Her boyut ≥. */
+  requireDimGte?: Partial<Record<RubricKey, number>>;
+  /** History'de bu (nodeId,optionId) çiftlerinden biri varsa şart sağlanır. */
+  criticalMiss?: { nodeId: string; optionId: string }[];
+  /** En fazla bu kadar 'bad' karar var. */
+  maxBadVerdicts?: number;
+  /** Her zaman eşleşir — fallback. */
+  default?: boolean;
+}
+
+export interface Outcome {
+  id: string;
+  title: string;
+  mood: OutcomeMood;
+  /** Anlatımlı sonuç metni. */
+  narrative: string;
+  /** Worked example — hangi yolu seçmek doğruydu. */
+  idealAnswer: string;
+  /** Bu outcome'a varan kritik dönüm noktaları (UI'da vurgulanır). */
+  pivotalDecisions?: { nodeId: string; explanation: string }[];
+  /** Engine eşleşme kuralı. */
+  condition: Condition;
 }
 
 export interface LegalCase {
@@ -111,4 +216,8 @@ export interface LegalCase {
     setting: string;
     beats: { speakerId?: string; text: string }[];
   };
+  /** Çoklu sonuç — engine ledger + history özetine göre route eder. */
+  outcomes?: Outcome[];
+  /** UI üst şerit için perde adları. */
+  acts?: { number: 1 | 2 | 3; title: string; setting?: string }[];
 }

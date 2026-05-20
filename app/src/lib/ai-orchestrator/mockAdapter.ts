@@ -14,6 +14,8 @@ import { defaultRubric } from "@/content/rubrics";
 import type { RubricKey } from "@/content/types";
 import type {
   AIOrchestrator,
+  AiBranchRequest,
+  AiBranchResponse,
   AssessmentRequest,
   AssessmentResponse,
   DimensionScore,
@@ -81,6 +83,18 @@ export const mockAdapter: AIOrchestrator = {
       missedIssues: wordCount < 40 ? ["Cevap kısa; gerekçe yetersiz."] : [],
       sourceRefs: [],
       nextStep: "Cevabını rubric kriterlerine göre tekrar gözden geçir.",
+      flaggedForReview: false,
+    };
+  },
+
+  async branch(req: AiBranchRequest): Promise<AiBranchResponse> {
+    // Mock: ilk 'good' verdict'li candidate'i seç, yoksa ilkini.
+    const good = req.candidates.find((c) => c.verdict === "good") ?? req.candidates[0];
+    return {
+      chosenNodeId: good?.nodeId ?? req.fallbackNodeId,
+      reason: "Mock adapter: ilk olumlu dal seçildi.",
+      scoreHint: {},
+      verdict: good?.verdict ?? "partial",
       flaggedForReview: false,
     };
   },

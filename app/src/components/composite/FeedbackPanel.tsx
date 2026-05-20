@@ -1,8 +1,9 @@
-import { ArrowRight, CheckCircle2, Compass, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, CheckCircle2, Compass, Trophy, TrendingDown, AlertTriangle, Scale } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { defaultRubric } from "@/content/rubrics";
 import { sources } from "@/content/sources";
-import type { CaseNode, LegalCase, RubricKey } from "@/content/types";
+import type { CaseNode, LegalCase, Outcome, OutcomeMood, RubricKey } from "@/content/types";
 import type { CaseSession } from "@/lib/case-engine";
 import { RubricMeter } from "./RubricMeter";
 import { SourceCallout } from "./SourceCallout";
@@ -40,6 +41,25 @@ export function FeedbackPanel({
   const visibleDims = defaultRubric.studentVisibleDimensions;
   const missedDims = visibleDims.filter((k) => (session.ledger[k] ?? 0) < 3);
 
+  // Çoklu outcome desteği — engine session.outcomeId set ettiyse onu kullan,
+  // yoksa eski tek-outcome davranışı (outcomeNode.summary/idealAnswer).
+  const selectedOutcome: Outcome | undefined = session.outcomeId
+    ? legalCase.outcomes?.find((o) => o.id === session.outcomeId)
+    : undefined;
+
+  const title = selectedOutcome?.title ?? outcomeNode.summary ?? "Vaka tamamlandı";
+  const narrative = selectedOutcome?.narrative ?? null;
+  const idealAnswer = selectedOutcome?.idealAnswer ?? outcomeNode.idealAnswer ?? "—";
+  const mood: OutcomeMood = selectedOutcome?.mood ?? "neutral";
+  const pivotals = selectedOutcome?.pivotalDecisions ?? [];
+
+  const moodMeta = {
+    triumph: { Icon: Trophy, color: "text-signal-positive", bg: "bg-signal-positive/10 border-signal-positive/40", label: "Zafer" },
+    neutral: { Icon: Scale, color: "text-indigo", bg: "bg-indigo-soft/30 border-indigo/30", label: "Sonuç" },
+    warning: { Icon: AlertTriangle, color: "text-signal-warning", bg: "bg-signal-warning/10 border-signal-warning/40", label: "Kısmi Kayıp" },
+    loss: { Icon: TrendingDown, color: "text-signal-critical", bg: "bg-signal-critical/10 border-signal-critical/40", label: "Mağlubiyet" },
+  }[mood];
+
   // Tüm kararlardan kullanılan kaynakları topla (dedupe)
   const usedSources = new Set<string>();
   for (const h of session.history) {
@@ -51,17 +71,50 @@ export function FeedbackPanel({
 
   return (
     <div className={cn("space-y-8", className)}>
-      <header className="space-y-2">
-        <div className="inline-flex items-center gap-2 rounded-full bg-indigo-soft/60 px-3 py-1">
-          <Sparkles className="size-3.5 text-indigo" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-indigo">
-            Vaka tamamlandı
+      <motion.header
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        className={cn(
+          "space-y-3 rounded-2xl border p-6",
+          moodMeta.bg,
+        )}
+      >
+        <div className="flex items-center gap-2">
+          <moodMeta.Icon className={cn("size-4", moodMeta.color)} />
+          <span className={cn("text-[10px] font-bold uppercase tracking-widest", moodMeta.color)}>
+            {moodMeta.label} · Vaka kapandı
           </span>
         </div>
-        <h2 className="font-display text-2xl font-bold text-ink-1">
-          {outcomeNode.summary ?? "Strateji özeti hazır."}
+        <h2 className="font-display text-2xl font-bold text-ink-1 lg:text-3xl">
+          {title}
         </h2>
-      </header>
+        {narrative ? (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-sm leading-relaxed text-ink-1"
+          >
+            {narrative}
+          </motion.p>
+        ) : null}
+        {pivotals.length > 0 ? (
+          <div className="border-t border-current/10 pt-3">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-ink-3">
+              Bu sonuca götüren kritik kararlar
+            </p>
+            <ul className="mt-2 space-y-1.5 text-xs text-ink-2">
+              {pivotals.map((p) => (
+                <li key={p.nodeId} className="flex gap-2">
+                  <span className="font-semibold text-ink-1">[{p.nodeId}]</span>
+                  <span>{p.explanation}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </motion.header>
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         {/* Sol — rubrik + kaçırılanlar */}
@@ -100,10 +153,10 @@ export function FeedbackPanel({
         <div className="space-y-4">
           <div className="rounded-lg border border-line bg-surface-sunken/40 p-5">
             <p className="text-[10px] font-bold uppercase tracking-widest text-ink-3">
-              İdeal cevap · worked example
+              {selectedOutcome ? "Worked example · doğru yol" : "İdeal cevap · worked example"}
             </p>
             <p className="mt-2 text-sm leading-relaxed text-ink-1">
-              {outcomeNode.idealAnswer ?? "—"}
+              {idealAnswer}
             </p>
           </div>
 

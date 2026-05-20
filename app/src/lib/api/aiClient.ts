@@ -5,6 +5,7 @@
 
 import type { CaseSession } from "@/lib/case-engine";
 import type {
+  AiBranchResponse,
   AssessmentResponse,
   GroundedResponse,
   Persona,
@@ -56,4 +57,21 @@ export function aiAssess(args: {
   dimensions: RubricKey[];
 }) {
   return post<AssessmentResponse>("/api/ai/assess", args);
+}
+
+export function aiBranch(args: {
+  caseId: string;
+  session: CaseSession;
+  userText: string;
+  context: string;
+  candidates: {
+    nodeId: string;
+    label: string;
+    hint?: string;
+    verdict: "good" | "partial" | "bad";
+  }[];
+  fallbackNodeId: string;
+  scoreDimensions?: RubricKey[];
+}) {
+  return post<AiBranchResponse>("/api/ai/branch", args);
 }

@@ -19,7 +19,9 @@ import type {
   CaseNode,
   CaseOption,
   LegalCase,
+  Outcome,
   RubricKey,
+  Verdict,
 } from "@/content/types";
 
 export type HintLevel = 0 | 1 | 2 | 3;
@@ -33,9 +35,17 @@ export interface StepRecord {
   /** Reducer çıktığında o node için kazanılmış skorlar (ceiling uygulanmış). */
   awarded: Partial<Record<RubricKey, number>>;
   /** Verdict — pedagojik geri bildirim renkleri için. */
-  verdict?: "good" | "partial" | "bad";
+  verdict?: Verdict;
   /** UTC ms, replay/analytics için. */
   at: number;
+  /** open_text / ai_branch / chat — kullanıcının serbest metin girdisi. */
+  freeText?: string;
+  /** ai_branch sonucunda AI'ın seçtiği node id (audit izi). */
+  aiChosenNodeId?: string;
+  /** AI'ın gerekçesi (debug + replay). */
+  aiReason?: string;
+  /** client_chat için yapılan tüm tur turn'ler. */
+  chatTurns?: { speaker: "user" | "ai"; text: string; at: number }[];
 }
 
 /** Skor defteri — boyut başına oturum boyunca kazanılmış en yüksek puan. */
@@ -51,6 +61,8 @@ export interface CaseSession {
   ledger: RubricLedger;
   /** Vaka outcome node'una varıldı mı. */
   done: boolean;
+  /** Vaka çoklu outcome içeriyorsa hangi outcome'a route edildi. */
+  outcomeId?: string;
   /** Eval/audit için, oturum başlangıç zamanı. */
   startedAt: number;
 }
@@ -59,7 +71,27 @@ export type StepEvent =
   | { type: "pick"; option: CaseOption }
   | { type: "open-hint"; rung: 1 | 2 | 3 }
   | { type: "advance" }
-  | { type: "reset" };
+  | { type: "reset" }
+  | {
+      type: "submit_text";
+      freeText: string;
+      awarded?: Partial<Record<RubricKey, number>>;
+      verdict?: Verdict;
+    }
+  | {
+      type: "ai_branch_decided";
+      freeText: string;
+      chosenNodeId: string;
+      reason?: string;
+      awarded?: Partial<Record<RubricKey, number>>;
+      verdict?: Verdict;
+    }
+  | {
+      type: "chat_turn";
+      userText: string;
+      aiText: string;
+    }
+  | { type: "chat_finish"; awarded?: Partial<Record<RubricKey, number>> };
 
 /** Engine'in saf cevabı: yeni state + opsiyonel side-effect notları. */
 export interface StepResult {

@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useMemo, useState } from "react";
-import type { CaseOption, LegalCase } from "@/content/types";
+import type { CaseOption, LegalCase, RubricKey, Verdict } from "@/content/types";
 import { applyStep, createContext, startSession } from "./engine";
 import type { CaseSession, StepEvent } from "./types";
 
@@ -38,5 +38,21 @@ export function useCaseSession(legalCase: LegalCase) {
     openHint: (rung: 1 | 2 | 3) => dispatch({ type: "open-hint", rung }),
     advance: () => dispatch({ type: "advance" }),
     reset: () => dispatch({ type: "reset" }),
+    submitText: (args: {
+      freeText: string;
+      awarded?: Partial<Record<RubricKey, number>>;
+      verdict?: Verdict;
+    }) => dispatch({ type: "submit_text", ...args }),
+    aiBranchDecided: (args: {
+      freeText: string;
+      chosenNodeId: string;
+      reason?: string;
+      awarded?: Partial<Record<RubricKey, number>>;
+      verdict?: Verdict;
+    }) => dispatch({ type: "ai_branch_decided", ...args }),
+    chatTurn: (userText: string, aiText: string) =>
+      dispatch({ type: "chat_turn", userText, aiText }),
+    chatFinish: (awarded?: Partial<Record<RubricKey, number>>) =>
+      dispatch({ type: "chat_finish", awarded }),
   };
 }
