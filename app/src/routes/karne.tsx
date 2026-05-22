@@ -16,6 +16,7 @@ import {
   dailyProgress,
   isMastered,
 } from "@/lib/gamification";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { defaultRubric } from "@/content/rubrics";
 import { getCase, listCases } from "@/content/cases";
 import { PageShell } from "@/components/site/PageShell";
@@ -37,6 +38,7 @@ export const Route = createFileRoute("/karne")({
 });
 
 function KarnePage() {
+  const { user } = useAuth();
   // SSR-safe hydration: zustand persist'in client mount sonrası yüklenmesini bekle.
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
@@ -47,6 +49,14 @@ function KarnePage() {
   const recentDays = useGamificationStore((s) => s.recentDays);
   const attempts = useGamificationStore((s) => s.attempts);
   const setDailyGoal = useGamificationStore((s) => s.setDailyGoal);
+  const hydrateFromCloud = useGamificationStore((s) => s.hydrateFromCloud);
+
+  // Login olduğunda cloud'dan attempt'leri çek
+  useEffect(() => {
+    if (user) {
+      void hydrateFromCloud();
+    }
+  }, [user, hydrateFromCloud]);
 
   const progress = hydrated ? dailyProgress({ recentDays, dailyGoal }) : 0;
   const averages = hydrated ? dimensionAverages(attempts) : {};
@@ -79,6 +89,22 @@ function KarnePage() {
           <p className="max-w-2xl text-sm leading-relaxed text-ink-2">
             Topladığın puan, üst üste girdiğin günler, becerilerinin ortalaması ve aldığın rozetler bir bakışta burada.
           </p>
+
+          {!user && hydrated ? (
+            <div className="mt-4 flex items-center gap-3 rounded-lg border border-amber/40 bg-amber-soft/30 px-4 py-3 text-xs text-ink-1">
+              <span>📁</span>
+              <p className="flex-1">
+                Şu an misafir modundasın — verilerin sadece bu tarayıcıda. Hesap aç,
+                karnen bulutta saklansın, farklı cihazlardan eriş.
+              </p>
+              <Link
+                to="/kayit"
+                className="rounded-md bg-ink-1 px-3 py-1.5 text-[11px] font-bold text-surface-raised hover:bg-ink-1/90"
+              >
+                Hesap aç
+              </Link>
+            </div>
+          ) : null}
         </motion.div>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

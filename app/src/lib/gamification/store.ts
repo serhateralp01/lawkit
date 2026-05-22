@@ -15,11 +15,14 @@ import type {
   GamificationState,
 } from "./types";
 import { XP_RULES, MASTERY_THRESHOLD, MASTERY_CONSECUTIVE } from "./types";
+import { pushAttemptToCloud, loadCloudAttempts, mergeAttempts } from "./cloudSync";
 
 interface GamificationActions {
   recordAttempt: (session: CaseSession) => CaseAttempt;
   setDailyGoal: (n: number) => void;
   reset: () => void;
+  /** Cloud'dan attempt'leri çek ve local ile merge et. Login sonrası çağrılır. */
+  hydrateFromCloud: () => Promise<void>;
 }
 
 type Store = GamificationState & GamificationActions;
@@ -112,7 +115,19 @@ export const useGamificationStore = create<Store>()(
           attempts: [...prev.attempts, attempt].slice(-100),
         });
 
+        // Paralel cloud yazımı (login varsa). Hata olursa local kayıt yine durur.
+        void pushAttemptToCloud(session, attempt);
+
         return attempt;
+      },
+      hydrateFromCloud: async () => {
+        const cloud = await loadCloudAttempts();
+        if (cloud.length === 0) return;
+        const prev = get();
+        const merged = mergeAttempts(prev.attempts, cloud);
+        // XP toplamı yeniden hesapla — cloud kanonik
+        const totalXp = merged.reduce((s, a) => s + a.xpEarned, 0);
+        set({ attempts: merged, xp: totalXp });
       },
     }),
     {

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut, User as UserIcon } from "lucide-react";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 const navLinks = [
   { to: "/urun/case-studio", label: "Case Studio" },
@@ -13,6 +14,11 @@ const navLinks = [
 
 export function Header() {
   const [open, setOpen] = useState(false);
+  const { user, signOut, loading } = useAuth();
+  const displayName =
+    (user?.user_metadata?.display_name as string | undefined) ??
+    user?.email?.split("@")[0] ??
+    "Sen";
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-paper/80 backdrop-blur-md">
@@ -35,22 +41,40 @@ export function Header() {
           </nav>
         </div>
         <div className="flex items-center gap-3">
-          <div className="hidden items-center gap-2 rounded-full bg-paper-warm px-3 py-1 sm:flex">
-            <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-ink/70">482 aktif</span>
-          </div>
-          <Link
-            to="/giris"
-            className="hidden text-sm font-semibold text-ink/80 hover:text-ink sm:inline"
-          >
-            Giriş
-          </Link>
-          <Link
-            to="/kayit"
-            className="rounded-lg bg-ink px-5 py-2 text-sm font-bold text-paper transition-all hover:shadow-lg hover:shadow-ink/20"
-          >
-            Ücretsiz Dene
-          </Link>
+          {loading ? null : user ? (
+            <>
+              <Link
+                to="/karne"
+                className="hidden items-center gap-2 rounded-full bg-paper-warm px-3 py-1.5 text-xs font-semibold text-ink/80 hover:text-ink sm:inline-flex"
+              >
+                <UserIcon className="size-3.5" />
+                {displayName}
+              </Link>
+              <button
+                onClick={() => void signOut()}
+                className="hidden items-center gap-1.5 text-sm font-semibold text-ink/60 hover:text-ink sm:inline-flex"
+                aria-label="Çıkış yap"
+              >
+                <LogOut className="size-4" />
+                Çıkış
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/giris"
+                className="hidden text-sm font-semibold text-ink/80 hover:text-ink sm:inline"
+              >
+                Giriş
+              </Link>
+              <Link
+                to="/kayit"
+                className="rounded-lg bg-ink px-5 py-2 text-sm font-bold text-paper transition-all hover:shadow-lg hover:shadow-ink/20"
+              >
+                Ücretsiz Dene
+              </Link>
+            </>
+          )}
           <button
             onClick={() => setOpen((v) => !v)}
             className="rounded-md p-2 lg:hidden"
