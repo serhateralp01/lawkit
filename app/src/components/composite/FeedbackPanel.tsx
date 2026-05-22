@@ -218,10 +218,10 @@ export function FeedbackPanel({
           </button>
         ) : null}
         <Link
-          to="/"
+          to="/karne"
           className="inline-flex items-center gap-1.5 rounded-md bg-indigo px-4 py-2 text-xs font-bold text-surface-raised hover:opacity-90"
         >
-          Vaka kütüphanesine dön <ArrowRight className="size-3.5" />
+          Karneye dön <ArrowRight className="size-3.5" />
         </Link>
         <span className="ml-auto text-[10px] uppercase tracking-widest text-ink-3">
           Eğitim amaçlı simülasyon — gerçek hukuki tavsiye değildir

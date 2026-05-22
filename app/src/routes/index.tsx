@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
 import { MiniCaseRunner } from "@/components/composite/MiniCaseRunner";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import heroDesk from "@/assets/hero-desk.jpg";
 
 
@@ -57,6 +58,8 @@ function HomePage() {
 /* ─────────────────────────── HERO ─────────────────────────── */
 
 function Hero() {
+  const { user, loading } = useAuth();
+
   return (
     <section className="relative overflow-hidden">
       <div className="mx-auto max-w-7xl px-6 pb-24 pt-16 lg:px-8 lg:pb-32 lg:pt-24">
@@ -65,7 +68,7 @@ function Hero() {
             <div className="mb-7 inline-flex items-center gap-2 rounded-md bg-gold/10 px-3 py-1.5">
               <Sparkles className="size-3.5 text-gold" />
               <span className="text-[10px] font-black uppercase italic tracking-[0.18em] text-gold">
-                Vaka-Temelli Öğrenme · 2026
+                Türkiye'nin ilk vaka simülatörü · HMGS 2026
               </span>
             </div>
             <h1 className="font-display text-[2.75rem] font-extrabold leading-[1.02] text-ink sm:text-6xl lg:text-[4.5rem]">
@@ -75,19 +78,29 @@ function Hero() {
               Vakada uygula.
             </h1>
             <p className="mt-7 max-w-md text-lg leading-relaxed text-ink/60">
-              HMGS hazırlığını bir yükten, stratejik bir oyuna dönüştürün. Gerçek dava
-              dosyaları, dallanan vaka simülasyonları ve AI destekli dilekçe geri bildirimi —
-              tek platformda.
+              Müvekkille konuş, doğru olguları topla, dilekçeyi yaz, duruşmada karşı vekile
+              cevap ver. Her kararın hikayeyi değiştirir. HMGS adayları ve genç avukatlar için
+              AI destekli vaka motoru.
             </p>
 
             <div className="mt-10 flex flex-wrap items-center gap-5">
-              <Link
-                to="/kayit"
-                className="group inline-flex items-center gap-2 rounded-xl bg-ink px-8 py-4 text-base font-bold text-paper transition-transform hover:scale-[1.02]"
-              >
-                Ücretsiz vakayı dene
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
+              {!loading && user ? (
+                <Link
+                  to="/karne"
+                  className="group inline-flex items-center gap-2 rounded-xl bg-ink px-8 py-4 text-base font-bold text-paper transition-transform hover:scale-[1.02]"
+                >
+                  Karneme git
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              ) : (
+                <Link
+                  to="/kayit"
+                  className="group inline-flex items-center gap-2 rounded-xl bg-ink px-8 py-4 text-base font-bold text-paper transition-transform hover:scale-[1.02]"
+                >
+                  Ücretsiz vakayı dene
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              )}
               <div className="flex flex-col">
                 <span className="font-display text-2xl font-bold text-ink">+140 XP</span>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-ink/40">
@@ -641,6 +654,9 @@ function FaqRow({ q, a, defaultOpen = false }: { q: string; a: string; defaultOp
 /* ─────────────────────── CLOSING CTA ─────────────────────── */
 
 function ClosingCTA() {
+  const { user, loading } = useAuth();
+  const isLogged = !loading && !!user;
+
   return (
     <section className="px-6 py-20 lg:px-8">
       <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] bg-ink px-8 py-16 text-center sm:px-16 sm:py-24">
@@ -650,22 +666,27 @@ function ClosingCTA() {
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-paper/15 px-3 py-1">
             <BookOpen className="size-3.5 text-gold" />
             <span className="text-[10px] font-bold uppercase tracking-widest text-paper/70">
-              İlk vaka ücretsiz
+              {isLogged ? "Kaldığın yerden devam" : "İlk vaka ücretsiz"}
             </span>
           </div>
           <h2 className="font-display text-4xl font-extrabold text-paper sm:text-5xl">
-            Kariyerinin ilk{" "}
-            <span className="italic text-gold">'win'</span>ini al.
+            {isLogged ? (
+              <>Sıradaki <span className="italic text-gold">vakaya</span> başla.</>
+            ) : (
+              <>Kariyerinin ilk <span className="italic text-gold">'win'</span>ini al.</>
+            )}
           </h2>
           <p className="mx-auto mt-5 max-w-lg text-paper/60">
-            Akademik bilgini profesyonel bir muhakeme aracına dönüştürmek 4 dakika sürer.
+            {isLogged
+              ? "Bir vaka 8-20 dakika. Boşluğunda 1 sahne çöz, becerilerini takip et."
+              : "Akademik bilgini profesyonel bir muhakeme aracına dönüştürmek 4 dakika sürer."}
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
-              to="/kayit"
+              to={isLogged ? "/karne" : "/kayit"}
               className="inline-flex items-center gap-2 rounded-xl bg-gold px-8 py-4 text-base font-bold text-white transition-transform hover:scale-[1.02]"
             >
-              Hemen başla <ArrowRight className="size-4" />
+              {isLogged ? "Karneme git" : "Hemen başla"} <ArrowRight className="size-4" />
             </Link>
             <Link
               to="/neden-lawkit"

@@ -6,6 +6,7 @@ import { getCase } from "@/content/cases";
 import { sources } from "@/content/sources";
 import { useCaseSession } from "@/lib/case-engine/useCaseSession";
 import { resolveFacts, discoveryProgress } from "@/lib/case-engine";
+import { shuffledBySeed } from "@/lib/utils/shuffle";
 import { useGamificationStore } from "@/lib/gamification";
 import { CaseScreenLayout } from "@/components/patterns/CaseScreenLayout";
 import { RubricMeter } from "@/components/composite/RubricMeter";
@@ -263,7 +264,7 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
                   ) : null}
 
                   <ul className="space-y-2 pt-1">
-                    {node.options?.map((o) => (
+                    {shuffledBySeed(node.options ?? [], `${session.startedAt}-${node.id}`).map((o) => (
                       <OptionRow
                         key={o.id}
                         option={o}
