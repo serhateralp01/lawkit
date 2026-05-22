@@ -1,27 +1,36 @@
 /**
- * StageView — vaka sahnesinin "tartışma odası" panosu.
+ * StageView — vaka sahnesi, sinematik kompozisyon.
  *
- * Desktop-first geniş kompozisyon:
- *   - Üst sol: konum etiketi (perde adı)
- *   - Sol orta: konuşmacının büyük avatarı (lg)
- *   - Sol alt: konuşmacının kart bilgisi (isim + rol + arketip)
- *   - Sağ üst: diğer karakterler şeridi (sm avatar stack)
- *   - Sağ alt: sahne caption (italik subtitle)
- *   - Arka plan: perde illustration, düşük opasite, üzerine paper/85 overlay
+ * Karakterler sabit pozisyonlarda durur:
+ *   foreground-left  → ön-sol (müvekkil/karşı taraf)
+ *   foreground-right → ön-sağ (patron/karşı vekil)
+ *   background-left  → arka-sol (savcı/katip)
+ *   background-right → arka-sağ (gözlemci)
+ *   center-back      → arka-orta (hâkim kürsüsü)
  *
- * Bubble metni burada değil — vaka route'unun aşağısında ayrı DialogueBubble
- * akar. StageView sadece "kim, nerede, hangi havada" sahne kurar.
+ * Konuşan karakter:
+ *   - scale 1.15, z-30, opacity 1
+ *   - mood badge aktif (verdict reaksiyonu)
+ *   - alt etiketi büyük + bold
+ * Dinleyenler:
+ *   - scale 0.85, z-10, opacity 0.55
+ *   - mood neutral
+ *   - alt etiketi küçük
+ *
+ * Perde geçişinde framer-motion layout animasyonu pozisyonları yumuşatır.
  */
 
 import { motion, AnimatePresence } from "framer-motion";
-import type { CharacterDef } from "@/content/types";
+import type { CharacterDef, Speaker, StagePosition } from "@/content/types";
 import { HumanAvatar, roleLabel } from "./HumanAvatar";
 import { StageBackdrop } from "./StageBackdrop";
 import { cn } from "@/lib/utils";
 
 interface Props {
   act?: 1 | 2 | 3;
+  /** Konuşan karakter — öne çıkar, mood reaksiyonuyla. */
   speaker?: CharacterDef;
+  /** Sahnedeki diğer karakterler — sönük, neutral. */
   others: CharacterDef[];
   speakerMood?: "neutral" | "happy" | "sad" | "tense" | "thinking";
   caption?: string;
@@ -40,6 +49,43 @@ const ACT_ACCENT: Record<1 | 2 | 3, string> = {
   3: "bg-signal-critical",
 };
 
+/** Role'den varsayılan pozisyon. */
+function defaultPosition(role: Speaker): StagePosition {
+  switch (role) {
+    case "muvekkil":
+    case "karsi_taraf":
+      return "foreground-left";
+    case "staj_patron":
+    case "karsi_vekil":
+      return "foreground-right";
+    case "hakim":
+      return "center-back";
+    case "katip":
+      return "background-right";
+    default:
+      return "background-left";
+  }
+}
+
+function resolvePosition(c: CharacterDef): StagePosition {
+  return c.position ?? defaultPosition(c.role);
+}
+
+/** Pozisyon → CSS koordinatları (% bazlı, container'a göre). */
+const POSITION_STYLES: Record<StagePosition, { left: string; bottom: string; z: number }> = {
+  "foreground-left": { left: "8%", bottom: "10%", z: 20 },
+  "foreground-right": { left: "62%", bottom: "10%", z: 20 },
+  "background-left": { left: "20%", bottom: "40%", z: 10 },
+  "background-right": { left: "70%", bottom: "40%", z: 10 },
+  "center-back": { left: "42%", bottom: "48%", z: 15 },
+};
+
+interface PositionedCharacter {
+  char: CharacterDef;
+  pos: StagePosition;
+  isActive: boolean;
+}
+
 export function StageView({
   act = 1,
   speaker,
@@ -48,101 +94,123 @@ export function StageView({
   caption,
   className,
 }: Props) {
+  // Tüm sahnedeki karakterleri tek listeye topla
+  const allChars: PositionedCharacter[] = [];
+  if (speaker) {
+    allChars.push({ char: speaker, pos: resolvePosition(speaker), isActive: true });
+  }
+  for (const o of others) {
+    if (speaker && o.id === speaker.id) continue;
+    allChars.push({ char: o, pos: resolvePosition(o), isActive: false });
+  }
+
+  // Pozisyon çakışmasını engelle: aynı pozisyona düşen ikinci karakter
+  // alt pozisyona kaydırılsın.
+  const usedPositions = new Set<StagePosition>();
+  const placed = allChars.map((c) => {
+    if (usedPositions.has(c.pos)) {
+      // Çakışma — fallback pozisyon
+      const alt: StagePosition[] = ["background-right", "background-left", "center-back"];
+      for (const p of alt) {
+        if (!usedPositions.has(p)) {
+          usedPositions.add(p);
+          return { ...c, pos: p };
+        }
+      }
+    }
+    usedPositions.add(c.pos);
+    return c;
+  });
+
   return (
     <div
       className={cn(
-        "relative min-h-[220px] overflow-hidden rounded-2xl border border-line bg-surface-raised",
+        "relative h-[280px] overflow-hidden rounded-2xl border border-line bg-surface-raised",
         className,
       )}
     >
       <StageBackdrop act={act} />
 
       {/* Üst orta konum etiketi */}
-      <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2">
-        <span className="inline-flex items-center gap-2 rounded-full bg-paper/90 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-ink-2 backdrop-blur shadow-sm">
+      <div className="absolute left-1/2 top-3 z-40 -translate-x-1/2">
+        <span className="inline-flex items-center gap-2 rounded-full bg-paper/90 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-ink-2 shadow-sm backdrop-blur">
           <span className={cn("size-1.5 rounded-full", ACT_ACCENT[act])} />
           {ACT_LABEL[act]}
         </span>
       </div>
 
-      {/* Ana kompozisyon — flex iki sütun */}
-      <div className="relative z-10 grid h-full grid-cols-[auto_1fr] items-end gap-5 p-6">
-        {/* Sol: konuşmacı büyük + kart */}
-        <AnimatePresence mode="wait">
-          {speaker ? (
+      {/* Karakterler */}
+      <AnimatePresence>
+        {placed.map(({ char, pos, isActive }) => {
+          const style = POSITION_STYLES[pos];
+          return (
             <motion.div
-              key={`speaker-${speaker.id}`}
-              initial={{ opacity: 0, x: -20, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 20, scale: 0.95 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="flex items-end gap-4"
+              key={char.id}
+              layout
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{
+                opacity: isActive ? 1 : 0.55,
+                scale: isActive ? 1.1 : 0.85,
+              }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="absolute flex flex-col items-center"
+              style={{
+                left: style.left,
+                bottom: style.bottom,
+                zIndex: style.z,
+              }}
             >
               <HumanAvatar
-                character={speaker}
-                size="lg"
-                mood={speakerMood}
-                highlighted
+                character={char}
+                size={isActive ? "lg" : "md"}
+                mood={isActive ? speakerMood : "neutral"}
+                highlighted={isActive}
               />
-              <div className="mb-1 rounded-xl bg-paper/95 p-3 shadow-md ring-1 ring-line backdrop-blur">
-                <p className="font-display text-base font-bold text-ink-1 whitespace-nowrap">
-                  {speaker.name}
+              <motion.div
+                className={cn(
+                  "mt-1.5 rounded-md px-2 py-0.5 text-center backdrop-blur",
+                  isActive
+                    ? "bg-paper/95 shadow-sm"
+                    : "bg-paper/70",
+                )}
+              >
+                <p
+                  className={cn(
+                    "font-display font-semibold leading-tight whitespace-nowrap",
+                    isActive ? "text-[12px] text-ink-1" : "text-[10px] text-ink-2",
+                  )}
+                >
+                  {char.name}
                 </p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-indigo">
-                  {roleLabel(speaker.role)}
+                <p
+                  className={cn(
+                    "font-bold uppercase tracking-widest leading-none mt-0.5",
+                    isActive ? "text-[9px] text-indigo" : "text-[8px] text-ink-3",
+                  )}
+                >
+                  {roleLabel(char.role)}
                 </p>
-                {speaker.archetype ? (
-                  <p className="mt-0.5 max-w-[200px] text-[11px] text-ink-3">
-                    {speaker.archetype}
-                  </p>
-                ) : null}
-              </div>
+              </motion.div>
             </motion.div>
-          ) : (
-            <div />
-          )}
-        </AnimatePresence>
+          );
+        })}
+      </AnimatePresence>
 
-        {/* Sağ: diğerleri + caption */}
-        <div className="flex flex-col items-end gap-3">
-          {others.length > 0 ? (
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="flex items-center gap-2"
-            >
-              <span className="text-[9px] font-bold uppercase tracking-widest text-ink-3">
-                Sahnede
-              </span>
-              <div className="flex -space-x-2">
-                {others.slice(0, 4).map((c) => (
-                  <div key={c.id} title={`${c.name} · ${roleLabel(c.role)}`}>
-                    <HumanAvatar
-                      character={c}
-                      size="sm"
-                      mood="neutral"
-                      className="ring-2 ring-paper"
-                    />
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          ) : null}
-
-          {caption ? (
-            <motion.p
-              key={caption}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="max-w-md rounded-md bg-paper/90 px-3 py-2 text-right text-[11px] italic leading-snug text-ink-2 backdrop-blur shadow-sm"
-            >
-              {caption}
-            </motion.p>
-          ) : null}
-        </div>
-      </div>
+      {/* Alt orta caption */}
+      {caption ? (
+        <motion.div
+          key={caption}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="absolute bottom-3 left-1/2 z-40 -translate-x-1/2 max-w-[60%]"
+        >
+          <p className="rounded-md bg-paper/95 px-3 py-1.5 text-center text-[11px] italic leading-snug text-ink-2 shadow-sm backdrop-blur">
+            {caption}
+          </p>
+        </motion.div>
+      ) : null}
     </div>
   );
 }

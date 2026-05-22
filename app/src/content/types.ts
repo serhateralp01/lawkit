@@ -49,6 +49,14 @@ export type Speaker =
 
 export type CharacterMood = "neutral" | "happy" | "sad" | "tense" | "thinking";
 
+/** Karakterin sahnedeki sabit konumu. */
+export type StagePosition =
+  | "foreground-left" // ön-sol — genelde müvekkil veya karşı taraf
+  | "foreground-right" // ön-sağ — genelde patron veya kıdemli avukat
+  | "background-left" // arka-sol — savcı, katip
+  | "background-right" // arka-sağ — gözlemci
+  | "center-back"; // arka-orta — hâkim kürsüsü
+
 export interface CharacterDef {
   /** Unique id within case, e.g. "ayse_hanim", "hakim_demir". */
   id: string;
@@ -62,6 +70,8 @@ export interface CharacterDef {
   initials?: string;
   /** OKLCH renk tonu (0–360) — portrait arka planı. */
   hue?: number;
+  /** Sahnede sabit konumu. Verilmezse role'den türetilir. */
+  position?: StagePosition;
 }
 
 export interface CaseOption {

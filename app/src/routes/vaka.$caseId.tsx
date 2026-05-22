@@ -14,7 +14,8 @@ import { SourceCallout } from "@/components/composite/SourceCallout";
 import { FeedbackPanel } from "@/components/composite/FeedbackPanel";
 import { CaseIntro, hasSeenIntro, markIntroSeen } from "@/components/composite/CaseIntro";
 import { DialogueBubble, SceneCaption } from "@/components/composite/DialogueBubble";
-import { CharacterPortrait, roleLabel } from "@/components/composite/CharacterPortrait";
+// CharacterPortrait / roleLabel artık vaka route'unda doğrudan kullanılmıyor —
+// StageView içeride çağırıyor. Type için ihtiyaç da yok.
 import { FloatingScore } from "@/components/composite/FloatingScore";
 import { OpenTextStage } from "@/components/composite/OpenTextStage";
 import { AiBranchStage } from "@/components/composite/AiBranchStage";
@@ -136,7 +137,13 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
   // Konuşan ve sahnedeki diğer karakterler
   const speakerId = node.speakerId;
   const speaker = speakerId ? castById.get(speakerId) : undefined;
-  const sceneOthers = (node.sceneCharacters ?? [])
+  // sceneCharacters belirtilmediyse veya boşsa, tüm cast'i (speaker hariç) sahnede tut.
+  // Vaka tasarımcısı node'da spesifik bir liste verirse o önceliklidir.
+  const sceneOthers = (
+    node.sceneCharacters && node.sceneCharacters.length > 0
+      ? node.sceneCharacters
+      : (legalCase.cast?.map((c) => c.id) ?? [])
+  )
     .map((id) => castById.get(id))
     .filter((c): c is CharacterDef => !!c && c.id !== speakerId);
 
@@ -152,54 +159,7 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
   return (
     <CaseScreenLayout
       case={legalCase}
-      left={
-        <>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-3">Dosya özeti</p>
-            <p className="mt-2 text-sm leading-relaxed text-ink-2">{legalCase.summary}</p>
-          </div>
-          <FactsList legalCase={legalCase} session={session} />
-
-          {legalCase.documents && legalCase.documents.length > 0 ? (
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-3">Belgeler</p>
-              <ul className="mt-2 space-y-1 text-xs text-ink-2">
-                {legalCase.documents.map((d) => (
-                  <li key={d.label} className="flex justify-between gap-2">
-                    <span className="font-medium">{d.label}</span>
-                    {d.ref ? <span className="text-ink-3">{d.ref}</span> : null}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          {legalCase.cast && legalCase.cast.length > 0 ? (
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-3">
-                Sahnedekiler
-              </p>
-              <ul className="mt-2 space-y-2">
-                {legalCase.cast.map((c) => (
-                  <li key={c.id} className="flex items-center gap-2">
-                    <CharacterPortrait
-                      character={c}
-                      size="sm"
-                      highlighted={c.id === speakerId}
-                    />
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold text-ink-1">{c.name}</p>
-                      <p className="truncate text-[10px] text-ink-3">
-                        {roleLabel(c.role)}
-                        {c.archetype ? ` · ${c.archetype}` : ""}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </>
-      }
+      left={<CaseSidePanel legalCase={legalCase} session={session} />}
       center={
         <div className="relative">
           <FloatingScore
@@ -468,6 +428,47 @@ function ActStrip({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function CaseSidePanel({
+  legalCase,
+  session,
+}: {
+  legalCase: LegalCase;
+  session: ReturnType<typeof useCaseSession>["session"];
+}) {
+  return (
+    <div className="space-y-5">
+      {/* Dosya özeti — her zaman görünür, kısa */}
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-3">
+          Dosya özeti
+        </p>
+        <p className="mt-2 text-xs leading-relaxed text-ink-2">{legalCase.summary}</p>
+      </div>
+
+      {/* Olgu defteri — vakanın ana bilgi panosu, varsayılan açık */}
+      <FactsList legalCase={legalCase} session={session} />
+
+      {/* Belgeler — accordion */}
+      {legalCase.documents && legalCase.documents.length > 0 ? (
+        <details className="group rounded-md border border-line bg-surface-sunken/30 px-3 py-2 open:bg-surface-sunken/50">
+          <summary className="flex cursor-pointer items-center justify-between text-[10px] font-bold uppercase tracking-widest text-ink-3 outline-none [&::-webkit-details-marker]:hidden">
+            <span>Dosyadaki Belgeler ({legalCase.documents.length})</span>
+            <span className="text-ink-3 transition-transform group-open:rotate-180">▾</span>
+          </summary>
+          <ul className="mt-2 space-y-1 text-xs text-ink-2">
+            {legalCase.documents.map((d) => (
+              <li key={d.label} className="flex justify-between gap-2">
+                <span className="font-medium">{d.label}</span>
+                {d.ref ? <span className="text-ink-3">{d.ref}</span> : null}
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
     </div>
   );
 }
