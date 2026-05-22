@@ -185,20 +185,20 @@ export const isHukuku002: LegalCase = {
         {
           id: "b",
           label:
-            "İşveren 'haklı sebep' iddia ettiğine göre önce o iddianın doğruluğuna bakmak gerek.",
+            "İşverenin haklı sebep iddiası ciddi — önce sevkiyat kayıtlarını ve müvekkilin performansını analiz etmeliyiz, sonra usule bakılır.",
           scores: { mesele: 2, maddi: 2 },
           feedback:
-            "Kısmen doğru. Haklı sebep iddiası önemli ama önce şekil incelenmeli; usulsüzlük tek başına davayı kazandırabilir.",
+            "Sıra yanlış. Yazılı şekil eksikliği fesih sebebinin doğruluğundan bağımsız bir geçersizlik halidir; bunu önce vurgulamak müvekkili korur. Sevkiyat tartışmasına ikinci safhada gireriz.",
           next: "n3",
           verdict: "partial",
         },
         {
           id: "c",
           label:
-            "SMS de bir bildirim sayılır; tartışma da işverene haklı sebep tanır — pozisyonumuz zayıf.",
+            "SMS Yargıtay'ın 'yazılı şekle eşdeğer kabul ettiği' bir bildirim biçimidir; biz haklı sebep tartışmasında zayıfız.",
           scores: { mesele: 0, maddi: 0 },
           feedback:
-            "Yanlış. İş K. m. 19 fesih bildiriminin yazılı yapılmasını ve sebebin açık şekilde belirtilmesini emreder. SMS bu şartı karşılamaz.",
+            "Yanlış atıf. İş K. m. 19 yazılı bildirim ve sebebin açık belirtilmesini emreder; Yargıtay yerleşik içtihatları SMS'i 'eşdeğer yazılı' olarak değil 'usulsüz şekil' olarak değerlendirir. Bu yanlış varsayım davayı baştan kaybettirir.",
           next: "n3",
           verdict: "bad",
         },
@@ -249,20 +249,22 @@ export const isHukuku002: LegalCase = {
         },
         {
           id: "b",
-          label: "Doğrudan iş mahkemesinde dava aç; zaten süre kısıtlı.",
+          label:
+            "Acil ihtiyati tedbir talebiyle doğrudan iş mahkemesine başvur — sözlü fesih için arabuluculuk zorunlu değil, sadece yazılı fesihlerde.",
           scores: { usul: 0, risk: 0 },
           feedback:
-            "Yanlış. Arabuluculuk dava şartıdır. Doğrudan dava açılırsa İş Mahk. K. m. 3 gereği usulden reddedilir, süreyi de geçirmiş olursun.",
+            "Yanlış. İş Mahk. K. m. 3'te yazılı/sözlü ayrımı yoktur; tüm işe iade taleplerinde arabuluculuk dava şartıdır. İhtiyati tedbir de bu kuralı bypass etmez. Doğrudan dava → usulden ret + süre kaybı.",
           next: "n5",
           verdict: "bad",
           sources: ["is_mahkemeleri_m3"],
         },
         {
           id: "c",
-          label: "Çalışma Bakanlığı'na şikâyet, sonra dava.",
+          label:
+            "Önce İŞKUR + Çalışma Bakanlığı'na idari şikâyet → ihtar etkisi yaratırız, sonra arabuluculuk → dava.",
           scores: { usul: 1, risk: 1 },
           feedback:
-            "Yetersiz. İdari şikâyet işe iade hakkını doğrudan etkilemez; dava şartı arabuluculuktur.",
+            "Zaman kaybı. İdari şikâyet işe iade hakkı doğurmaz, sadece teftiş başlatır. Bu arada 1 ay süre işlemeye devam eder. Doğrudan arabuluculuğa gitmek lazım; idari şikâyeti paralel yürütebilirsin.",
           next: "n5",
           verdict: "partial",
         },

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Flame, Trophy, Target, ArrowRight, Sparkles } from "lucide-react";
+import { Flame, Trophy, Target, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
 import {
   Radar,
   RadarChart,
@@ -242,62 +242,8 @@ function KarnePage() {
           </motion.section>
         </div>
 
-        {/* Vaka kütüphanesi */}
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-          className="mt-10"
-        >
-          <header className="mb-4 flex items-baseline justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-ink-3">
-              Tüm vakalar
-            </h2>
-            <span className="text-[10px] text-ink-3">{listCases().length} vaka hazır</span>
-          </header>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {listCases().map((c, i) => {
-              const lastAttempt = hydrated
-                ? attempts.filter((a) => a.caseId === c.id).at(-1)
-                : undefined;
-              return (
-                <motion.div
-                  key={c.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35 + i * 0.05 }}
-                >
-                  <Link
-                    to="/vaka/$caseId"
-                    params={{ caseId: c.id }}
-                    className="block rounded-xl border border-line bg-surface-raised p-4 transition-colors hover:border-indigo/40 hover:bg-indigo-soft/20"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-ink-3">
-                        {branchLabel(c.branch)} · ~{c.estimatedMinutes} dk
-                      </span>
-                      {lastAttempt ? (
-                        <span className="text-[10px] font-semibold text-signal-positive">
-                          +{lastAttempt.xpEarned} XP
-                        </span>
-                      ) : null}
-                    </div>
-                    <h3 className="mt-2 font-display text-base font-semibold text-ink-1">
-                      {c.title}
-                    </h3>
-                    <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-ink-2">
-                      {c.summary}
-                    </p>
-                    <p className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-indigo">
-                      {lastAttempt ? "Tekrar oyna" : "Vakayı aç"}{" "}
-                      <ArrowRight className="size-3" />
-                    </p>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </div>
-        </motion.section>
+        <CaseLibrarySection attempts={attempts} hydrated={hydrated} />
+
 
         {/* Son denemeler */}
         <motion.section
@@ -352,6 +298,178 @@ function KarnePage() {
         </motion.section>
       </div>
     </PageShell>
+  );
+}
+
+/* ────────── Vaka Kütüphanesi (filtreli + zengin kart) ────────── */
+
+type BranchFilter = "all" | "is_hukuku" | "borclar" | "medeni";
+
+function CaseLibrarySection({
+  attempts,
+  hydrated,
+}: {
+  attempts: ReturnType<typeof useGamificationStore.getState>["attempts"];
+  hydrated: boolean;
+}) {
+  const [filter, setFilter] = useState<BranchFilter>("all");
+  const allCases = listCases();
+  const filtered =
+    filter === "all" ? allCases : allCases.filter((c) => c.branch === filter);
+
+  const branchCounts: Record<BranchFilter, number> = {
+    all: allCases.length,
+    is_hukuku: allCases.filter((c) => c.branch === "is_hukuku").length,
+    borclar: allCases.filter((c) => c.branch === "borclar").length,
+    medeni: allCases.filter((c) => c.branch === "medeni").length,
+  };
+
+  // Vaka tipini node yapısından çıkar — derin vakada açıkça outcomes var.
+  const caseType = (c: ReturnType<typeof listCases>[number]) => {
+    if (c.outcomes && c.outcomes.length > 1) return "deep" as const;
+    return "demo" as const;
+  };
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3, duration: 0.4 }}
+      className="mt-10"
+    >
+      <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-ink-3">
+            Tüm vakalar
+          </h2>
+          <p className="mt-1 text-[10px] text-ink-3">
+            {branchCounts.all} vaka hazır · {allCases.filter((c) => caseType(c) === "deep").length} derin senaryo
+          </p>
+        </div>
+
+        {/* Filtre rozetleri */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {(
+            [
+              ["all", "Tümü"],
+              ["is_hukuku", "İş Hukuku"],
+              ["borclar", "Borçlar"],
+              ["medeni", "Medeni"],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setFilter(key)}
+              className={cn(
+                "rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest transition-colors",
+                filter === key
+                  ? "bg-ink-1 text-surface-raised"
+                  : "border border-line bg-surface-raised text-ink-2 hover:bg-surface-sunken",
+              )}
+            >
+              {label} <span className="ml-1 opacity-70">{branchCounts[key]}</span>
+            </button>
+          ))}
+        </div>
+      </header>
+
+      <div className="grid gap-3 lg:grid-cols-3">
+        {filtered.map((c, i) => {
+          const caseAttempts = hydrated
+            ? attempts.filter((a) => a.caseId === c.id)
+            : [];
+          const lastAttempt = caseAttempts.at(-1);
+          const playCount = caseAttempts.length;
+          const type = caseType(c);
+
+          return (
+            <motion.div
+              key={c.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 + i * 0.04 }}
+            >
+              <Link
+                to="/vaka/$caseId"
+                params={{ caseId: c.id }}
+                className="group block h-full rounded-xl border border-line bg-surface-raised p-4 transition-all hover:border-indigo/40 hover:bg-indigo-soft/10 hover:shadow-sm"
+              >
+                {/* Üst rozet şeridi */}
+                <div className="mb-3 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-ink-3">
+                    {branchLabel(c.branch)}
+                  </span>
+                  <span className="text-ink-3/40">·</span>
+                  <DifficultyBadge difficulty={c.difficulty} />
+                  <span className="text-ink-3/40">·</span>
+                  <span
+                    className={cn(
+                      "rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest",
+                      type === "deep"
+                        ? "bg-indigo-soft/60 text-indigo"
+                        : "bg-amber-soft/50 text-amber-foreground",
+                    )}
+                  >
+                    {type === "deep" ? "Derin" : "Tat"}
+                  </span>
+                  <span className="ml-auto text-[10px] text-ink-3">
+                    ~{c.estimatedMinutes} dk
+                  </span>
+                </div>
+
+                <h3 className="font-display text-base font-semibold text-ink-1">
+                  {c.title}
+                </h3>
+                <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-ink-2">
+                  {c.summary}
+                </p>
+
+                {/* Alt durum */}
+                <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-3">
+                  {lastAttempt ? (
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="size-3 text-signal-positive" />
+                      <span className="text-[10px] text-ink-2">
+                        {playCount}× oynandı · son +{lastAttempt.xpEarned} XP
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-[10px] font-semibold text-amber-foreground">
+                      Yeni — hiç oynamadın
+                    </span>
+                  )}
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo transition-transform group-hover:translate-x-0.5">
+                    {lastAttempt ? "Tekrar" : "Başla"}
+                    <ArrowRight className="size-3" />
+                  </span>
+                </div>
+              </Link>
+            </motion.div>
+          );
+        })}
+      </div>
+    </motion.section>
+  );
+}
+
+function DifficultyBadge({ difficulty }: { difficulty: 1 | 2 | 3 | 4 }) {
+  return (
+    <span
+      title={`Zorluk seviyesi ${difficulty}/4`}
+      className="inline-flex items-center gap-0.5"
+      aria-label={`Zorluk ${difficulty} / 4`}
+    >
+      {[1, 2, 3, 4].map((n) => (
+        <span
+          key={n}
+          className={cn(
+            "size-1.5 rounded-full",
+            n <= difficulty ? "bg-ink-2" : "bg-line",
+          )}
+        />
+      ))}
+    </span>
   );
 }
 

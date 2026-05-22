@@ -183,19 +183,21 @@ export const medeni002: LegalCase = {
         },
         {
           id: "b",
-          label: "Sadece TBK m. 49 haksız fiil — kusur var, zarar var.",
+          label:
+            "Sağlık zararı somut → TBK m. 49 haksız fiil + manevi tazminat (m. 56). Hızlı çözüm için bu yeterli.",
           scores: { mesele: 1, maddi: 1 },
           feedback:
-            "Eksik. Özel hüküm (TMK m. 730/737) varken genel hükme (TBK m. 49) gidilmez. Ayrıca KMK ayağı kaçırılıyor.",
+            "Eksik. Haksız fiil tek başına eski hâle getirme + el atmanın önlenmesi taleplerini güçsüz yapar. Özel hüküm TMK m. 730/737 komşuluk hukuku önceliklidir; KMK m. 24/33 ayağı ise yönetim planı aykırılığını açar — bunlarsız sadece tazminat alırız, gürültü sürer.",
           next: "n3",
           verdict: "partial",
         },
         {
           id: "c",
-          label: "Belediye ruhsatı verildiği için yapacak bir şey yok — müvekkili sakinleştir.",
+          label:
+            "Belediye ruhsatı işyeri olarak verilmiş; idari yargı yoluyla iptal sağlanmadan komşuluk davası açmak ön şartı eksik bırakır.",
           scores: { mesele: 0, maddi: 0 },
           feedback:
-            "Yanlış. İdari ruhsat özel hukuk komşuluk haklarını ortadan kaldırmaz. Kapsam dışı bir savunma.",
+            "Yanlış. Belediye ruhsatı ve özel hukuk komşuluk hakları farklı düzlemlerdir; idari iptali beklemek zorunluluk değildir. Aksine, mahkeme komşuluk hukuku gereği gece çalışma yasağı + ruhsata rağmen koku/gürültü sınırı koyabilir.",
           next: "n3",
           verdict: "bad",
         },

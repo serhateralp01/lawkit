@@ -121,6 +121,15 @@ function LoginPage() {
               Giriş yap
             </button>
 
+            <div className="text-right">
+              <Link
+                to="/sifre-sifirla"
+                className="text-[11px] font-semibold text-ink-3 underline-offset-2 hover:text-ink-1 hover:underline"
+              >
+                Şifremi unuttum
+              </Link>
+            </div>
+
             <div className="relative py-2 text-center">
               <span className="absolute left-0 top-1/2 h-px w-full bg-line" />
               <span className="relative bg-surface-raised px-2 text-[10px] uppercase tracking-widest text-ink-3">

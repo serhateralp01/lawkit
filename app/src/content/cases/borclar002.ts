@@ -170,22 +170,22 @@ export const borclar002: LegalCase = {
         {
           id: "b",
           label:
-            "Bağışlama hükümleri uygulanır — gönderen para gönderdi, geri isteyemez.",
-          scores: { mesele: 0, maddi: 0 },
+            "Gönderenin kusurlu hatası TBK m. 49 haksız fiil sorumluluğunu doğurur; iade talebi onun zararı için değil müvekkilin sebepsiz iktisabı için olmalı — ikincil dayanak m. 49.",
+          scores: { mesele: 1, maddi: 0 },
           feedback:
-            "Yanlış. Bağışlamada irade unsuru aranır (TBK m. 285). Tanımadığı birine bilinçli bağış kurgulayamazsın.",
+            "Yanlış kurgu. TBK m. 49 haksız fiil kusur unsuru gerektirir; müvekkilde kusur yok, davacıda da 'müvekkile karşı' bir haksız fiil yok. Özel hüküm m. 77 vd. genel hükmü dışlar — m. 49'u ekleyince savunma karışır ve hâkim 'avukatım çelişkili dayanak sunuyor' der.",
           next: "n3",
-          verdict: "bad",
+          verdict: "partial",
         },
         {
           id: "c",
           label:
-            "TBK m. 49 haksız fiil — gönderen kendi hatasından sorumlu, müvekkil sorumlu değil.",
-          scores: { mesele: 1, maddi: 0 },
+            "Para açıklamasız geldi → gönderen iradesi tartışmalı; iade isteyebilmek için önce bağışlama (TBK m. 285) iradesinin bulunmadığını ispat etmesi gerekir.",
+          scores: { mesele: 0, maddi: 0 },
           feedback:
-            "Eksik. Haksız fiil burada yok — müvekkilin kusuru yok ama sebepsiz iktisap var. Özel hüküm m. 77 vd. genel hükmü m. 49'u dışlar.",
+            "Yanlış ankraj. TBK m. 285 bağışlamada 'bağışlama iradesi' kurulduktan sonra geri alma sınırlarını düzenler. Tanımadığı birine yapılan açıklamasız havalede asli ispat yükü 'bağışlama iradesi vardı' diyen tarafta, yani müvekkilde olur — bunu kuramayız. Doğru dayanak m. 77 vd.",
           next: "n3",
-          verdict: "partial",
+          verdict: "bad",
         },
       ],
     },

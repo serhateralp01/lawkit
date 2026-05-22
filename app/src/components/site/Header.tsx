@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 const navLinks = [
   { to: "/urun/case-studio", label: "Case Studio" },
   { to: "/urun/hmgs-arena", label: "HMGS Arena" },
-  { to: "/urun/dilekce-lab", label: "Dilekçe Lab" },
+  { to: "/dilekce-lab", label: "Dilekçe Lab" },
   { to: "/karne", label: "Karne" },
   { to: "/metodoloji", label: "Metodoloji" },
   { to: "/fiyatlandirma", label: "Fiyat" },
@@ -44,8 +44,9 @@ export function Header() {
           {loading ? null : user ? (
             <>
               <Link
-                to="/karne"
+                to="/profil"
                 className="hidden items-center gap-2 rounded-full bg-paper-warm px-3 py-1.5 text-xs font-semibold text-ink/80 hover:text-ink sm:inline-flex"
+                title="Profilim"
               >
                 <UserIcon className="size-3.5" />
                 {displayName}
