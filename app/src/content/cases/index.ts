@@ -7,13 +7,17 @@ import type { LegalCase } from "../types";
 import { isHukuku001 } from "./isHukuku001";
 import { isHukuku002 } from "./isHukuku002";
 import { borclar001 } from "./borclar001";
+import { borclar002 } from "./borclar002";
 import { medeni001 } from "./medeni001";
+import { medeni002 } from "./medeni002";
 
 export const caseRegistry: Record<string, LegalCase> = {
   is_hukuku_001: isHukuku001,
   is_hukuku_002: isHukuku002,
   borclar_001: borclar001,
+  borclar_002: borclar002,
   medeni_001: medeni001,
+  medeni_002: medeni002,
 };
 
 export function getCase(id: string): LegalCase | undefined {

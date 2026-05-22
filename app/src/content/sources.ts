@@ -56,6 +56,17 @@ export const sources: Record<string, LegalSource> = {
     verifiedAt: "2026-01-01",
     verifier: "LawKit içerik ekibi",
   },
+  tbk_m82: {
+    id: "tbk_m82",
+    kind: "kanun",
+    shortTitle: "TBK m. 82",
+    fullTitle: "6098 sayılı Türk Borçlar Kanunu — Madde 82: Zamanaşımı",
+    body:
+      "Sebepsiz zenginleşmeden doğan istem hakkı, hak sahibinin geri isteme hakkı olduğunu öğrendiği tarihten başlayarak iki yılın ve her hâlde zenginleşmenin gerçekleştiği tarihten başlayarak on yılın geçmesiyle zamanaşımına uğrar.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6098&MevzuatTur=1",
+    verifiedAt: "2026-01-01",
+    verifier: "LawKit içerik ekibi",
+  },
   tmk_m737: {
     id: "tmk_m737",
     kind: "kanun",

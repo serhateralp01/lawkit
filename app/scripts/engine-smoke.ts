@@ -11,7 +11,9 @@
 import { isHukuku001 } from "../src/content/cases/isHukuku001";
 import { isHukuku002 } from "../src/content/cases/isHukuku002";
 import { borclar001 } from "../src/content/cases/borclar001";
+import { borclar002 } from "../src/content/cases/borclar002";
 import { medeni001 } from "../src/content/cases/medeni001";
+import { medeni002 } from "../src/content/cases/medeni002";
 import {
   applyStep,
   createContext,
@@ -35,7 +37,7 @@ console.log("\nLawKit engine smoke");
 console.log("─────────────────────");
 
 // Validation
-for (const c of [isHukuku001, borclar001, medeni001, isHukuku002]) {
+for (const c of [isHukuku001, borclar001, medeni001, isHukuku002, borclar002, medeni002]) {
   const v = validateCase(c);
   run(`validate(${c.id}) → ok=${v.ok}, issues=${v.issues.length}`, v.ok);
 }
