@@ -19,6 +19,10 @@ interface Props {
   /** Controlled mod: engine'e bağlandığında bu prop'lar geçer. */
   controlledLevel?: 0 | 1 | 2 | 3;
   onOpen?: (rung: 1 | 2 | 3) => void;
+  /** Adaptif limit: bu rung'un üzerini disable et + sebep göster. */
+  maxRung?: 1 | 2 | 3;
+  /** Limit notu (örn. 'Bu konuda ustalaştın'). */
+  limitNote?: string;
 }
 
 /**
@@ -35,6 +39,8 @@ export function HintLadder({
   className,
   controlledLevel,
   onOpen,
+  maxRung = 3,
+  limitNote,
 }: Props) {
   const [localLevel, setLocalLevel] = useState<0 | 1 | 2 | 3>(0);
   const level = controlledLevel ?? localLevel;
@@ -75,6 +81,11 @@ export function HintLadder({
         </h4>
         <span className="text-[10px] text-ink-3">Senin kararın</span>
       </div>
+      {limitNote ? (
+        <p className="rounded-md bg-indigo-soft/40 px-2.5 py-1.5 text-[10px] font-semibold text-indigo">
+          ⚡ {limitNote}
+        </p>
+      ) : null}
       <ul className="space-y-2">
         {rungs.map((r) => {
           const Icon = r.icon;
@@ -84,13 +95,16 @@ export function HintLadder({
               <button
                 type="button"
                 onClick={() => setLevel(r.n as 1 | 2 | 3)}
-                disabled={open}
+                disabled={open || r.n > maxRung}
                 className={cn(
                   "group w-full rounded-md border px-3 py-2.5 text-left transition-colors",
                   open
                     ? "cursor-default border-amber/40 bg-amber-soft/40"
-                    : "border-line bg-surface-raised hover:border-indigo/40 hover:bg-indigo-soft/30",
+                    : r.n > maxRung
+                      ? "cursor-not-allowed border-line bg-surface-sunken/40 opacity-50"
+                      : "border-line bg-surface-raised hover:border-indigo/40 hover:bg-indigo-soft/30",
                 )}
+                title={r.n > maxRung ? "Adaptif limit: bu seviye kapalı" : undefined}
               >
                 <div className="flex items-start justify-between gap-3">
                   <span className="flex items-center gap-2 text-xs font-semibold text-ink-1">

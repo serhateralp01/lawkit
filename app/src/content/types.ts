@@ -223,6 +223,20 @@ export interface DiscoverableFact {
   category?: string;
 }
 
+/** Bir vakanın bağımsız hukukçu inceleme meta verisi. */
+export interface ReviewMeta {
+  /** İnceleyen hukukçunun adı, "Av. Bilge Aydın" */
+  reviewerName: string;
+  /** Baro sicil veya tanım, "İstanbul Barosu 24567" */
+  reviewerCredential?: string;
+  /** YYYY-MM-DD format */
+  reviewedAt: string;
+  /** Hangi sürüm/değişiklik incelendi — versioning için */
+  version?: string;
+  /** Kısa onay notu */
+  notes?: string;
+}
+
 export interface LegalCase {
   id: string;
   title: string;
@@ -247,4 +261,6 @@ export interface LegalCase {
   outcomes?: Outcome[];
   /** UI üst şerit için perde adları. */
   acts?: { number: 1 | 2 | 3; title: string; setting?: string }[];
+  /** Bağımsız hukukçu inceleme onayı — varsa yeşil rozet, yoksa amber uyarı. */
+  reviewedBy?: ReviewMeta;
 }

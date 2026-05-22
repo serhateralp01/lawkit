@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Flame, Trophy, Target, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
+import { ReviewBadge } from "@/components/composite/ReviewBadge";
+import { recommendCase } from "@/lib/adaptive/difficulty";
 import {
   Radar,
   RadarChart,
@@ -330,6 +332,11 @@ function CaseLibrarySection({
     return "demo" as const;
   };
 
+  const recommendation = hydrated ? recommendCase(allCases, attempts) : null;
+  const recommendedCase = recommendation
+    ? allCases.find((c) => c.id === recommendation.caseId)
+    : null;
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
@@ -337,6 +344,36 @@ function CaseLibrarySection({
       transition={{ delay: 0.3, duration: 0.4 }}
       className="mt-10"
     >
+      {/* Sana önerilen vaka */}
+      {recommendation && recommendedCase ? (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-6 rounded-2xl border border-indigo/30 bg-gradient-to-r from-indigo-soft/40 via-indigo-soft/20 to-transparent p-4"
+        >
+          <div className="flex flex-wrap items-center gap-4">
+            <Sparkles className="size-5 shrink-0 text-indigo" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-indigo">
+                Sana önerilen
+              </p>
+              <p className="mt-0.5 truncate font-display text-base font-semibold text-ink-1">
+                {recommendedCase.title}
+              </p>
+              <p className="text-xs text-ink-2">{recommendation.reason}</p>
+            </div>
+            <Link
+              to="/vaka/$caseId"
+              params={{ caseId: recommendation.caseId }}
+              className="inline-flex items-center gap-1.5 rounded-md bg-indigo px-4 py-2 text-xs font-bold text-surface-raised hover:opacity-90"
+            >
+              Hadi başla <ArrowRight className="size-3" />
+            </Link>
+          </div>
+        </motion.div>
+      ) : null}
+
       <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-ink-3">
@@ -416,6 +453,11 @@ function CaseLibrarySection({
                   <span className="ml-auto text-[10px] text-ink-3">
                     ~{c.estimatedMinutes} dk
                   </span>
+                </div>
+
+                {/* Hukukçu onay rozeti */}
+                <div className="mb-2">
+                  <ReviewBadge review={c.reviewedBy} variant="chip" />
                 </div>
 
                 <h3 className="font-display text-base font-semibold text-ink-1">

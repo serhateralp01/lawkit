@@ -8,6 +8,8 @@ import type { CaseSession } from "@/lib/case-engine";
 import { RubricMeter } from "./RubricMeter";
 import { SourceCallout } from "./SourceCallout";
 import { AiTutor } from "./AiTutor";
+import { ReviewBadge } from "./ReviewBadge";
+import { ReportContentButton } from "./ReportContentButton";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -207,6 +209,9 @@ export function FeedbackPanel({
         </ol>
       </div>
 
+      {/* Hukukçu onay bloğu */}
+      <ReviewBadge review={legalCase.reviewedBy} variant="block" />
+
       <div className="flex flex-wrap items-center gap-3 border-t border-line pt-6">
         {onReset ? (
           <button
@@ -223,9 +228,12 @@ export function FeedbackPanel({
         >
           Karneye dön <ArrowRight className="size-3.5" />
         </Link>
-        <span className="ml-auto text-[10px] uppercase tracking-widest text-ink-3">
-          Eğitim amaçlı simülasyon — gerçek hukuki tavsiye değildir
-        </span>
+        <div className="ml-auto flex items-center gap-3">
+          <ReportContentButton contentType="case" contentId={legalCase.id} />
+          <span className="text-[10px] uppercase tracking-widest text-ink-3">
+            Eğitim amaçlı simülasyon
+          </span>
+        </div>
       </div>
     </div>
   );

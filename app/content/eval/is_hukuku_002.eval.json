@@ -1,0 +1,91 @@
+{
+  "caseId": "is_hukuku_002",
+  "version": "1.0",
+  "description": "is_hukuku_002 AI çıktılarının kalite kontrolü — DeepSeek V4 Pro ile koşulur",
+  "scenarios": [
+    {
+      "id": "ground_arabuluculuk",
+      "endpoint": "ground",
+      "request": {
+        "topic": "İşe iade davasında arabuluculuk dava şartı mıdır?"
+      },
+      "expectations": {
+        "mustMentionSources": ["is_mahkemeleri_m3"],
+        "explanationContains": ["arabulucu", "dava şart"],
+        "noSourceFoundShouldBe": false
+      }
+    },
+    {
+      "id": "ground_sure_1ay",
+      "endpoint": "ground",
+      "request": {
+        "topic": "İşe iade için hak düşürücü süre kaç gün?"
+      },
+      "expectations": {
+        "mustMentionSources": ["is_kanunu_m20"],
+        "explanationContains": ["bir ay", "hak düşürücü"],
+        "noSourceFoundShouldBe": false
+      }
+    },
+    {
+      "id": "assess_perfect_dilekce",
+      "endpoint": "assess",
+      "request": {
+        "userAnswer": "Müvekkilim için talep edilebilecek haklar: 1) Feshin geçersizliğine karar verilmesi ve işe iadesi (İş K. m. 20), 2) Boşta geçen süre için en çok 4 aylık ücret tutarında tazminat (İş K. m. 21), 3) İşe başlatılmama tazminatı olarak 4-8 aylık ücret, 4) Birikmiş fazla mesai ve yıllık izin alacakları, 5) Manevi tazminat. Arabuluculuk şartı yerine getirildikten sonra dava açılır.",
+        "dimensions": ["mesele", "gerekce", "ifade"]
+      },
+      "expectations": {
+        "minScores": { "mesele": 2, "gerekce": 2, "ifade": 2 },
+        "shouldNotBeFlagged": true
+      }
+    },
+    {
+      "id": "assess_weak_answer",
+      "endpoint": "assess",
+      "request": {
+        "userAnswer": "Selin tazminat alır.",
+        "dimensions": ["mesele", "gerekce", "ifade"]
+      },
+      "expectations": {
+        "maxScores": { "mesele": 2, "gerekce": 1, "ifade": 1 },
+        "minMissedIssues": 2
+      }
+    },
+    {
+      "id": "branch_strong_savunma",
+      "endpoint": "branch",
+      "request": {
+        "userText": "Sayın hâkim, karşı tarafın haklı sebep iddiası İş K. m. 26 gereği 6 işgünü süresinden sonra ileri sürülmüştür ve bu sebeple geçersizdir. Ayrıca müvekkilimin elindeki e-postalar sevkiyat planlama hatasının asıl sorumlusunun başka kişi olduğunu kanıtlıyor.",
+        "context": "Karşı vekil 'haklı sebep' iddiası getirdi (İş K. m. 25). Süre kuralı: 6 iş günü (m. 26). Olay 2 ay önce.",
+        "candidates": [
+          { "nodeId": "n10_strong", "label": "Güçlü savunma", "verdict": "good" },
+          { "nodeId": "n10_partial", "label": "Kısmi savunma", "verdict": "partial" },
+          { "nodeId": "n10_weak", "label": "Zayıf savunma", "verdict": "bad" }
+        ],
+        "fallbackNodeId": "n10_partial"
+      },
+      "expectations": {
+        "chosenNodeId": "n10_strong",
+        "verdict": "good"
+      }
+    },
+    {
+      "id": "branch_weak_savunma",
+      "endpoint": "branch",
+      "request": {
+        "userText": "İspat yükü karşı taraftadır, biz ispatla yükümlü değiliz.",
+        "context": "Karşı vekil haklı sebep iddiası getirdi. Süre 2 ay önce.",
+        "candidates": [
+          { "nodeId": "n10_strong", "label": "Güçlü savunma", "verdict": "good" },
+          { "nodeId": "n10_partial", "label": "Kısmi savunma", "verdict": "partial" },
+          { "nodeId": "n10_weak", "label": "Zayıf savunma", "verdict": "bad" }
+        ],
+        "fallbackNodeId": "n10_partial"
+      },
+      "expectations": {
+        "chosenNodeId": "n10_weak",
+        "verdict": "bad"
+      }
+    }
+  ]
+}

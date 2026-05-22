@@ -59,17 +59,31 @@ const AssessmentSchema = z.object({
   nextStep: z.string(),
 });
 
+const VALID_DIMS = new Set(["olay", "mesele", "usul", "maddi", "gerekce", "risk", "ifade"]);
+
+// scoreHint için raw record kabul et, sonra elle filtrele.
 const BranchSchema = z.object({
   chosenNodeId: z.string(),
   reason: z.string(),
   verdict: z.enum(["good", "partial", "bad"]),
-  scoreHint: z
-    .record(
-      z.enum(["olay", "mesele", "usul", "maddi", "gerekce", "risk", "ifade"]),
-      z.number().int().min(0).max(4),
-    )
-    .optional(),
+  scoreHint: z.record(z.string(), z.unknown()).optional(),
 });
+
+/** scoreHint'i sanitize et: geçersiz anahtarları drop, sayısal olmayan değerleri at. */
+function sanitizeScoreHint(
+  raw: Record<string, unknown> | undefined,
+): Partial<Record<RubricKey, number>> | undefined {
+  if (!raw) return undefined;
+  const out: Partial<Record<RubricKey, number>> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (!VALID_DIMS.has(k)) continue;
+    const n = typeof v === "number" ? v : Number(v);
+    if (Number.isFinite(n) && n >= 0 && n <= 4) {
+      out[k as RubricKey] = Math.round(n) as 0 | 1 | 2 | 3 | 4;
+    }
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
 
 /* ─────────── Auditor middleware ─────────── */
 
@@ -324,8 +338,10 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
         "Öğrencinin avukat olarak verdiği serbest cevabı oku.",
         "Aşağıdaki olası dallardan TAM OLARAK BİRİNİ seç. Yeni node id üretme; yalnız listelenenlerden birini döndür.",
         "Türk hukuku açısından öğrencinin cevabının ne kadar güçlü olduğunu değerlendir.",
-        "Cevabını ZORUNLU olarak şu JSON şemasıyla döndür:",
-        '{"chosenNodeId": "...", "reason": "...", "verdict": "good|partial|bad", "scoreHint": {"dim": 0-4}}',
+        "Cevabını ZORUNLU olarak şu JSON formatında döndür:",
+        '{"chosenNodeId": "<listelenen bir id>", "reason": "<gerekçen>", "verdict": "good" | "partial" | "bad", "scoreHint": <opsiyonel objesi, anahtarları sadece: olay, mesele, usul, maddi, gerekce, risk, ifade — değerler 0-4>}',
+        "ÖRNEK scoreHint: {\"mesele\": 4, \"usul\": 3}",
+        "scoreHint isteğe bağlı — emin değilsen yazma. Asla 'dim' veya placeholder anahtarı kullanma.",
       ].join("\n");
 
       const user = [
@@ -354,7 +370,7 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
       return {
         chosenNodeId: valid ? raw.chosenNodeId : req.fallbackNodeId,
         reason: raw.reason,
-        scoreHint: raw.scoreHint,
+        scoreHint: sanitizeScoreHint(raw.scoreHint),
         verdict: raw.verdict,
         flaggedForReview: !valid,
       };

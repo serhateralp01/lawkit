@@ -7,6 +7,7 @@ import { sources } from "@/content/sources";
 import { useCaseSession } from "@/lib/case-engine/useCaseSession";
 import { resolveFacts, discoveryProgress } from "@/lib/case-engine";
 import { shuffledBySeed } from "@/lib/utils/shuffle";
+import { computeHintQuota } from "@/lib/adaptive/difficulty";
 import { useGamificationStore } from "@/lib/gamification";
 import { CaseScreenLayout } from "@/components/patterns/CaseScreenLayout";
 import { RubricMeter } from "@/components/composite/RubricMeter";
@@ -314,11 +315,11 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
           <RubricMeter scores={session.ledger} />
 
           {hintAvailable(node, currentStep) ? (
-            <HintLadder
-              hint={hintForNode(node.id, legalCase.branch)}
-              ceilingLabel={primaryRubricLabel(node.rubricTargets)}
-              controlledLevel={hintLevel}
-              onOpen={(rung) => openHint(rung)}
+            <HintLadderWithQuota
+              node={node}
+              hintLevel={hintLevel}
+              onOpen={openHint}
+              caseBranch={legalCase.branch}
             />
           ) : (
             <div className="rounded-md border border-line bg-surface-sunken/40 p-3 text-xs text-ink-3">
@@ -343,6 +344,31 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
           </div>
         </>
       }
+    />
+  );
+}
+
+function HintLadderWithQuota({
+  node,
+  hintLevel,
+  onOpen,
+  caseBranch,
+}: {
+  node: { id: string; rubricTargets?: import("@/content/types").RubricKey[] };
+  hintLevel: 0 | 1 | 2 | 3;
+  onOpen: (rung: 1 | 2 | 3) => void;
+  caseBranch: string;
+}) {
+  const attempts = useGamificationStore((s) => s.attempts);
+  const quota = computeHintQuota(node.rubricTargets, attempts);
+  return (
+    <HintLadder
+      hint={hintForNode(node.id, caseBranch)}
+      ceilingLabel={primaryRubricLabel(node.rubricTargets)}
+      controlledLevel={hintLevel}
+      onOpen={onOpen}
+      maxRung={quota.maxRung}
+      limitNote={quota.reason || undefined}
     />
   );
 }
