@@ -503,7 +503,7 @@ function FactsList({
             key={`${f.text}-${i}`}
             className={cn(
               "flex gap-2 transition-opacity",
-              f.discovered ? "text-ink-2" : "text-ink-3/60",
+              f.discovered ? "text-ink-2" : "text-ink-3/50",
             )}
           >
             <span
@@ -523,8 +523,8 @@ function FactsList({
                   {f.text}
                 </>
               ) : (
-                <span className="italic">
-                  {f.category ?? "Bilinmeyen"} — henüz öğrenmedin
+                <span className="italic tracking-wider">
+                  ▢▢▢▢▢▢ · sormadın
                 </span>
               )}
             </span>
