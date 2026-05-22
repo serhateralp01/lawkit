@@ -30,14 +30,15 @@ interface Props {
   facing?: "left" | "right";
 }
 
+// Pastel ton paleti — agresif olmasın, profesyonel his versin.
 const ROLE_HUE: Record<Speaker, number> = {
-  narrator: 230,
-  muvekkil: 30,
-  hakim: 270,
-  karsi_vekil: 350,
-  karsi_taraf: 350,
-  staj_patron: 210,
-  katip: 150,
+  narrator: 230,    // mavi
+  muvekkil: 180,    // teal — sıcak ama nötr
+  hakim: 270,       // mor — otorite
+  karsi_vekil: 15,  // turuncu — hareketli ama agresif değil
+  karsi_taraf: 15,
+  staj_patron: 210, // gök mavisi — bilgelik
+  katip: 150,       // yeşil
 };
 
 const sizePx = { sm: 40, md: 64, lg: 112 } as const;
@@ -70,8 +71,8 @@ export function HumanAvatar({
     [seed, px],
   );
 
-  const frameColor = `oklch(0.92 0.05 ${hue})`;
-  const ringColor = `oklch(0.55 0.18 ${hue})`;
+  const frameColor = `oklch(0.94 0.04 ${hue})`;
+  const ringColor = `oklch(0.62 0.12 ${hue})`;
 
   return (
     <motion.div

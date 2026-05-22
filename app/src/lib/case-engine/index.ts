@@ -25,6 +25,8 @@ export {
 export { awardForChoice, ceilingFor, mergeLedger, ledgerPercentages } from "./scoring";
 export { validateCase } from "./validate";
 export { useCaseSession } from "./useCaseSession";
+export { resolveFacts, discoveryProgress } from "./facts";
+export type { ResolvedFact } from "./facts";
 export type {
   CaseSession,
   StepEvent,

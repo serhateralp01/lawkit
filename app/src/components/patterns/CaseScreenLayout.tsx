@@ -9,61 +9,59 @@ interface Props {
 }
 
 /**
- * CaseScreenLayout — çerçeve §5'teki "üçlü kolon" örüntüsü.
+ * CaseScreenLayout — desktop-first 3 kolon vaka ekranı.
  *
- * Sol (28%): olay dosyası — statik referans, her an dönülür
- * Orta (44%): aktif karar veya geri bildirim — tek mikro-görev
- * Sağ (28%): rubrik göstergesi, ipucu merdiveni, görev listesi
+ * Sol (280px): olgu defteri — kompakt, statik
+ * Orta (esnek): aktif sahne — tek mikro-görev, geniş
+ * Sağ (300px): beceriler + ipuçları + ilerleme
  *
- * Bilim:
- *   - Sweller (CLT): extraneous load minimize, tek aktif görev
- *   - Vygotsky ZPD: scaffolding kullanıcı kontrolünde (sağ kolon)
+ * Mobile breakpoint yok; yatay tablet 1024px+ optimum, desktop 1440px+ ideal.
  */
 export function CaseScreenLayout({ case: c, left, center, right }: Props) {
   return (
-    <div className="mx-auto max-w-[1400px] px-4 pb-16 pt-6 lg:px-8 lg:pt-10">
+    <div className="mx-auto max-w-[1560px] px-6 pb-16 pt-8 xl:px-10">
       {/* Künye */}
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
+      <header className="mb-8 flex items-center justify-between gap-4 border-b border-line pb-5">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-ink-3">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-ink-3">
             Dosya · {c.id.toUpperCase()} · {branchLabel(c.branch)}
           </p>
-          <h1 className="mt-1 font-display text-xl font-bold text-ink-1 sm:text-2xl">
+          <h1 className="mt-1.5 font-display text-2xl font-bold text-ink-1 lg:text-3xl">
             {c.title}
           </h1>
         </div>
-        <dl className="flex items-center gap-5 text-xs text-ink-2">
+        <dl className="flex items-center gap-6 text-sm text-ink-2">
           <div className="flex items-center gap-1.5">
-            <Clock className="size-3.5 text-ink-3" />
+            <Clock className="size-4 text-ink-3" />
             <dt className="sr-only">Süre</dt>
             <dd>~{c.estimatedMinutes} dk</dd>
           </div>
           <div className="flex items-center gap-1.5">
-            <Layers className="size-3.5 text-ink-3" />
+            <Layers className="size-4 text-ink-3" />
             <dt className="sr-only">Zorluk</dt>
             <dd>Seviye {c.difficulty}</dd>
           </div>
           <div className="flex items-center gap-1.5">
-            <FileText className="size-3.5 text-ink-3" />
+            <FileText className="size-4 text-ink-3" />
             <dt className="sr-only">Düğüm sayısı</dt>
             <dd>{c.nodes.length} adım</dd>
           </div>
         </dl>
       </header>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(260px,1fr)_minmax(0,1.55fr)_minmax(260px,1fr)]">
-        <aside className="space-y-5 rounded-lg border border-line bg-surface-raised p-5">
+      <div className="grid gap-6 grid-cols-[280px_minmax(0,1fr)_320px]">
+        <aside className="space-y-6 rounded-2xl border border-line bg-surface-raised p-5">
           {left}
         </aside>
-        <main className="rounded-lg border border-line bg-surface-raised p-6 shadow-[var(--shadow-card)]">
+        <main className="rounded-2xl border border-line bg-surface-raised p-7 shadow-[var(--shadow-card)]">
           {center}
         </main>
-        <aside className="space-y-6 rounded-lg border border-line bg-surface-raised p-5">
+        <aside className="space-y-5 rounded-2xl border border-line bg-surface-raised p-5">
           {right}
         </aside>
       </div>
 
-      <p className="mt-6 text-center text-[10px] uppercase tracking-widest text-ink-3">
+      <p className="mt-8 text-center text-[10px] uppercase tracking-widest text-ink-3">
         Eğitim amaçlı simülasyon · LawKit gerçek hukuki tavsiye vermez
       </p>
     </div>

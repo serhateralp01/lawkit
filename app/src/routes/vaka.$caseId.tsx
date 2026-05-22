@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { getCase } from "@/content/cases";
 import { sources } from "@/content/sources";
 import { useCaseSession } from "@/lib/case-engine/useCaseSession";
+import { resolveFacts, discoveryProgress } from "@/lib/case-engine";
 import { useGamificationStore } from "@/lib/gamification";
 import { CaseScreenLayout } from "@/components/patterns/CaseScreenLayout";
 import { RubricMeter } from "@/components/composite/RubricMeter";
@@ -19,6 +20,7 @@ import { OpenTextStage } from "@/components/composite/OpenTextStage";
 import { AiBranchStage } from "@/components/composite/AiBranchStage";
 import { ClientChatStage } from "@/components/composite/ClientChatStage";
 import { StageView } from "@/components/composite/StageView";
+import { CaseClosing } from "@/components/composite/CaseClosing";
 import type { CaseOption, CharacterDef, LegalCase } from "@/content/types";
 import { cn } from "@/lib/utils";
 
@@ -122,14 +124,12 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
 
   if (node.kind === "outcome") {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="mx-auto max-w-5xl px-4 pb-16 pt-6 lg:px-8 lg:pt-10"
-      >
-        <FeedbackPanel case={legalCase} outcomeNode={node} session={session} onReset={reset} />
-      </motion.div>
+      <OutcomeScreen
+        legalCase={legalCase}
+        session={session}
+        outcomeNode={node}
+        onReset={reset}
+      />
     );
   }
 
@@ -158,17 +158,8 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-3">Dosya özeti</p>
             <p className="mt-2 text-sm leading-relaxed text-ink-2">{legalCase.summary}</p>
           </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-3">Olgular</p>
-            <ul className="mt-2 space-y-1.5 text-xs text-ink-2">
-              {legalCase.facts.map((f) => (
-                <li key={f} className="flex gap-2">
-                  <span className="mt-1.5 size-1 shrink-0 rounded-full bg-ink-3" />
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <FactsList legalCase={legalCase} session={session} />
+
           {legalCase.documents && legalCase.documents.length > 0 ? (
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-3">Belgeler</p>
@@ -361,7 +352,7 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
         <>
           <RubricMeter scores={session.ledger} />
 
-          {!currentStep?.chosenOptionId ? (
+          {hintAvailable(node, currentStep) ? (
             <HintLadder
               hint={hintForNode(node.id, legalCase.branch)}
               ceilingLabel={primaryRubricLabel(node.rubricTargets)}
@@ -392,6 +383,50 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
         </>
       }
     />
+  );
+}
+
+function OutcomeScreen({
+  legalCase,
+  session,
+  outcomeNode,
+  onReset,
+}: {
+  legalCase: LegalCase;
+  session: ReturnType<typeof useCaseSession>["session"];
+  outcomeNode: ReturnType<typeof useCaseSession>["node"];
+  onReset: () => void;
+}) {
+  const outcome = session.outcomeId
+    ? legalCase.outcomes?.find((o) => o.id === session.outcomeId)
+    : undefined;
+  const hasClosing = outcome?.closingBeats && outcome.closingBeats.length > 0;
+  const [showFeedback, setShowFeedback] = useState(!hasClosing);
+
+  if (!outcomeNode) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="mx-auto max-w-5xl px-4 pb-16 pt-6 lg:px-8 lg:pt-10"
+    >
+      {showFeedback || !outcome ? (
+        <FeedbackPanel
+          case={legalCase}
+          outcomeNode={outcomeNode}
+          session={session}
+          onReset={onReset}
+        />
+      ) : (
+        <CaseClosing
+          case={legalCase}
+          outcome={outcome}
+          onContinue={() => setShowFeedback(true)}
+        />
+      )}
+    </motion.div>
   );
 }
 
@@ -433,6 +468,74 @@ function ActStrip({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function FactsList({
+  legalCase,
+  session,
+}: {
+  legalCase: LegalCase;
+  session: ReturnType<typeof useCaseSession>["session"];
+}) {
+  const facts = resolveFacts(legalCase, session);
+  const progress = discoveryProgress(legalCase, session);
+  const hasHidden = legalCase.facts.some(
+    (f) => typeof f !== "string" && f.hidden,
+  );
+
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-3">
+          Olgu defterin
+        </p>
+        {hasHidden ? (
+          <span className="text-[9px] font-semibold text-ink-3">
+            %{Math.round(progress * 100)} keşfedildi
+          </span>
+        ) : null}
+      </div>
+      <ul className="mt-2 space-y-1.5 text-xs">
+        {facts.map((f, i) => (
+          <li
+            key={`${f.text}-${i}`}
+            className={cn(
+              "flex gap-2 transition-opacity",
+              f.discovered ? "text-ink-2" : "text-ink-3/60",
+            )}
+          >
+            <span
+              className={cn(
+                "mt-1.5 size-1 shrink-0 rounded-full",
+                f.discovered ? "bg-signal-positive" : "bg-line",
+              )}
+            />
+            <span className="flex-1">
+              {f.discovered ? (
+                <>
+                  {f.category ? (
+                    <span className="mr-1 text-[9px] font-bold uppercase tracking-wider text-ink-3">
+                      {f.category}:
+                    </span>
+                  ) : null}
+                  {f.text}
+                </>
+              ) : (
+                <span className="italic">
+                  {f.category ?? "Bilinmeyen"} — henüz öğrenmedin
+                </span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {hasHidden && progress < 1 ? (
+        <p className="mt-3 rounded-md bg-amber-soft/40 px-2.5 py-1.5 text-[10px] leading-relaxed text-ink-2">
+          💡 Müvekkile doğru soruları sorarak yeni olgular öğreneceksin.
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -495,6 +598,20 @@ function OptionRow({
       </button>
     </motion.li>
   );
+}
+
+/** İpuçları sahnenin hangi safhasında açıkta — node tipine göre. */
+function hintAvailable(
+  node: { kind: string },
+  currentStep: { chosenOptionId?: string; freeText?: string } | undefined,
+): boolean {
+  if (node.kind === "decision") return !currentStep?.chosenOptionId;
+  if (node.kind === "open_text" || node.kind === "ai_branch") {
+    // Cevap sunulup AI değerlendirme dönmeden önce hint açık.
+    return !currentStep?.freeText;
+  }
+  if (node.kind === "client_chat") return true; // sohbet boyunca hep açık
+  return false; // info / outcome / checkpoint
 }
 
 function hintForNode(_nodeId: string, branch: string) {

@@ -82,7 +82,9 @@ export function step(
   if (!node) return { session };
 
   if (ev.type === "open-hint") {
-    if (node.kind !== "decision") return { session };
+    // İpuçları her tip karar gerektiren sahnede açılabilir.
+    const ALLOWED = ["decision", "open_text", "ai_branch", "client_chat"];
+    if (!ALLOWED.includes(node.kind)) return { session };
     const { record, index } = currentStep(session);
     if (ev.rung <= record.hintLevel) return { session }; // monoton
 

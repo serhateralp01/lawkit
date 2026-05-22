@@ -187,14 +187,30 @@ export interface Outcome {
   id: string;
   title: string;
   mood: OutcomeMood;
-  /** Anlatımlı sonuç metni. */
+  /** Anlatımlı sonuç metni (FeedbackPanel'de gösterilir). */
   narrative: string;
+  /** Sinematik kapanış sahnesi — beat beat oynar, sonra FeedbackPanel açılır. */
+  closingBeats?: { speakerId?: string; text: string; setting?: string }[];
   /** Worked example — hangi yolu seçmek doğruydu. */
   idealAnswer: string;
   /** Bu outcome'a varan kritik dönüm noktaları (UI'da vurgulanır). */
   pivotalDecisions?: { nodeId: string; explanation: string }[];
   /** Engine eşleşme kuralı. */
   condition: Condition;
+}
+
+/** Vakanın olguları — bazıları başta gizli, soru sorulunca açılır. */
+export interface DiscoverableFact {
+  /** Olgunun gösterilen metni. */
+  text: string;
+  /** false ise vaka başında zaten açık (örn. dosya özeti). */
+  hidden?: boolean;
+  /** Bu olgu hangi anahtar kelimelerle keşfedilir (chat'te sorulduğunda). */
+  revealKeywords?: string[];
+  /** Vakanın hangi node'unda zorla açılır (örn. chat tamamlandığında hepsi). */
+  revealAfterNode?: string;
+  /** UI başlık etiketi — "Belge", "Süre", "İşveren" vb. */
+  category?: string;
 }
 
 export interface LegalCase {
@@ -205,7 +221,8 @@ export interface LegalCase {
   estimatedMinutes: number;
   rubricId: string;
   summary: string;
-  facts: string[];
+  /** Mevcut: string[] (hepsi açık). Yeni: DiscoverableFact[] (bazıları gizli). */
+  facts: (string | DiscoverableFact)[];
   documents?: { label: string; ref?: string }[];
   startNode: string;
   nodes: CaseNode[];

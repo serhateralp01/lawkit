@@ -20,12 +20,57 @@ export const isHukuku002: LegalCase = {
   summary:
     "Müvekkil Selin Hanım, 9 yıldır çalıştığı lojistik firmasından sözlü olarak işten çıkarıldı. İşveren 'haklı sebep' iddia ediyor. Senin işin: doğru olguları toplamak, davayı doğru yerden açmak ve duruşmada karşı vekilin tuzaklarına yakalanmamak.",
   facts: [
-    "Selin Hanım Aralık 2016'dan beri aynı işveren — 9 yıl, kesintisiz.",
-    "Pazartesi sabahı patronla tartışma çıktı, akşam SMS ile 'gelmene gerek yok' bildirimi geldi.",
-    "İşverenin elindeki iddia: Selin'in son 2 ay birkaç müşteri sevkiyatını kaçırdığı.",
-    "Selin'in iddiası: o sevkiyatlar planlama hatasından kaynaklı, e-postalarda kanıt var.",
-    "İşveren 140 işçi çalıştırıyor — iş güvencesi tartışmasız uygulanır.",
-    "Son 3 ayda fazla mesai parası ödenmedi, yıllık izin kullandırılmadı.",
+    {
+      text: "Müvekkilin adı Selin Hanım, lojistik koordinatörü.",
+      category: "Müvekkil",
+    },
+    {
+      text: "Sözlü/SMS yolla işten çıkarılma durumu var.",
+      category: "Anlaşmazlık",
+    },
+    // ───── Aşağıdakiler chat'te soru sorulunca açılır ─────
+    {
+      text: "Selin Hanım Aralık 2016'dan beri aynı işveren — 9 yıl, kesintisiz.",
+      category: "Kıdem",
+      hidden: true,
+      revealKeywords: ["kaç yıl", "ne kadar", "kıdem", "sigorta", "sgk"],
+      revealAfterNode: "n1",
+    },
+    {
+      text: "Pazartesi tartışma + akşam SMS bildirimi 'gelmene gerek yok'.",
+      category: "Fesih biçimi",
+      hidden: true,
+      revealKeywords: ["nasıl", "sms", "yazılı", "bildirim", "kağıt", "belge"],
+      revealAfterNode: "n1",
+    },
+    {
+      text: "İşverenin iddiası: Selin son 2 ayda 3 sevkiyatı kaçırdı (haklı sebep iddiası).",
+      category: "İşveren savunması",
+      hidden: true,
+      revealKeywords: ["haklı sebep", "iddia", "neden", "gerekçe"],
+      revealAfterNode: "n1",
+    },
+    {
+      text: "Selin'in elinde planlama hatasını gösteren e-postalar var.",
+      category: "Delil",
+      hidden: true,
+      revealKeywords: ["delil", "kanıt", "belge", "e-posta", "email"],
+      revealAfterNode: "n1",
+    },
+    {
+      text: "İşveren 140 işçi çalıştırıyor → iş güvencesi tartışmasız.",
+      category: "İş güvencesi",
+      hidden: true,
+      revealKeywords: ["işçi sayısı", "iş güvencesi", "kaç kişi", "firma büyük"],
+      revealAfterNode: "n1",
+    },
+    {
+      text: "Son 3 ay fazla mesai ödenmedi, yıllık izin kullandırılmadı.",
+      category: "Ek alacaklar",
+      hidden: true,
+      revealKeywords: ["fazla mesai", "izin", "alacak", "maaş", "ödeme"],
+      revealAfterNode: "n1",
+    },
   ],
   documents: [
     { label: "İş sözleşmesi", ref: "20.12.2016, belirsiz süreli" },
@@ -46,7 +91,6 @@ export const isHukuku002: LegalCase = {
       name: "Selin Hanım",
       archetype: "Lojistik koordinatörü · 9 yıl kıdemli",
       initials: "SH",
-      hue: 24,
     },
     {
       id: "patron",
@@ -54,7 +98,6 @@ export const isHukuku002: LegalCase = {
       name: "Av. Tülin Demir",
       archetype: "Kıdemli avukat · senin patron",
       initials: "TD",
-      hue: 200,
     },
     {
       id: "hakim",
@@ -62,7 +105,6 @@ export const isHukuku002: LegalCase = {
       name: "Hâkim Aydın",
       archetype: "İş Mahkemesi · 15 yıl deneyimli",
       initials: "HA",
-      hue: 280,
     },
     {
       id: "karsi",
@@ -70,7 +112,6 @@ export const isHukuku002: LegalCase = {
       name: "Av. Mert Çelik",
       archetype: "İşveren vekili · agresif tarz",
       initials: "MÇ",
-      hue: 350,
     },
   ],
   intro: {
@@ -519,6 +560,23 @@ export const isHukuku002: LegalCase = {
         maxHints: 1,
         requireDimGte: { usul: 4 },
       },
+      closingBeats: [
+        { setting: "Hâkim Aydın kararını okumaya başladı. Salon sessiz." },
+        {
+          speakerId: "hakim",
+          text: "Davacının işverence yapılan feshin geçersizliğine, davacının işe iadesine; boşta geçen süre için 4 aylık ücreti tutarında ödeme yapılmasına... oybirliğiyle karar verilmiştir.",
+        },
+        { setting: "Karşı vekil dosyasını topladı, salonu sessiz terk etti." },
+        {
+          speakerId: "selin",
+          text: "Avukatım... başardık. Dokuz yılım boşa gitmedi. Size minnettarım.",
+        },
+        { setting: "Salondan çıkıyorsun. Adliye koridorunda Selin'in yüzünde ilk kez gerçek bir gülümseme." },
+        {
+          speakerId: "patron",
+          text: "Helal sana. Süre tutum, m. 26 itirazı, delil zinciri — hepsini yerinde kullandın. Bu bir genç avukat için zor kazanılan bir zaferdir.",
+        },
+      ],
       narrative:
         "Hâkim Aydın kararını verdi: feshin geçersizliği tespit edildi, işe iade kabul. Boşta geçen süre ücreti (4 ay) + işe başlatmama tazminatı (8 aylık ücret) + birikmiş fazla mesai ve yıllık izin alacakları + tüm yargılama giderleri davalıdan alınarak müvekkilinize ödenecek. Selin Hanım gözleri dolu çıktı salondan, sana bakarak 'sayenizde' dedi.",
       idealAnswer:
@@ -546,6 +604,21 @@ export const isHukuku002: LegalCase = {
         minLedgerAvg: 2.6,
         maxHints: 3,
       },
+      closingBeats: [
+        { setting: "Hâkim Aydın kararı kısmen kabul yönünde okudu." },
+        {
+          speakerId: "hakim",
+          text: "Feshin geçersizliğine ve davacının işe iadesine; bir kısım fazla mesai alacağının ispatlanamadığından reddine karar verilmiştir.",
+        },
+        {
+          speakerId: "selin",
+          text: "Yine de işime dönüyorum, bu çok şey demek. Teşekkür ederim avukatım.",
+        },
+        {
+          speakerId: "patron",
+          text: "Asıl talep tahsil edildi. Fazla mesai için bordro tanığı çağırmak gerekirdi — bir dahaki sefere.",
+        },
+      ],
       narrative:
         "Hâkim Aydın işe iadeyi kabul etti — feshin geçersizliği tescillendi. Ancak fazla mesai için sunulan bordro kayıtlarındaki bazı kalemler ispatlanamadığı için bir kısım alacak reddedildi. Selin Hanım tatmin oldu ama 'keşke biraz daha kuvvetli savunsaydık' dedi.",
       idealAnswer:
@@ -564,6 +637,18 @@ export const isHukuku002: LegalCase = {
       condition: {
         minLedgerAvg: 2.0,
       },
+      closingBeats: [
+        { setting: "Arabuluculuk masasında. İşveren temsilcisi teklif sunmuştu." },
+        {
+          speakerId: "selin",
+          text: "Kabul edeceğim. Daha fazla beklemek yorucu — bir şey kazanmak hiç kazanmamaktan iyi.",
+        },
+        { setting: "Tutanak imzalandı, dosya kapandı. Mahkeme yolu kapalı." },
+        {
+          speakerId: "patron",
+          text: "Uzlaşma mantıklı bir çıkıştı ama dosyada daha güçlü argümanlar vardı. Davaya gitseydik daha fazlasını alabilirdik.",
+        },
+      ],
       narrative:
         "Dava açılmadan, arabuluculuk masasında işveren bir teklif sundu: 6 maaş tutarında ödeme + kıdem + ihbar tazminatı, işe iade yok. Selin Hanım yorgun, kabul etti. Hâkime kadar gitmedik. 'En azından bir şey kazandık' dedi ama gözünde işe iade hayali kaldı.",
       idealAnswer:
@@ -576,6 +661,21 @@ export const isHukuku002: LegalCase = {
       condition: {
         minLedgerAvg: 1.2,
       },
+      closingBeats: [
+        { setting: "Hâkim Aydın kararını verdi. Selin Hanım dimdik duruyor." },
+        {
+          speakerId: "hakim",
+          text: "Feshin geçerli sebebe dayandığı kanaatine varılmıştır. İşe iade talebinin reddine; sadece birikmiş fazla mesai alacağı yönünden kısmen kabule karar verilmiştir.",
+        },
+        {
+          speakerId: "selin",
+          text: "Bu kadarına da razıyım. Ama içime sinmiyor — istinafa gidebilir miyiz?",
+        },
+        {
+          speakerId: "patron",
+          text: "İstinaf yolu açık. Ama davayı baştan kuran argümanlar yetersizdi — m. 26 süresini güçlendirmedik. Bunu içselleştir.",
+        },
+      ],
       narrative:
         "Hâkim kararı verdi: feshin geçerli olduğuna karar verildi. Boşta geçen süre ücreti reddedildi. Birikmiş fazla mesai alacakları yargılama gideriyle birlikte kabul edildi. Selin Hanım kararı duyunca sessiz kaldı. 'Temyize gideceğim' dedi. Sen de bilirsin — istinaf yolu açık ama emek kaybı çok.",
       idealAnswer:
@@ -588,6 +688,23 @@ export const isHukuku002: LegalCase = {
       condition: {
         default: true,
       },
+      closingBeats: [
+        { setting: "Hâkim Aydın dosyayı kapadı. Yüzünde sıkıntılı bir ifade vardı." },
+        {
+          speakerId: "hakim",
+          text: "İş Mahkemeleri Kanunu m. 3 — arabuluculuk dava şartı yerine getirilmemiştir. Dava şartı yokluğundan davanın usulden reddine karar verildi.",
+        },
+        { setting: "Selin Hanım kararı duyunca olduğu yerde donup kaldı." },
+        {
+          speakerId: "selin",
+          text: "Avukatım... anlamadım. Bu nasıl olabilir? Suç benim mi?",
+        },
+        { setting: "Sözcüklerin nereye gideceğini bilmiyorsun. Karşı vekil dosyasını topladı, gülümsemeden çıktı." },
+        {
+          speakerId: "patron",
+          text: "Bu sertlikten bir ders çıkar. Usul hukuku affetmez. 1 ay hak düşürücü süre — bu konuda bir daha tereddüt etme.",
+        },
+      ],
       narrative:
         "Mahkeme önündeki ilk celsede usulden ret kararı çıktı. 1 ay hak düşürücü süre içinde arabuluculuğa başvurulmamıştı; işe iade hakkı sona ermişti. Birikmiş alacaklar için ayrı dava açılabilir ama Selin Hanım'ın işyerine dönme hayali bitti. Salondan çıkarken sana baktı, 'avukatım, anlamadım nasıl olduğunu' dedi.",
       idealAnswer:
