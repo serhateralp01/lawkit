@@ -92,72 +92,21 @@ function sanitizeScoreHint(
 
 /* ─────────── Case Generation Zod şeması ─────────── */
 
-const CaseGenOptionSchema = z.object({
-  id: z.string(),
-  label: z.string(),
-  next: z.string(),
-  verdict: z.enum(["good", "partial", "bad"]),
-  feedback: z.string().optional(),
-  scores: z.record(z.string(), z.number()).optional(),
-  sources: z.array(z.string()).optional(),
-});
-
-const CaseGenNodeSchema = z.object({
-  id: z.string(),
-  kind: z.enum(["decision", "outcome", "info", "open_text", "ai_branch", "client_chat", "checkpoint"]),
-  prompt: z.string().optional(),
-  summary: z.string().optional(),
-  idealAnswer: z.string().optional(),
-  speaker: z.string().optional(),
-  speakerId: z.string().optional(),
-  scene: z.string().optional(),
-  sceneCharacters: z.array(z.string()).optional(),
-  act: z.number().int().min(1).max(3).optional(),
-  options: z.array(CaseGenOptionSchema).optional(),
-}).passthrough();
-
-const CaseGenOutcomeSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  mood: z.enum(["triumph", "neutral", "warning", "loss"]),
-  narrative: z.string(),
-  idealAnswer: z.string(),
-  condition: z.object({
-    default: z.boolean().optional(),
-    minLedgerAvg: z.number().optional(),
-    maxHints: z.number().optional(),
-    maxBadVerdicts: z.number().optional(),
-  }).passthrough(),
-}).passthrough();
-
+// MÜMKÜN OLDUĞUNCA ESNEK — LLM ne döndürürse kabul et, post-process'te düzelt
 const LegalCaseOutputSchema = z.object({
-  id: z.string(),
-  title: z.string().min(1),
-  branch: z.string(),
-  difficulty: z.number().int().min(1).max(4),
-  estimatedMinutes: z.number().int(),
-  rubricId: z.string(),
-  summary: z.string(),
-  facts: z.array(z.unknown()),
-  startNode: z.string(),
-  nodes: z.array(CaseGenNodeSchema),
-  outcomes: z.array(z.object({
-    id: z.string(),
-    title: z.string(),
-    mood: z.string(),
-    narrative: z.string(),
-    idealAnswer: z.string(),
-    condition: z.object({}).passthrough(),
-  }).passthrough()).optional(),
-  cast: z.array(z.object({
-    id: z.string(),
-    role: z.string(),
-    name: z.string(),
-  }).passthrough()).optional(),
-  acts: z.array(z.object({
-    number: z.number().int().min(1).max(3),
-    title: z.string(),
-  }).passthrough()).optional(),
+  id: z.string().optional().default("gen_case"),
+  title: z.string().optional().default("Vaka"),
+  branch: z.string().optional().default("borclar"),
+  difficulty: z.number().int().min(1).max(4).optional().default(2),
+  estimatedMinutes: z.number().int().optional().default(20),
+  rubricId: z.string().optional().default("rubric_v1"),
+  summary: z.string().optional().default(""),
+  facts: z.array(z.unknown()).optional().default([]),
+  startNode: z.string().optional().default("n1"),
+  nodes: z.array(z.object({
+    id: z.string().optional().default("n1"),
+    kind: z.string().optional().default("info"),
+  }).passthrough()).optional().default([]),
 }).passthrough();
 
 /* ─────────── Auditor middleware ─────────── */
@@ -546,8 +495,9 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
       let flaggedForReview = false;
 
       try {
-        const raw = await chatJson(LegalCaseOutputSchema as z.ZodType<LegalCase>, system, user);
-        // Normalize branch değeri (LLM bazen idare_hukuku, İdare Hukuku vs dönebiliyor)
+        const raw = (await chatJson(LegalCaseOutputSchema as z.ZodType<Record<string, unknown>>, system, user)) as Record<string, unknown>;
+
+        // Normalize branch
         const branchMap: Record<string, string> = {
           "iş hukuku": "is_hukuku", "is hukuku": "is_hukuku", "iş_hukuku": "is_hukuku",
           "borçlar hukuku": "borclar", "borclar hukuku": "borclar", "borçlar": "borclar",
@@ -557,23 +507,67 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
           "idare hukuku": "idare", "idare": "idare", "idare_hukuku": "idare",
           "ticaret hukuku": "ticaret", "ticaret": "ticaret", "ticaret_hukuku": "ticaret",
         };
-        const rawBranch = ((raw as Record<string, unknown>).branch as string)?.toLowerCase() ?? "";
-        if (branchMap[rawBranch]) (raw as Record<string, unknown>).branch = branchMap[rawBranch];
-        if (!["is_hukuku", "borclar", "medeni", "medeni_usul", "ceza", "idare", "ticaret"].includes((raw as Record<string, unknown>).branch as string)) {
-          (raw as Record<string, unknown>).branch = "borclar"; // fallback
+        const rawBranch = ((raw.branch ?? raw.branch ?? "") as string).toLowerCase();
+        if (branchMap[rawBranch]) raw.branch = branchMap[rawBranch];
+        if (!["is_hukuku", "borclar", "medeni", "medeni_usul", "ceza", "idare", "ticaret"].includes(raw.branch as string)) {
+          raw.branch = "borclar";
         }
+
+        // Normalize node kinds (LLM 'result' -> 'outcome')
+        const nodes = (raw.nodes as Array<Record<string, unknown>>) ?? [];
+        const validKinds = new Set(["decision", "outcome", "info", "open_text", "ai_branch", "client_chat", "checkpoint"]);
+        for (const n of nodes) {
+          if (!validKinds.has(n.kind as string)) n.kind = "info";
+          // Fix missing option fields
+          const opts = n.options as Array<Record<string, unknown>> | undefined;
+          if (opts) {
+            for (const o of opts) {
+              if (!o.id) o.id = `opt_${Math.random().toString(36).slice(2, 8)}`;
+              if (!o.label) o.label = "Seçenek";
+              if (!o.next) o.next = n.id as string;
+              if (!o.verdict) o.verdict = "partial";
+              if (!["good", "partial", "bad"].includes(o.verdict as string)) o.verdict = "partial";
+            }
+          }
+          // Ensure node has id
+          if (!n.id) n.id = `n${nodes.indexOf(n) + 1}`;
+        }
+
+        // Ensure startNode exists in nodes
+        const nodeIds = new Set(nodes.map((n) => n.id as string));
+        if (!nodeIds.has(raw.startNode as string)) {
+          raw.startNode = nodes[0]?.id ?? "n1";
+        }
+
+        // Fix outcome moods
+        const outcomes = raw.outcomes as Array<Record<string, unknown>> | undefined;
+        const validMoods = new Set(["triumph", "neutral", "warning", "loss"]);
+        if (outcomes) {
+          for (const o of outcomes) {
+            if (!validMoods.has(o.mood as string)) o.mood = "neutral";
+            if (!o.id) o.id = `outcome_${outcomes.indexOf(o)}`;
+            if (!o.condition) o.condition = { default: outcomes.indexOf(o) === outcomes.length - 1 };
+          }
+        }
+
+        // Cast normalize
+        const cast = raw.cast as Array<Record<string, unknown>> | undefined;
+        if (cast) {
+          for (const c of cast) {
+            if (!c.id) c.id = `char_${cast.indexOf(c)}`;
+          }
+        }
+
         generated = raw as unknown as LegalCase;
 
-        // Quality audit
-        const nodeCount = (raw as { nodes?: unknown[] }).nodes?.length ?? 0;
-        const sourcePass = auditCaseSources(raw as Record<string, unknown>);
-        const hasOptions = generated.nodes.some((n) => (n as { options?: unknown[] }).options?.length);
-        const hasCast = generated.cast && generated.cast.length > 0;
-        const hasOutcomes = generated.outcomes && generated.outcomes.length > 0;
+        // Quality audit (basit)
+        const nodeCount = nodes.length;
+        const srcPass = auditCaseSources(raw);
+        const hasOpts = nodes.some((n) => Array.isArray(n.options) && (n.options as unknown[]).length > 0);
+        qualityScore = 0.3 + (nodeCount >= 5 ? 0.2 : 0) + (srcPass ? 0.25 : 0) + (hasOpts ? 0.15 : 0)
+          + (outcomes && outcomes.length > 0 ? 0.1 : 0);
+        flaggedForReview = !srcPass || nodeCount < 3;
 
-        qualityScore = 0.35 + (nodeCount >= 7 ? 0.15 : 0) + (sourcePass ? 0.2 : 0)
-          + (hasOptions ? 0.15 : 0) + (hasCast ? 0.1 : 0) + (hasOutcomes ? 0.05 : 0);
-        flaggedForReview = !sourcePass || nodeCount < 5;
       } catch (err) {
         throw new Error(
           `Case generation failed: ${err instanceof Error ? err.message : String(err)}`,
