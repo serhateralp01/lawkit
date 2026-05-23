@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Flame, Trophy, Target, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
+import {
+  Flame,
+  Trophy,
+  Target,
+  ArrowRight,
+  Sparkles,
+  CheckCircle2,
+  Wand2,
+} from "lucide-react";
 import { ReviewBadge } from "@/components/composite/ReviewBadge";
 import { recommendCase } from "@/lib/adaptive/difficulty";
 import {
@@ -344,6 +352,9 @@ function CaseLibrarySection({
       transition={{ delay: 0.3, duration: 0.4 }}
       className="mt-10"
     >
+      {/* AI ile vaka üret */}
+      <AiCaseGenerator />
+
       {/* Sana önerilen vaka */}
       {recommendation && recommendedCase ? (
         <motion.div
@@ -376,11 +387,17 @@ function CaseLibrarySection({
 
       <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-ink-3">
-            Tüm vakalar
-          </h2>
-          <p className="mt-1 text-[10px] text-ink-3">
-            {branchCounts.all} vaka hazır · {allCases.filter((c) => caseType(c) === "deep").length} derin senaryo
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-ink-3">
+              Demo Vakalar
+            </h2>
+            <span className="rounded-full bg-amber-soft/60 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-foreground">
+              Önceden hazırlanmış
+            </span>
+          </div>
+          <p className="mt-1 text-[11px] leading-relaxed text-ink-3">
+            Bunlar LawKit ekibinin hazırladığı örnek vakalardır — pratik için hep buradalar.{" "}
+            {branchCounts.all} vaka · {allCases.filter((c) => caseType(c) === "deep").length} kapsamlı senaryo
           </p>
         </div>
 
@@ -447,8 +464,13 @@ function CaseLibrarySection({
                         ? "bg-indigo-soft/60 text-indigo"
                         : "bg-amber-soft/50 text-amber-foreground",
                     )}
+                    title={
+                      type === "deep"
+                        ? "Kapsamlı senaryo — birden çok sonuç dalı, ~15-20 dk"
+                        : "Hızlı pratik — tek akış, ~8-10 dk"
+                    }
                   >
-                    {type === "deep" ? "Derin" : "Tat"}
+                    {type === "deep" ? "Kapsamlı" : "Hızlı"}
                   </span>
                   <span className="ml-auto text-[10px] text-ink-3">
                     ~{c.estimatedMinutes} dk
@@ -492,6 +514,41 @@ function CaseLibrarySection({
         })}
       </div>
     </motion.section>
+  );
+}
+
+function AiCaseGenerator() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.15 }}
+      className="mb-6 rounded-2xl border border-indigo/30 bg-gradient-to-r from-indigo-soft/40 via-indigo-soft/10 to-transparent p-5"
+    >
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-indigo-soft/60">
+          <Wand2 className="size-5 text-indigo" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo">
+            Vaka Studio
+          </p>
+          <p className="mt-0.5 font-display text-base font-semibold text-ink-1">
+            AI ile kendi vakanı yarat
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-ink-2">
+            Dal, zorluk ve istersen konu/karakter tonu seç — AI sana özel bir
+            vaka senaryosu üretsin.
+          </p>
+        </div>
+        <Link
+          to="/vaka-studio"
+          className="inline-flex items-center gap-1.5 rounded-md bg-indigo px-4 py-2 text-xs font-bold text-surface-raised hover:opacity-90"
+        >
+          Vaka üret <ArrowRight className="size-3.5" />
+        </Link>
+      </div>
+    </motion.div>
   );
 }
 

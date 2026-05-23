@@ -233,3 +233,33 @@ export const petitionTemplates: PetitionTemplate[] = [
 export function getPetitionTemplate(id: string): PetitionTemplate | undefined {
   return petitionTemplates.find((t) => t.id === id);
 }
+
+/**
+ * Tarayıcı tarafı: AI ile üretilmiş şablon sessionStorage'da tutulur.
+ * Sunucu/SSR yolunda undefined döner — bu doğru, çünkü generated template
+ * sadece üreten kullanıcıya özel ve istemci-yan saklanır.
+ */
+const AI_PETITION_STORAGE_PREFIX = "lawkit:ai-petition:";
+
+export function saveAiPetitionTemplate(tpl: PetitionTemplate): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(
+      AI_PETITION_STORAGE_PREFIX + tpl.id,
+      JSON.stringify(tpl),
+    );
+  } catch {
+    // sessionStorage dolu / izin yok — sessizce geç
+  }
+}
+
+export function getAiPetitionTemplate(id: string): PetitionTemplate | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const raw = window.sessionStorage.getItem(AI_PETITION_STORAGE_PREFIX + id);
+    if (!raw) return undefined;
+    return JSON.parse(raw) as PetitionTemplate;
+  } catch {
+    return undefined;
+  }
+}

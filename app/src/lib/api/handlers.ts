@@ -62,6 +62,25 @@ const AssessmentBody = z.object({
   ),
 });
 
+const GeneratePetitionBody = z.object({
+  userScenario: z.string().min(10),
+  branch: z.enum(["is_hukuku", "borclar", "medeni", "medeni_usul", "ceza", "idare", "ticaret"]).optional(),
+});
+
+const GenerateCaseBody = z
+  .object({
+    userScenario: z.string().min(10).optional(),
+    branch: z
+      .enum(["is_hukuku", "borclar", "medeni", "medeni_usul", "ceza", "idare", "ticaret"])
+      .optional(),
+    difficulty: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]).optional(),
+    theme: z.string().max(120).optional(),
+    characterTone: z.string().max(120).optional(),
+  })
+  .refine((d) => d.userScenario || d.branch || d.theme, {
+    message: "En az userScenario veya branch veya theme verilmeli",
+  });
+
 const BranchBody = z.object({
   caseId: z.string(),
   session: SessionShape,
@@ -174,6 +193,24 @@ export async function handleAi(
         dimensions: parsed.data.dimensions,
       };
       const res = await orchestrator.assess(req);
+      return json(res);
+    }
+
+    if (pathname === "/api/ai/generate-petition") {
+      const parsed = GeneratePetitionBody.safeParse(body);
+      if (!parsed.success) {
+        return json({ error: parsed.error.flatten() }, { status: 400 });
+      }
+      const res = await orchestrator.generatePetition(parsed.data);
+      return json(res);
+    }
+
+    if (pathname === "/api/ai/generate-case") {
+      const parsed = GenerateCaseBody.safeParse(body);
+      if (!parsed.success) {
+        return json({ error: parsed.error.flatten() }, { status: 400 });
+      }
+      const res = await orchestrator.generateCase(parsed.data);
       return json(res);
     }
 

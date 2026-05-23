@@ -126,12 +126,83 @@ export interface AiBranchResponse {
   flaggedForReview: boolean;
 }
 
+/* ─────────────── Generate petition template ─────────────── */
+
+export type LegalBranch =
+  | "is_hukuku"
+  | "borclar"
+  | "medeni"
+  | "medeni_usul"
+  | "ceza"
+  | "idare"
+  | "ticaret";
+
+export interface GeneratePetitionRequest {
+  /** Kullanıcının serbest senaryo açıklaması ("kiracım depozitomu vermiyor...") */
+  userScenario: string;
+  /** Hukuki dal — opsiyonel (AI tahmin edebilir) */
+  branch?: LegalBranch;
+}
+
+export interface GeneratedPetitionSection {
+  key: string;
+  title: string;
+  guidance: string;
+  placeholder: string;
+  minChars: number;
+  assessDimensions: RubricKey[];
+  graderHint: string;
+}
+
+export interface GeneratePetitionResponse {
+  id: string;
+  title: string;
+  summary: string;
+  branch: LegalBranch;
+  estimatedMinutes: number;
+  difficulty: 1 | 2 | 3 | 4;
+  sections: GeneratedPetitionSection[];
+  /** Auditor: yapı/anahtar dışı tip varsa true */
+  flaggedForReview: boolean;
+}
+
+/* ─────────────── Generate case ─────────────── */
+
+export interface GenerateCaseRequest {
+  /** Kullanıcının serbest senaryo açıklaması — opsiyonel; branch + theme verilirse boş olabilir */
+  userScenario?: string;
+  branch?: LegalBranch;
+  /** Zorluk talebi (1-4); yoksa orta tutulur */
+  difficulty?: 1 | 2 | 3 | 4;
+  /** Konu/tema vurgusu — örn: "fesih", "miras", "komşuluk" */
+  theme?: string;
+  /** Müvekkil karakter tonu — örn: "yaşlı esnaf", "genç öğrenci" */
+  characterTone?: string;
+}
+
+export interface GeneratedCaseScenario {
+  id: string;
+  title: string;
+  branch: LegalBranch;
+  summary: string;
+  /** Müvekkilin ağzından anlatım — role-play için seed */
+  clientNarrative: string;
+  /** Üzerinde durulacak hukuki meseleler — kısa bullet'lar */
+  keyIssues: string[];
+  /** Öğrenciden beklenen ilk hamleler */
+  expectedFirstMoves: string[];
+  difficulty: 1 | 2 | 3 | 4;
+  estimatedMinutes: number;
+  /** Auditor: kaynak uydurması ya da gerçek dışı içtihat varsa true */
+  flaggedForReview: boolean;
+}
+
 /* ─────────────── Adapter ─────────────── */
 
 /**
- * Tek arayüz, dört rol. Implementasyonlar:
+ * Tek arayüz, çok rol. Implementasyonlar:
  *   - MockAdapter (bu repo, demo/test için)
- *   - OpenRouterAdapter (canlı LLM)
+ *   - LlmAdapter (canlı LLM)
  *
  * Her implementasyon Auditor middleware'i kendi içinde çağırır.
  * Çıktı flaggedForReview=true ise UI sadece "denetimde" yazar.
@@ -141,6 +212,8 @@ export interface AIOrchestrator {
   rolePlay(req: RolePlayRequest): Promise<RolePlayResponse>;
   assess(req: AssessmentRequest): Promise<AssessmentResponse>;
   branch(req: AiBranchRequest): Promise<AiBranchResponse>;
+  generatePetition(req: GeneratePetitionRequest): Promise<GeneratePetitionResponse>;
+  generateCase(req: GenerateCaseRequest): Promise<GeneratedCaseScenario>;
 }
 
 /* ─────────────── Auditor ─────────────── */

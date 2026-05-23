@@ -19,8 +19,13 @@ import type {
   AssessmentRequest,
   AssessmentResponse,
   DimensionScore,
+  GeneratedCaseScenario,
+  GeneratePetitionRequest,
+  GeneratePetitionResponse,
+  GenerateCaseRequest,
   GroundedRequest,
   GroundedResponse,
+  LegalBranch,
   RolePlayRequest,
   RolePlayResponse,
 } from "./types";
@@ -95,6 +100,88 @@ export const mockAdapter: AIOrchestrator = {
       reason: "Mock adapter: ilk olumlu dal seçildi.",
       scoreHint: {},
       verdict: good?.verdict ?? "partial",
+      flaggedForReview: false,
+    };
+  },
+
+  async generatePetition(req: GeneratePetitionRequest): Promise<GeneratePetitionResponse> {
+    const branch: LegalBranch = req.branch ?? "borclar";
+    const slug = `mock_${branch}_${Date.now().toString(36)}`;
+    return {
+      id: slug,
+      title: "AI Üretimi Dilekçe Şablonu (Mock)",
+      summary: `Senaryo: ${req.userScenario.slice(0, 120)}…`,
+      branch,
+      estimatedMinutes: 15,
+      difficulty: 3,
+      sections: [
+        {
+          key: "mahkeme",
+          title: "Mahkeme Başlığı",
+          guidance: "Yetkili + görevli mahkemeyi açıkça yaz.",
+          placeholder: "[YETKİLİ] MAHKEMESİ SAYIN HAKİMLİĞİNE",
+          minChars: 40,
+          assessDimensions: ["usul", "ifade"],
+          graderHint: "Doğru görevli mahkeme + yetkili yer.",
+        },
+        {
+          key: "vakialar",
+          title: "Vakıalar",
+          guidance: "Olay örgüsünü kronolojik yaz.",
+          placeholder: "1. …\n2. …\n3. …",
+          minChars: 180,
+          assessDimensions: ["olay", "mesele"],
+          graderHint: "Kronolojik, somut, belge dayanaklı.",
+        },
+        {
+          key: "sonuc_istem",
+          title: "Sonuç ve İstem",
+          guidance: "Numaralı + miktarlı talepler.",
+          placeholder: "1- …\n2- …",
+          minChars: 100,
+          assessDimensions: ["gerekce", "ifade"],
+          graderHint: "Talepler net + faiz başlangıcı + giderler.",
+        },
+      ],
+      flaggedForReview: false,
+    };
+  },
+
+  async generateCase(req: GenerateCaseRequest): Promise<GeneratedCaseScenario> {
+    const branch: LegalBranch = req.branch ?? "borclar";
+    const slug = `mock_case_${branch}_${Date.now().toString(36)}`;
+    const scenarioText =
+      req.userScenario ??
+      [
+        req.theme ? `Konu: ${req.theme}.` : "",
+        req.characterTone ? `Müvekkil: ${req.characterTone}.` : "",
+        "Anlaşmazlık devam ediyor ve hukuki çözüm aranıyor.",
+      ]
+        .filter(Boolean)
+        .join(" ");
+    return {
+      id: slug,
+      title:
+        (req.theme ? `${req.theme} · ` : "") + "AI Üretimi Vaka (Mock)",
+      branch,
+      summary: scenarioText.slice(0, 200),
+      clientNarrative:
+        "Müvekkil senin önünde oturuyor. " +
+        (req.characterTone ? `Karakter: ${req.characterTone}. ` : "") +
+        "Yorgun ama umutlu, anlatmaya başlıyor: " +
+        scenarioText.slice(0, 240),
+      keyIssues: [
+        "Hukuki nitelik tespiti",
+        "Görevli + yetkili mahkeme",
+        "Zamanaşımı / hak düşürücü süre",
+      ],
+      expectedFirstMoves: [
+        "Olguları kronolojik dök",
+        "İlgili mevzuat maddelerini tara",
+        "Delillerin tamamlığını test et",
+      ],
+      difficulty: req.difficulty ?? 3,
+      estimatedMinutes: 12,
       flaggedForReview: false,
     };
   },

@@ -7,7 +7,10 @@ import type { CaseSession } from "@/lib/case-engine";
 import type {
   AiBranchResponse,
   AssessmentResponse,
+  GeneratedCaseScenario,
+  GeneratePetitionResponse,
   GroundedResponse,
+  LegalBranch,
   Persona,
   RolePlayResponse,
 } from "@/lib/ai-orchestrator/types";
@@ -57,6 +60,23 @@ export function aiAssess(args: {
   dimensions: RubricKey[];
 }) {
   return post<AssessmentResponse>("/api/ai/assess", args);
+}
+
+export function aiGeneratePetition(args: {
+  userScenario: string;
+  branch?: LegalBranch;
+}) {
+  return post<GeneratePetitionResponse>("/api/ai/generate-petition", args);
+}
+
+export function aiGenerateCase(args: {
+  userScenario?: string;
+  branch?: LegalBranch;
+  difficulty?: 1 | 2 | 3 | 4;
+  theme?: string;
+  characterTone?: string;
+}) {
+  return post<GeneratedCaseScenario>("/api/ai/generate-case", args);
 }
 
 export function aiBranch(args: {

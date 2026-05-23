@@ -17,14 +17,20 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { sources } from "@/content/sources";
 import { defaultRubric } from "@/content/rubrics";
+import type { RubricKey } from "@/content/types";
 import type {
   AIOrchestrator,
   AiBranchRequest,
   AiBranchResponse,
   AssessmentRequest,
   AssessmentResponse,
+  GeneratedCaseScenario,
+  GenerateCaseRequest,
+  GeneratePetitionRequest,
+  GeneratePetitionResponse,
   GroundedRequest,
   GroundedResponse,
+  LegalBranch,
   RolePlayRequest,
   RolePlayResponse,
 } from "./types";
@@ -67,6 +73,49 @@ const BranchSchema = z.object({
   reason: z.string(),
   verdict: z.enum(["good", "partial", "bad"]),
   scoreHint: z.record(z.string(), z.unknown()).optional(),
+});
+
+const BRANCH_ENUM = z.enum([
+  "is_hukuku",
+  "borclar",
+  "medeni",
+  "medeni_usul",
+  "ceza",
+  "idare",
+  "ticaret",
+]);
+const RUBRIC_ENUM = z.enum(["olay", "mesele", "usul", "maddi", "gerekce", "risk", "ifade"]);
+
+const PetitionSectionSchema = z.object({
+  key: z.string().min(1),
+  title: z.string().min(1),
+  guidance: z.string().min(1),
+  placeholder: z.string(),
+  minChars: z.number().int().min(20).max(800),
+  assessDimensions: z.array(RUBRIC_ENUM).min(1),
+  graderHint: z.string().min(1),
+});
+
+const GeneratePetitionSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  summary: z.string().min(1),
+  branch: BRANCH_ENUM,
+  estimatedMinutes: z.number().int().min(3).max(60),
+  difficulty: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+  sections: z.array(PetitionSectionSchema).min(3).max(10),
+});
+
+const GenerateCaseSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  branch: BRANCH_ENUM,
+  summary: z.string().min(1),
+  clientNarrative: z.string().min(20),
+  keyIssues: z.array(z.string()).min(1),
+  expectedFirstMoves: z.array(z.string()).min(1),
+  difficulty: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+  estimatedMinutes: z.number().int().min(3).max(60),
 });
 
 /** scoreHint'i sanitize et: geçersiz anahtarları drop, sayısal olmayan değerleri at. */
@@ -374,6 +423,94 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
         verdict: raw.verdict,
         flaggedForReview: !valid,
       };
+    },
+
+    async generatePetition(
+      req: GeneratePetitionRequest,
+    ): Promise<GeneratePetitionResponse> {
+      const system = [
+        "Sen LawKit'in 'Petition Template Generator' ajansısın.",
+        "Kullanıcının senaryosuna göre Türk hukuku açısından uygun bir dilekçe şablonu üret.",
+        "Şablon parça parça (sections) olmalı: mahkeme başlığı, taraflar, konu, vakıalar, hukuki sebepler, deliller, sonuç ve istem benzeri yapı.",
+        "Her bölüm öğrencinin yazacağı bir 'parça' — guidance + placeholder + minChars + grader hint ver.",
+        "DİKKAT: ASLA mevzuat maddesi veya Yargıtay kararı UYDURMA. Genel ilkeler ve şablonik ifadeler kullan.",
+        "JSON şeması:",
+        '{"id": "<kısa-slug>", "title": "<dilekçenin adı>", "summary": "<2-3 cümle>", "branch": "is_hukuku|borclar|medeni|medeni_usul", "estimatedMinutes": 8-30, "difficulty": 1-4, "sections": [{"key": "...", "title": "...", "guidance": "...", "placeholder": "...", "minChars": 40-300, "assessDimensions": [<rubric anahtarlarından>], "graderHint": "..."}]}',
+        "Rubric anahtarları: olay, mesele, usul, maddi, gerekce, risk, ifade.",
+        "Sections en az 3, en çok 10 olsun. Her section minChars=40-300 arası.",
+      ].join("\n");
+
+      const user = [
+        `Senaryo: ${req.userScenario}`,
+        req.branch ? `Tercih edilen dal: ${req.branch}` : "Dal serbest — sen seç.",
+      ].join("\n");
+
+      try {
+        const raw = await chatJson(GeneratePetitionSchema, system, user);
+        return {
+          id: raw.id,
+          title: raw.title,
+          summary: raw.summary,
+          branch: raw.branch as LegalBranch,
+          estimatedMinutes: raw.estimatedMinutes,
+          difficulty: raw.difficulty as 1 | 2 | 3 | 4,
+          sections: raw.sections.map((s) => ({
+            key: s.key,
+            title: s.title,
+            guidance: s.guidance,
+            placeholder: s.placeholder,
+            minChars: s.minChars,
+            assessDimensions: s.assessDimensions as RubricKey[],
+            graderHint: s.graderHint,
+          })),
+          flaggedForReview: false,
+        };
+      } catch (e) {
+        throw new Error(
+          `generatePetition failed: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    },
+
+    async generateCase(req: GenerateCaseRequest): Promise<GeneratedCaseScenario> {
+      const system = [
+        "Sen LawKit'in 'Case Scenario Generator' ajansısın.",
+        "Kullanıcının senaryosuna göre Türk hukuku eğitimi için bir vaka taslağı üret.",
+        "Vaka kısa ve oynanabilir olsun: müvekkilin ağzından bir anlatım, anahtar meseleler, beklenen ilk hamleler.",
+        "DİKKAT: ASLA mevzuat maddesi veya Yargıtay kararı UYDURMA. Mevzuat ismi (TBK, TMK, İş K. gibi) genel referans olabilir; ama somut madde no/karar atfı yok.",
+        "JSON şeması:",
+        '{"id": "<kısa-slug>", "title": "<vaka adı>", "branch": "is_hukuku|borclar|medeni|medeni_usul", "summary": "<2-3 cümle>", "clientNarrative": "<müvekkilin ağzından 4-8 cümle>", "keyIssues": ["<madde>", ...], "expectedFirstMoves": ["<hamle>", ...], "difficulty": 1-4, "estimatedMinutes": 5-30}',
+      ].join("\n");
+
+      const user = [
+        req.userScenario ? `Senaryo: ${req.userScenario}` : "Senaryo: (kullanıcı belirtmedi — sen üret)",
+        req.branch ? `Tercih edilen dal: ${req.branch}` : "Dal serbest.",
+        req.difficulty ? `Zorluk talebi: ${req.difficulty}/4` : "",
+        req.theme ? `Konu vurgusu: ${req.theme}` : "",
+        req.characterTone ? `Müvekkil karakter tonu: ${req.characterTone}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      try {
+        const raw = await chatJson(GenerateCaseSchema, system, user);
+        return {
+          id: raw.id,
+          title: raw.title,
+          branch: raw.branch as LegalBranch,
+          summary: raw.summary,
+          clientNarrative: raw.clientNarrative,
+          keyIssues: raw.keyIssues,
+          expectedFirstMoves: raw.expectedFirstMoves,
+          difficulty: raw.difficulty as 1 | 2 | 3 | 4,
+          estimatedMinutes: raw.estimatedMinutes,
+          flaggedForReview: false,
+        };
+      } catch (e) {
+        throw new Error(
+          `generateCase failed: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
     },
   };
 }

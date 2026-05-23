@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { createFileRoute, notFound, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -10,8 +10,8 @@ import {
   Trophy,
 } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
-import { getPetitionTemplate } from "@/content/petition-templates";
-import type { PetitionSection } from "@/content/petition-templates";
+import { getAiPetitionTemplate, getPetitionTemplate } from "@/content/petition-templates";
+import type { PetitionTemplate } from "@/content/petition-templates";
 import { defaultRubric } from "@/content/rubrics";
 import type { RubricKey } from "@/content/types";
 import { cn } from "@/lib/utils";
@@ -21,15 +21,36 @@ import type { AssessmentResponse } from "@/lib/ai-orchestrator/types";
 
 export const Route = createFileRoute("/dilekce-lab/$templateId")({
   loader: ({ params }) => {
+    // SSR yolunda sessionStorage yok — static şablon yoksa boş döneriz
+    // ve component client'ta sessionStorage'tan AI üretimi şablonu yüklenir.
     const t = getPetitionTemplate(params.templateId);
-    if (!t) throw notFound();
-    return { template: t };
+    return { template: t ?? null, templateId: params.templateId };
   },
   head: ({ loaderData }) => ({
-    meta: [{ title: `${loaderData?.template.title} — Dilekçe Lab | LawKit` }],
+    meta: [
+      {
+        title: loaderData?.template
+          ? `${loaderData.template.title} — Dilekçe Lab | LawKit`
+          : "Dilekçe Lab | LawKit",
+      },
+    ],
   }),
   component: PetitionWorkbench,
 });
+
+function useResolvedTemplate(
+  staticTemplate: PetitionTemplate | null,
+  templateId: string,
+): PetitionTemplate | null {
+  const [resolved, setResolved] = useState<PetitionTemplate | null>(staticTemplate);
+  // Client mount: eğer static şablon yoksa AI üretimi şablonu sessionStorage'tan ara.
+  useEffect(() => {
+    if (staticTemplate) return;
+    const t = getAiPetitionTemplate(templateId);
+    if (t) setResolved(t);
+  }, [staticTemplate, templateId]);
+  return resolved;
+}
 
 interface SectionState {
   text: string;
@@ -43,16 +64,51 @@ function emptySection(): SectionState {
 }
 
 function PetitionWorkbench() {
-  const { template } = Route.useLoaderData();
+  const { template: staticTemplate, templateId } = Route.useLoaderData();
+  const template = useResolvedTemplate(staticTemplate, templateId);
   const [active, setActive] = useState(0);
   const [states, setStates] = useState<Record<string, SectionState>>(() => {
+    if (!staticTemplate) return {};
     const m: Record<string, SectionState> = {};
-    for (const s of template.sections) m[s.key] = emptySection();
+    for (const s of staticTemplate.sections) m[s.key] = emptySection();
     return m;
   });
 
+  // Client'ta AI üretimi şablon resolve olduğunda eksik section state'ini doldur.
+  useEffect(() => {
+    if (!template) return;
+    setStates((prev) => {
+      const m = { ...prev };
+      let changed = false;
+      for (const s of template.sections) {
+        if (!m[s.key]) {
+          m[s.key] = emptySection();
+          changed = true;
+        }
+      }
+      return changed ? m : prev;
+    });
+  }, [template]);
+
+  if (!template) {
+    return (
+      <PageShell>
+        <div className="mx-auto max-w-3xl px-6 py-20 text-center">
+          <h1 className="font-display text-2xl font-bold text-ink-1">Şablon bulunamadı</h1>
+          <p className="mt-3 text-sm text-ink-2">
+            Bu şablon mevcut değil veya AI üretimi şablon ise sessionStorage'da değil.
+            <Link to="/dilekce-lab" className="ml-1 underline">
+              Şablon listesine dön
+            </Link>
+            .
+          </p>
+        </div>
+      </PageShell>
+    );
+  }
+
   const currentSection = template.sections[active];
-  const currentState = states[currentSection.key];
+  const currentState = states[currentSection?.key ?? ""];
 
   const update = (key: string, patch: Partial<SectionState>) => {
     setStates((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
