@@ -9,6 +9,7 @@ import {
   Filter,
 } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
+import { BetaGate } from "@/components/site/BetaGate";
 import { ReviewBadge } from "@/components/composite/ReviewBadge";
 import { useGamificationStore } from "@/lib/gamification";
 import { recommendCase } from "@/lib/adaptive/difficulty";
@@ -28,8 +29,16 @@ export const Route = createFileRoute("/case-studio")({
       },
     ],
   }),
-  component: CaseStudioPage,
+  component: CaseStudioGated,
 });
+
+function CaseStudioGated() {
+  return (
+    <BetaGate feature="Vaka Studio">
+      <CaseStudioPage />
+    </BetaGate>
+  );
+}
 
 function CaseStudioPage() {
   const [hydrated, setHydrated] = useState(false);

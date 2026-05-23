@@ -42,14 +42,18 @@ async function post<T>(
     body: JSON.stringify(body),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(
-      `AI request failed (${res.status}): ${
-        typeof err === "object" && err && "error" in err
+    const err = (await res.json().catch(() => ({}))) as {
+      error?: unknown;
+      detail?: string;
+    };
+    const errorPart =
+      typeof err.error === "string"
+        ? err.error
+        : err.error
           ? JSON.stringify(err.error).slice(0, 200)
-          : res.statusText
-      }`,
-    );
+          : res.statusText;
+    const detailPart = err.detail ? ` — ${err.detail}` : "";
+    throw new Error(`AI request failed (${res.status}): ${errorPart}${detailPart}`);
   }
   return (await res.json()) as T;
 }

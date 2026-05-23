@@ -2,6 +2,13 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabaseBrowser, hasSupabaseConfig } from "@/lib/supabase/client";
 
+/**
+ * Admin email allow-list. Yalnız bu adres(ler) admin yetkisi alır.
+ * DB profile.is_admin ALANINA GÜVENİLMEZ — hard-coded liste önceliklidir.
+ * Yeni admin eklenecekse buraya yazılır.
+ */
+const ADMIN_EMAILS = new Set<string>(["serhateralp01@gmail.com"]);
+
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
@@ -36,40 +43,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = supabaseBrowser();
     let mounted = true;
 
-    async function fetchProfile(userId: string | undefined, email: string | undefined) {
-      if (!userId) {
-        setIsAdmin(false);
-        return;
-      }
-      // Hardcoded admin fallback
-      if (email === "serhateralp01@gmail.com") {
-        if (mounted) setIsAdmin(true);
-        return;
-      }
+    function applyAdminFromEmail(email: string | undefined) {
+      if (!mounted) return;
+      const normalized = email?.trim().toLowerCase() ?? "";
+      setIsAdmin(ADMIN_EMAILS.has(normalized));
+    }
+
+    async function ensureProfile(userId: string | undefined, email: string | undefined) {
+      if (!userId) return;
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("is_admin")
+          .select("id")
           .eq("id", userId)
-          .single();
-
-        if (error) {
-          if (error.code === "PGRST116" || error.code === "42P01") {
-            // Profil yok → manuel oluşturmayı dene
-            const displayName = email?.split("@")[0] ?? "Kullanıcı";
-            await supabase.from("profiles").insert({
-              id: userId,
-              display_name: displayName,
-              is_admin: false,
-            });
-          }
-          if (mounted) setIsAdmin(false);
-          return;
+          .maybeSingle();
+        if (!error && !data) {
+          const displayName = email?.split("@")[0] ?? "Kullanıcı";
+          await supabase.from("profiles").insert({
+            id: userId,
+            display_name: displayName,
+            is_admin: false,
+          });
         }
-
-        if (mounted) setIsAdmin(data?.is_admin === true);
       } catch {
-        if (mounted) setIsAdmin(false);
+        /* profiles tablosu yoksa sessizce geç — admin email allow-list yine geçerli */
       }
     }
 
@@ -77,7 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       setSession(data.session);
-      fetchProfile(data.session?.user?.id, data.session?.user?.email).finally(() => {
+      const u = data.session?.user;
+      applyAdminFromEmail(u?.email);
+      void ensureProfile(u?.id, u?.email).finally(() => {
         if (mounted) setLoading(false);
       });
     });
@@ -86,7 +85,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       if (!mounted) return;
       setSession(s);
-      fetchProfile(s?.user?.id, s?.user?.email);
+      const u = s?.user;
+      applyAdminFromEmail(u?.email);
+      void ensureProfile(u?.id, u?.email);
     });
 
     return () => {

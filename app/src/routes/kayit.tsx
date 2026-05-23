@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { CheckCircle2, Loader2, AlertCircle, Mail } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
@@ -22,9 +22,12 @@ function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [confirmSent, setConfirmSent] = useState(false);
 
-  if (!authLoading && user) {
-    void navigate({ to: "/karne" });
-  }
+  // Zaten giriş yapmışsa karneye yönlendir — render sırasında değil, effect içinde.
+  useEffect(() => {
+    if (!authLoading && user) {
+      void navigate({ to: "/karne" });
+    }
+  }, [authLoading, user, navigate]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
