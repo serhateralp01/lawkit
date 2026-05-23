@@ -206,6 +206,7 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
     schema: z.ZodType<T>,
     system: string,
     user: string,
+    opts: { maxTokens?: number } = {},
   ): Promise<T> {
     const completion = await client.chat.completions.create({
       model,
@@ -215,6 +216,9 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
         { role: "user", content: user },
       ],
       temperature: 0.2,
+      // max_tokens: çıktıyı sınırlayarak LLM'in uzun yazımını engelle ve hızlandır.
+      // Vaka üretimi ~3000 token yeterli, dilekçe ~2000, sorular ~1500.
+      max_tokens: opts.maxTokens ?? 4096,
     });
 
     if (!completion?.choices || completion.choices.length === 0) {
@@ -492,13 +496,14 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
 
       const contextBlock = req.contextSourceIds.length > 0
         ? [
-            "Aşağıdaki mevzuat maddelerini vakaya dayanak olarak KULLANMALISIN:",
+            "Dayanak mevzuat (en az 1'ini option.sources'da referansla):",
             ...req.contextSourceIds.map((id) => {
               const s = sources[id];
-              return s ? `- ${s.shortTitle}: ${s.body.slice(0, 300)}` : null;
+              // Body kısa — LLM zaten madde başlığından bağlamı çıkarıyor.
+              return s ? `- ${s.shortTitle}: ${s.body.slice(0, 120)}` : null;
             }).filter(Boolean),
           ].join("\n")
-        : "Hiçbir mevzuat bağlamı verilmedi — mevzuat.gov.tr'deki güncel mevzuatla uyumlu üret.";
+        : "Mevzuat bağlamı yok — Türk hukukunun ilgili dalından güncel mevzuatla uyumlu üret.";
 
       const themeLine = req.theme
         ? `TEMA: "${req.theme}" — vaka bu konu etrafında dönmeli.`
@@ -512,8 +517,8 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
         "Hukuk öğrencileri için DALLANAN vaka simülasyonları üretiyorsun.",
         "",
         "ÜRETİM KURALLARI (KESİN):",
-        "1. Vaka toplam 7-15 node (karar noktası) arasında OLMALI.",
-        "2. Her karar node'unda 2-4 option (seçenek) olmalı.",
+        "1. Vaka toplam 5-9 node (karar noktası) arasında OLMALI. Zorluk 1=5 node, 2=6 node, 3=7-8 node, 4=8-9 node.",
+        "2. Her karar node'unda 2-3 option (seçenek) olmalı.",
         "3. KESİN branch değerleri (sadece bunlardan biri): is_hukuku, borclar, medeni, medeni_usul, ceza, idare, ticaret",
         "4. mood değerleri (sadece bunlar): triumph, neutral, warning, loss",
         "5. verdict değerleri (sadece bunlar): good, partial, bad",
@@ -521,7 +526,7 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
         "7. 'bad' seçenek tipik öğrenci hatası olmalı.",
         "8. Başlangıç node'u 'n1' olmalı (kind: 'info').",
         "9. İlk karar node'u genelde 'n2' olur (kind: 'decision').",
-        "10. Zorluk 1-2 ise 7-10 node, 3-4 ise 10-15 node olsun.",
+        "10. KISA TUT — her node prompt'u en fazla 2-3 cümle, gereksiz açıklama yok.",
         "11. ZORUNLU üst seviye alanlar: title (string, vakayı özetler), summary (2-3 cümle), branch, difficulty, estimatedMinutes, rubricId (\"rubric_v1\"), facts (string array), startNode, nodes (array).",
         "12. Node alan adları: id, kind, prompt (TEXT İÇERİĞİ — 'text' DEĞİL 'prompt' kullan!), speaker, options.",
         "13. Option alan adları: id, label (BUTONA YAZILACAK METİN — 'text' değil 'label'!), next (NEXT NODE ID — 'nextNode' değil 'next'!), verdict, sources.",
@@ -554,7 +559,13 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
       let flaggedForReview = false;
 
       try {
-        const raw = (await chatJson(LegalCaseOutputSchema as z.ZodType<Record<string, unknown>>, system, user)) as Record<string, unknown>;
+        // Vaka için ~3000 token yeterli (5-9 node × kısa prompt'lar).
+        const raw = (await chatJson(
+          LegalCaseOutputSchema as z.ZodType<Record<string, unknown>>,
+          system,
+          user,
+          { maxTokens: 3500 },
+        )) as Record<string, unknown>;
 
         // Normalize branch
         const branchMap: Record<string, string> = {

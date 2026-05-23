@@ -236,7 +236,8 @@ export async function handleAi(
       }
       // RAG: tema + dal ile ilgili mevzuat maddelerini çek
       const query = parsed.data.theme ?? parsed.data.branch;
-      const relevantSources = searchSources(query, parsed.data.branch, 8);
+      // 3 source yeter — daha fazlası prompt'u şişirir, LLM yavaşlar.
+      const relevantSources = searchSources(query, parsed.data.branch, 3);
       const req: GenerateCaseRequest = {
         branch: parsed.data.branch,
         difficulty: parsed.data.difficulty,

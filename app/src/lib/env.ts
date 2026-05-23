@@ -18,7 +18,7 @@ export interface ServerEnv {
 
 const DEFAULTS = {
   LLM_BASE_URL: "https://api.deepseek.com",
-  LLM_MODEL: "deepseek-v4-pro",
+  LLM_MODEL: "deepseek-chat",
   LLM_SITE_URL: "https://lawkit.app",
   LLM_APP_NAME: "LawKit",
 } as const;
