@@ -20,8 +20,23 @@ import { aiAssess } from "@/lib/api/aiClient";
 import type { CaseSession } from "@/lib/case-engine";
 import type { AssessmentResponse } from "@/lib/ai-orchestrator/types";
 
+const PET_KEY = "lawkit_gen_petition";
+
 export const Route = createFileRoute("/dilekce-lab/$templateId")({
   loader: ({ params }) => {
+    if (params.templateId.startsWith("gen_pet_")) {
+      try {
+        const raw = sessionStorage.getItem(PET_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.template) {
+            sessionStorage.removeItem(PET_KEY);
+            return { template: parsed.template };
+          }
+        }
+      } catch { /* sessionStorage unavailable */ }
+      throw notFound();
+    }
     const t = getPetitionTemplate(params.templateId);
     if (!t) throw notFound();
     return { template: t };

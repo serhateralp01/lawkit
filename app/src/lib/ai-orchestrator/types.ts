@@ -186,6 +186,41 @@ export interface GenerateQuestionResponse {
   usedSources: string[];
 }
 
+/* ─────────────── Petition Generation ─────────────── */
+
+export interface GeneratePetitionRequest {
+  branch: "is_hukuku" | "borclar" | "medeni" | "medeni_usul" | "ceza" | "idare";
+  difficulty: 1 | 2 | 3 | 4;
+  theme?: string;
+  contextSourceIds: string[];
+}
+
+export interface GeneratedPetitionSection {
+  key: string;
+  title: string;
+  guidance: string;
+  placeholder: string;
+  minChars: number;
+  assessDimensions: string[];
+  graderHint: string;
+}
+
+export interface GeneratePetitionResponse {
+  template: {
+    id: string;
+    title: string;
+    category: string;
+    branch: string;
+    summary: string;
+    sections: GeneratedPetitionSection[];
+    estimatedMinutes: number;
+    difficulty: number;
+  };
+  qualityScore: number;
+  flaggedForReview: boolean;
+  usedSources: string[];
+}
+
 /* ─────────────── Adapter ─────────────── */
 
 /**
@@ -203,6 +238,7 @@ export interface AIOrchestrator {
   branch(req: AiBranchRequest): Promise<AiBranchResponse>;
   generateCase(req: GenerateCaseRequest): Promise<GenerateCaseResponse>;
   generateQuestions(req: GenerateQuestionRequest): Promise<GenerateQuestionResponse>;
+  generatePetition(req: GeneratePetitionRequest): Promise<GeneratePetitionResponse>;
 }
 
 /* ─────────────── Auditor ─────────────── */

@@ -4,6 +4,8 @@ import type {
   AssessmentResponse,
   GenerateCaseRequest,
   GenerateCaseResponse,
+  GeneratePetitionRequest,
+  GeneratePetitionResponse,
   GenerateQuestionRequest,
   GenerateQuestionResponse,
   GroundedResponse,
@@ -107,4 +109,8 @@ export function aiGenerateCase(args: GenerateCaseRequest) {
 
 export function aiGenerateQuestions(args: GenerateQuestionRequest) {
   return post<GenerateQuestionResponse>("/api/ai/generate-question", args, true);
+}
+
+export function aiGeneratePetition(args: GeneratePetitionRequest) {
+  return post<GeneratePetitionResponse>("/api/ai/generate-petition", args, true);
 }

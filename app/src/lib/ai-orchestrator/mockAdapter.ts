@@ -21,6 +21,8 @@ import type {
   DimensionScore,
   GenerateCaseRequest,
   GenerateCaseResponse,
+  GeneratePetitionRequest,
+  GeneratePetitionResponse,
   GenerateQuestionRequest,
   GenerateQuestionResponse,
   GroundedRequest,
@@ -160,6 +162,30 @@ export const mockAdapter: AIOrchestrator = {
 
     return {
       questions: fakeQuestions,
+      qualityScore: 0.5,
+      flaggedForReview: true,
+      usedSources: req.contextSourceIds,
+    };
+  },
+
+  async generatePetition(req: GeneratePetitionRequest): Promise<GeneratePetitionResponse> {
+    return {
+      template: {
+        id: `mock_pet_${Date.now()}`,
+        title: `Mock ${req.branch} dilekçesi — ${req.theme ?? "genel"}`,
+        category: "tazminat",
+        branch: req.branch,
+        summary: "Mock dilekçe şablonu (gerçek AI bağlanmadı).",
+        sections: [
+          { key: "mahkeme", title: "Mahkeme", guidance: "Görevli ve yetkili mahkemeyi yazın.", placeholder: "örn: İstanbul İş Mahkemesi", minChars: 10, assessDimensions: ["usul"], graderHint: "Görev ve yetki doğruluğu kontrol edilir." },
+          { key: "taraflar", title: "Taraflar", guidance: "Davacı ve davalıyı tanımlayın.", placeholder: "Davacı: ..., Davalı: ...", minChars: 15, assessDimensions: ["olay"], graderHint: "Taraf ehliyeti ve doğru tanımlama." },
+          { key: "vakialar", title: "Vakıalar", guidance: "Olayları kronolojik yazın.", placeholder: "1) ... 2) ...", minChars: 30, assessDimensions: ["olay", "mesele"], graderHint: "Vakıaların kronolojisi ve açıklığı." },
+          { key: "hukuki", title: "Hukuki Sebepler", guidance: "Dayanak kanun maddelerini yazın.", placeholder: "İş K. m. 18 uyarınca...", minChars: 20, assessDimensions: ["maddi", "gerekce"], graderHint: "Kanun maddelerinin doğruluğu." },
+          { key: "talep", title: "Talep Sonucu", guidance: "Açık ve net talep yazın.", placeholder: "Fazlaya ilişkin haklarım saklı kalmak kaydıyla...", minChars: 15, assessDimensions: ["usul", "ifade"], graderHint: "Talep sonucunun açıklığı." },
+        ],
+        estimatedMinutes: 20,
+        difficulty: req.difficulty,
+      },
       qualityScore: 0.5,
       flaggedForReview: true,
       usedSources: req.contextSourceIds,

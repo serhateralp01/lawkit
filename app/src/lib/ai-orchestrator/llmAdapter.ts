@@ -25,6 +25,8 @@ import type {
   AssessmentResponse,
   GenerateCaseRequest,
   GenerateCaseResponse,
+  GeneratePetitionRequest,
+  GeneratePetitionResponse,
   GenerateQuestionRequest,
   GenerateQuestionResponse,
   GroundedRequest,
@@ -692,6 +694,66 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
         questions: raw.questions as GenerateQuestionResponse["questions"],
         qualityScore: Number(qualityScore.toFixed(2)),
         flaggedForReview: sourceQuality < 0.5,
+        usedSources: req.contextSourceIds,
+      };
+    },
+
+    async generatePetition(req: GeneratePetitionRequest): Promise<GeneratePetitionResponse> {
+      const branchLabels: Record<string, string> = {
+        is_hukuku: "İş Hukuku", borclar: "Borçlar Hukuku", medeni: "Medeni Hukuk",
+        medeni_usul: "Medeni Usul", ceza: "Ceza Hukuku", idare: "İdare Hukuku",
+      };
+      const label = branchLabels[req.branch] ?? req.branch;
+      const theme = req.theme ?? `${label} uyuşmazlığı`;
+
+      const contextBlock = req.contextSourceIds.length > 0
+        ? req.contextSourceIds.map((id) => { const s = sources[id]; return s ? `- ${s.shortTitle}: ${s.body.slice(0, 200)}` : null; }).filter(Boolean).join("\n")
+        : "";
+
+      const system = [
+        "Sen LawKit'in dilekçe şablonu tasarımcısısın.",
+        "Hukuk öğrencilerinin pratik yapması için 5 bölümlü dilekçe şablonları üretiyorsun.",
+        "",
+        "HER ŞABLON 5 BÖLÜMDEN oluşmalı:",
+        "1. Mahkeme (görevli/yetkili mahkeme tespiti)",
+        "2. Taraflar (davacı/davalı tanımlama)",
+        "3. Vakıalar (olayların kronolojik dizilimi)",
+        "4. Hukuki Sebepler (dayanak kanun maddeleri)",
+        "5. Talep Sonucu (açık talep)",
+        "",
+        "Her bölüm için: key, title, guidance (yönerge), placeholder (örnek), minChars (10-30), assessDimensions (rubrik boyutları), graderHint (AI değerlendirme notu)",
+        "assessDimensions sadece şunlardan: olay, mesele, usul, maddi, gerekce, risk, ifade",
+        "category değerleri: ise_iade, sebepsiz_zenginlesme, komsuluk, tazminat",
+        "",
+        "SADECE JSON döndür.",
+      ].join("\n");
+
+      const user = `HUKUK DALI: ${label}\nKONU: ${theme}\nZORLUK: ${req.difficulty}\n${contextBlock ? `\nKAYNAKLAR:\n${contextBlock}` : ""}`;
+
+      const schema = z.object({
+        id: z.string().optional().default(`gen_pet_${Date.now()}`),
+        title: z.string().optional().default(`Dilekçe - ${theme}`),
+        category: z.string().optional().default("tazminat"),
+        branch: z.string().optional().default(req.branch),
+        summary: z.string().optional().default(""),
+        estimatedMinutes: z.number().optional().default(20),
+        difficulty: z.number().optional().default(req.difficulty),
+        sections: z.array(z.object({
+          key: z.string(),
+          title: z.string(),
+          guidance: z.string().optional().default(""),
+          placeholder: z.string().optional().default(""),
+          minChars: z.number().optional().default(15),
+          assessDimensions: z.array(z.string()).optional().default(["mesele"]),
+          graderHint: z.string().optional().default(""),
+        }).passthrough()).optional().default([]),
+      }).passthrough();
+
+      const raw = await chatJson(schema, system, user);
+      return {
+        template: raw as GeneratePetitionResponse["template"],
+        qualityScore: (raw.sections as unknown[])?.length >= 4 ? 0.7 : 0.4,
+        flaggedForReview: (raw.sections as unknown[])?.length < 3,
         usedSources: req.contextSourceIds,
       };
     },

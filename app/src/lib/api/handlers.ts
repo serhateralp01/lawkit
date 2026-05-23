@@ -15,6 +15,7 @@ import type {
   AiBranchRequest,
   AssessmentRequest,
   GenerateCaseRequest,
+  GeneratePetitionRequest,
   GenerateQuestionRequest,
   GroundedRequest,
   RolePlayRequest,
@@ -109,6 +110,12 @@ const GenerateQuestionBody = z.object({
   difficulty: z.number().int().min(1).max(4),
   count: z.number().int().min(1).max(5),
   excludeIds: z.array(z.string()).optional(),
+});
+
+const GeneratePetitionBody = z.object({
+  branch: z.enum(["is_hukuku", "borclar", "medeni", "medeni_usul", "ceza", "idare"]),
+  difficulty: z.number().int().min(1).max(4),
+  theme: z.string().optional(),
 });
 
 async function readBody(req: Request) {
@@ -292,6 +299,20 @@ export async function handleAi(
         contextSourceIds: relevantSources.map((s) => s.id),
       };
       const res = await orchestrator.generateQuestions(req);
+      return json(res);
+    }
+
+    if (pathname === "/api/ai/generate-petition") {
+      const parsed = GeneratePetitionBody.safeParse(body);
+      if (!parsed.success) return json({ error: parsed.error.flatten() }, { status: 400 });
+      const relevantSources = searchSources(parsed.data.theme ?? parsed.data.branch, parsed.data.branch, 5);
+      const req: GeneratePetitionRequest = {
+        branch: parsed.data.branch,
+        difficulty: parsed.data.difficulty,
+        theme: parsed.data.theme,
+        contextSourceIds: relevantSources.map((s) => s.id),
+      };
+      const res = await orchestrator.generatePetition(req);
       return json(res);
     }
 
