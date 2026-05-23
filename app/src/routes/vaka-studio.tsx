@@ -150,11 +150,11 @@ function VakaStudioInner() {
             AI Vaka Üretici
           </p>
           <h1 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">
-            Sana özel vaka yaratalım
+            Size özel vaka yaratalım
           </h1>
           <p className="mt-4 leading-relaxed text-ink/55">
-            Alan, zorluk ve istersen konu seç. LawKit AI sana özel, dallanan bir
-            hukuk vakası üretecek. Her oynadığında farklı bir senaryo.
+            Hukuk dalını, zorluk seviyesini ve isterseniz konuyu seçin. LawKit AI size özel,
+            dallanan bir hukuk vakası üretecek. Her seferinde farklı bir senaryo.
           </p>
         </div>
 
@@ -162,7 +162,7 @@ function VakaStudioInner() {
           {/* Branch */}
           <fieldset>
             <legend className="mb-3 text-sm font-bold text-ink/70">
-              Hukuk dalı seçin
+              Hukuk dalını seçin
             </legend>
             <div className="grid gap-2 sm:grid-cols-2">
               {BRANCHES.map((b) => (
@@ -259,8 +259,7 @@ function VakaStudioInner() {
             <Zap className="size-4" />
           </button>
           <p className="text-center text-[10px] uppercase tracking-widest text-ink/25">
-            Tahmini süre: {difficultyToTime(difficulty)} dakika · AI vasıtasıyla
-            üretilir · Hukukçu incelemesi beklemede
+            Tahmini süre: {difficultyToTime(difficulty)} dakika · AI ile üretilir · Hukukçu incelemesi beklemede
           </p>
         </div>
       </div>

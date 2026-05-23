@@ -9,12 +9,12 @@ export const Route = createFileRoute("/neden-lawkit")({
       {
         name: "description",
         content:
-          "HMGS başarı oranı %30. Her yıl 20.000 hukuk mezunu, 90 fakülte, 199.000 avukat. Yapısal eğitim boşluğunu vaka-temelli öğrenme ile kapatıyoruz.",
+          "HMGS başarı oranı %30. Her yıl 20.000 hukuk mezunu, 90 fakülte, 199.000 avukat. Yapısal eğitim boşluğunu vaka temelli öğrenme ile kapatıyoruz.",
       },
       { property: "og:title", content: "Neden LawKit" },
       {
         property: "og:description",
-        content: "Türk hukuk eğitiminin yapısal krizi ve LawKit'in cevabı.",
+        content: "Türk hukuk eğitiminin yapısal sorunu ve LawKit'in yaklaşımı.",
       },
     ],
   }),
@@ -32,15 +32,15 @@ function WhyPage() {
             <span className="italic text-gold">Pratik öğretmiyor.</span>
           </>
         }
-        lead="LawKit, Türkiye'de hukuk eğitiminin tarihsel bir kırılma noktasında doğdu. HMGS adı altında konulan yeni filtre, fakülte mezuniyeti ile mesleğe giriş arasındaki uçurumu ölçülebilir hale getirdi."
+        lead="LawKit, Türkiye'de hukuk eğitiminin tarihsel bir kırılma noktasında ortaya çıktı. HMGS ile getirilen yeni filtre, fakülte mezuniyeti ile mesleğe giriş arasındaki uçurumu ölçülebilir hale getirdi."
       />
 
       <section className="mx-auto max-w-5xl px-6 py-20 lg:px-8">
         <div className="grid gap-12 md:grid-cols-3">
           {[
-            { v: "31.489", l: "HMGS toplam aday (Eyl '24–Eyl '25)" },
+            { v: "31.489", l: "HMGS toplam aday (Eylül 2024 – Eylül 2025)" },
             { v: "22.004", l: "Baraj altı kalan aday sayısı" },
-            { v: "%30,13", l: "Üç oturum kümülatif başarı" },
+            { v: "%30,13", l: "Üç oturum kümülatif başarı oranı" },
             { v: "~90", l: "Türkiye'de hukuk fakültesi sayısı" },
             { v: "~20.000", l: "Yıllık yeni hukuk mezunu" },
             { v: "199.000+", l: "Kayıtlı avukat sayısı (2024)" },
@@ -60,19 +60,20 @@ function WhyPage() {
           </h2>
           <div className="mt-8 space-y-6 text-base leading-relaxed text-ink/70">
             <p>
-              Soru zorluğu oturum oturum artıyor; ancak 70 puan barajı sabit. Eylül 2024'te %42
-              olan başarı, Nisan 2025'te %24'e geriledi. Mevcut hazırlık platformları yüzlerce
-              saat konu anlatım videosu üretiyor — ama sorun ezberlenen kanun maddesi değil.
+              Soru zorluğu oturumdan oturuma artıyor; oysa 70 puan barajı sabit. Eylül 2024'te
+              %42 olan başarı, Nisan 2025'te %24'e geriledi. Mevcut hazırlık platformları
+              yüzlerce saat konu anlatımı videosu üretiyor — ama sorun ezberlenen kanun maddesi
+              değil.
             </p>
             <p>
               <span className="font-bold text-ink">
-                Sorun, dogmatik bilginin somut uyuşmazlığa tahvil edilememesi.
+                Sorun, bilginin somut bir uyuşmazlığa uygulanamaması.
               </span>{" "}
-              Akademik çalışmalar bunu uzun yıllardır söylüyor: teori merkezli, pasif dinleyici
-              üreten yapı, gerçek dava çözme becerisini beslemiyor.
+              Akademik çalışmalar bunu uzun yıllardır söylüyor: Teori merkezli ve pasif
+              dinleyici yetiştiren yapı, gerçek dava çözme becerisini geliştirmiyor.
             </p>
             <p>
-              LawKit'in cevabı basit: daha çok PDF ve video değil, daha çok uygulama ve geri
+              LawKit'in cevabı basit: Daha çok PDF ve video değil, daha çok uygulama ve geri
               bildirim. Müvekkili dinleten, kararı sorgulatan, dilekçeyi yazdırıp rubrik
               üzerinden puanlayan bir uçuş simülatörü.
             </p>
@@ -86,18 +87,18 @@ function WhyPage() {
           {[
             {
               t: "Agentic RAG mimarisi",
-              d: "Tek bir 'her şeyi bilen' model yerine, birlikte çalışan mikro-ajanlar: mevzuat tarayıcı, strateji denetleyici, karşı taraf simülatörü.",
+              d: "Her şeyi bilen tek bir model yerine, birlikte çalışan mikro ajanlar: Mevzuat tarayıcı, strateji denetleyici, karşı taraf simülatörü.",
             },
             {
-              t: "Grounded AI",
-              d: "AI sadece doğruladığımız mevzuat ve içtihat üzerinden konuşur. Halüsinasyon koruması için JSON şema zorunluluğu.",
+              t: "Kaynağa bağlı AI",
+              d: "AI yalnızca doğruladığımız mevzuat ve içtihat üzerinden konuşur. Halüsinasyon koruması için JSON şema zorunluluğu vardır.",
             },
             {
               t: "Aralıklı tekrarlama",
-              d: "Bilimsel olarak en etkili bilgi tutma yöntemi. Unutmaya başladığınız konu, doğru anda karşınıza çıkar.",
+              d: "Bilimsel olarak en etkili bilgi tutma yöntemi. Unutmaya başladığınız konu, tam vaktinde karşınıza çıkar.",
             },
             {
-              t: "Branching scenarios",
+              t: "Dallanan senaryolar",
               d: "Tek doğru cevap mantığı yerine, kararınızın hukuki sonucunu yaşatan dallanan akışlar.",
             },
           ].map((m) => (

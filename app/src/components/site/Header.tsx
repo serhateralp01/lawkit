@@ -7,6 +7,7 @@ const navLinks = [
   { to: "/urun/case-studio", label: "Case Studio" },
   { to: "/hmgs-arena", label: "HMGS Arena" },
   { to: "/dilekce-lab", label: "Dilekçe Lab" },
+  { to: "/vaka-studio", label: "Vaka Studio" },
   { to: "/karne", label: "Karne" },
   { to: "/metodoloji", label: "Metodoloji" },
   { to: "/fiyatlandirma", label: "Fiyat" },
@@ -18,7 +19,7 @@ export function Header() {
   const displayName =
     (user?.user_metadata?.display_name as string | undefined) ??
     user?.email?.split("@")[0] ??
-    "Sen";
+    "Kullanıcı";
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-paper/80 backdrop-blur-md">

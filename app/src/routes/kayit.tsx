@@ -29,7 +29,7 @@ function SignupPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!hasSupabaseConfig()) {
-      setError("Sunucu yapılandırması eksik. Geliştiriciye haber ver.");
+      setError("Sunucu yapılandırması eksik. Geliştiriciye haber verin.");
       return;
     }
     if (password.length < 6) {
@@ -49,8 +49,6 @@ function SignupPage() {
         },
       });
       if (err) throw err;
-      // Supabase varsayılan ayarı e-posta doğrulama bekler. Session null gelir.
-      // Eğer doğrulama kapalı ise direkt giriş yapmış olur.
       if (data.session) {
         void navigate({ to: "/karne" });
       } else {
@@ -68,18 +66,18 @@ function SignupPage() {
       <section className="mx-auto grid max-w-5xl gap-10 px-6 py-20 lg:grid-cols-[1fr_0.9fr] lg:gap-16">
         <div>
           <h1 className="font-display text-4xl font-extrabold leading-tight text-ink-1 sm:text-5xl">
-            İlk vakanı <span className="italic text-amber-foreground">ücretsiz</span> oyna.
+            İlk vakanızı <span className="italic text-amber-foreground">ücretsiz</span> çözün.
           </h1>
           <p className="mt-5 text-base leading-relaxed text-ink-2">
-            Kredi kartı istemiyoruz. Hesabını aç, iş hukuku haksız fesih vakasını sonuna kadar oyna.
-            Beğenirsen Sprint veya Core'a geçersin.
+            Kredi kartı istemiyoruz. Hesabınızı açın, iş hukuku haksız fesih vakasını sonuna
+            kadar oynayın. Beğenirseniz Sprint ya da Core plana geçersiniz.
           </p>
           <ul className="mt-8 space-y-3 text-sm text-ink-1">
             {[
               "İlk vakaya tam erişim",
               "HMGS tanı testi (30 dk)",
               "Dilekçe Lab demo",
-              "İstediğinde silme hakkı",
+              "İstediğiniz zaman silme hakkı",
             ].map((f) => (
               <li key={f} className="flex items-center gap-3">
                 <CheckCircle2 className="size-4 text-indigo" />
@@ -93,14 +91,14 @@ function SignupPage() {
           <div className="self-start rounded-2xl border border-signal-positive/40 bg-signal-positive/5 p-8 text-center">
             <Mail className="mx-auto size-10 text-signal-positive" />
             <p className="mt-4 font-display text-xl font-bold text-ink-1">
-              Mailini kontrol et
+              E-postanızı kontrol edin
             </p>
             <p className="mt-2 text-sm text-ink-2">
-              <strong>{email}</strong> adresine doğrulama bağlantısı gönderdik. Tıklayınca
-              hesabın aktif olur ve karnen açılır.
+              <strong>{email}</strong> adresine doğrulama bağlantısı gönderdik. Bağlantıya
+              tıkladığınızda hesabınız aktif olur ve karneniz açılır.
             </p>
             <p className="mt-4 text-xs text-ink-3">
-              Mail gelmediyse spam klasörünü kontrol et veya birkaç dakika bekle.
+              E-posta gelmediyse spam klasörünü kontrol edin ya da birkaç dakika bekleyin.
             </p>
           </div>
         ) : (
@@ -137,14 +135,14 @@ function SignupPage() {
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-ink-1 py-3.5 text-sm font-bold text-surface-raised hover:bg-ink-1/90 disabled:opacity-50"
             >
               {busy ? <Loader2 className="size-4 animate-spin" /> : null}
-              Hesabımı oluştur
+              Hesap oluştur
             </button>
             <p className="text-center text-xs text-ink-3">
               Devam ederek{" "}
               <Link to="/iletisim" className="underline">
                 Kullanım Şartları
               </Link>
-              'nı kabul etmiş olursun.
+              'nı kabul etmiş olursunuz.
             </p>
           </form>
         )}
@@ -185,10 +183,10 @@ function Field({
 function translateError(e: unknown): string {
   const msg = e instanceof Error ? e.message : String(e);
   if (msg.includes("already registered") || msg.includes("User already")) {
-    return "Bu e-posta zaten kayıtlı. Giriş yap veya şifre sıfırla.";
+    return "Bu e-posta zaten kayıtlı. Giriş yapın ya da şifre sıfırlama isteyin.";
   }
   if (msg.includes("Password should be at least")) return "Şifre en az 6 karakter olmalı.";
-  if (msg.includes("rate limit")) return "Çok fazla deneme. Birkaç dakika sonra tekrar dene.";
-  if (msg.includes("invalid email") || msg.includes("Email")) return "Geçerli bir e-posta yaz.";
+  if (msg.includes("rate limit")) return "Çok fazla deneme yaptınız. Birkaç dakika sonra tekrar deneyin.";
+  if (msg.includes("invalid email") || msg.includes("Email")) return "Geçerli bir e-posta adresi yazın.";
   return msg;
 }

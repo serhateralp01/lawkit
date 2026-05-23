@@ -6,11 +6,11 @@ import { PageHero, CTAFooter } from "@/components/site/PageHero";
 export const Route = createFileRoute("/guvenlik-kvkk")({
   head: () => ({
     meta: [
-      { title: "Güvenlik & KVKK — Halüsinasyon ve veri kontrolü | LawKit" },
+      { title: "Güvenlik ve KVKK — Halüsinasyon ve veri kontrolü | LawKit" },
       {
         name: "description",
         content:
-          "Kaynak topraklaması, PII maskeleme, hukukçu onayı, KVKK Üretken YZ Rehberi uyumu — LawKit'in kalite ve veri katmanı.",
+          "Kaynak doğrulama, PII maskeleme, hukukçu onayı, KVKK Üretken YZ Rehberi uyumu — LawKit'in kalite ve veri güvenliği katmanı.",
       },
     ],
   }),
@@ -20,33 +20,33 @@ export const Route = createFileRoute("/guvenlik-kvkk")({
 const cards = [
   {
     icon: BookCheck,
-    title: "Kaynak topraklaması",
-    body: "AI çıktıları yalnız veritabanında kayıtlı, hukukçu onaylı kaynak parçalarını kullanır. Kaynak yoksa cevap 'doğrulanmış kaynak bulunamadı' der; uydurma yapmaz.",
+    title: "Kaynak doğrulama",
+    body: "AI çıktıları yalnızca veritabanında kayıtlı, hukukçu onaylı kaynak parçalarını kullanır. Kaynak yoksa cevap 'doğrulanmış kaynak bulunamadı' der; uydurma yapmaz.",
   },
   {
     icon: ShieldCheck,
     title: "Auditor ajanı",
-    body: "Uydurulmuş kanun maddesi veya içtihat tespit edilirse, çıktı kullanıcıya gösterilmeden geri çevrilir. Agentic RAG mimarisinde Librarian / Auditor / Strategist / Red Team rolleri ayrıdır.",
+    body: "Uydurulmuş kanun maddesi veya içtihat tespit edilirse, çıktı kullanıcıya gösterilmeden geri çevrilir. Agentic RAG mimarisinde Librarian, Auditor, Strategist ve Red Team rolleri ayrıdır.",
   },
   {
     icon: FileCheck2,
-    title: "Structured outputs",
-    body: "Her AI çıktısı JSON şemaya zorlanır. Şema dışı çıktı reddedilir. Serbest metin yalnız yapılandırılmış zarfın açıklayıcı alanlarında bulunur.",
+    title: "Yapılandırılmış çıktılar",
+    body: "Her AI çıktısı JSON şemaya zorlanır. Şema dışı çıktı reddedilir. Serbest metin yalnızca yapılandırılmış zarfın açıklayıcı alanlarında bulunur.",
   },
   {
     icon: EyeOff,
     title: "PII maskeleme",
-    body: "Yüklediğin dosyada isim, TC kimlik, telefon, adres, e-posta sunucu tarafında maskelenmeden modele gitmez. KVKK Üretken YZ Rehberi (2024) doğrultusunda.",
+    body: "Yüklediğiniz dosyadaki isim, TC kimlik, telefon, adres, e-posta sunucu tarafında maskelenmeden modele gönderilmez. KVKK Üretken YZ Rehberi (2024) doğrultusunda.",
   },
   {
     icon: Lock,
-    title: "Yurt içi veri",
-    body: "Veriler Türkiye sunucularında saklanır. Yurtdışı veri aktarımı şartı varsa açık metinle bildirilir; onayın olmadan aktarım yapılmaz.",
+    title: "Yurt içi veri saklama",
+    body: "Veriler Türkiye'deki sunucularda saklanır. Yurtdışı veri aktarımı gerekiyorsa açıkça bildirilir; onayınız olmadan aktarım yapılmaz.",
   },
   {
     icon: AlertTriangle,
     title: "Eğitim amaçlı simülasyon",
-    body: "Her AI çıktısının altında uyarı: 'Eğitim amaçlı simülasyon. Gerçek hukuki tavsiye değildir.' Bu görünürlük sorumluluk gerekçesidir, pazarlama değil.",
+    body: "Her AI çıktısının altında uyarı bulunur: 'Eğitim amaçlı simülasyon. Gerçek hukuki tavsiye değildir.' Bu bir sorumluluk gereğidir, pazarlama değil.",
   },
 ];
 
@@ -57,10 +57,11 @@ function GuvenlikPage() {
         eyebrow="Güvenlik · KVKK · Kalite"
         title={
           <>
-            Hukukta AI hatası <span className="italic text-amber">opsiyonel değil</span>, omurga.
+            Hukukta AI hatası{" "}
+            <span className="italic text-amber">kabul edilemez</span>, omurgadır.
           </>
         }
-        lead="Yanlış kanun maddesi, uydurulmuş içtihat, sızdırılan müvekkil verisi — hukukta her birinin maliyeti ağır. LawKit'in kalite katmanı bunları varsayım yerine kural haline getirir."
+        lead="Yanlış kanun maddesi, uydurulmuş içtihat, sızdırılan müvekkil verisi — hukukta her birinin maliyeti ağırdır. LawKit'in kalite katmanı bunları varsayım değil, kural haline getirir."
       />
 
       <section className="mx-auto max-w-6xl px-6 pb-20 lg:px-8">
@@ -86,15 +87,15 @@ function GuvenlikPage() {
             İçerik onay zinciri
           </h3>
           <ol className="mt-4 space-y-3 text-sm text-ink-2">
-            <li><span className="font-semibold text-ink-1">(a)</span> Yazar uzman — vakayı kurar.</li>
-            <li><span className="font-semibold text-ink-1">(b)</span> Hukukçu inceleyici — ayrı kişi, mevzuat + içtihat denetimi.</li>
-            <li><span className="font-semibold text-ink-1">(c)</span> Eval test seti — 8-12 senaryo, AI çıktısının kabul aralığında kalıp kalmadığını otomatik denetler.</li>
-            <li><span className="font-semibold text-ink-1">(d)</span> Yayın — versiyonlu, geri alınabilir.</li>
+            <li><span className="font-semibold text-ink-1">(a)</span> Yazar uzman — vakayı kurgular.</li>
+            <li><span className="font-semibold text-ink-1">(b)</span> Hukukçu inceleyici — bağımsız kişi, mevzuat ve içtihat denetimi yapar.</li>
+            <li><span className="font-semibold text-ink-1">(c)</span> Değerlendirme test seti — 8-12 senaryo, AI çıktısının kabul aralığında kalıp kalmadığını otomatik denetler.</li>
+            <li><span className="font-semibold text-ink-1">(d)</span> Yayın — versiyonlu ve geri alınabilir.</li>
           </ol>
         </div>
       </section>
 
-      <CTAFooter title="Sorularını gönder, ekibimiz cevaplasın." href="/iletisim" cta="İletişime geç" />
+      <CTAFooter title="Sorularınızı gönderin, ekibimiz cevaplasın." href="/iletisim" cta="İletişime geç" />
     </PageShell>
   );
 }

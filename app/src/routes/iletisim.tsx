@@ -10,7 +10,7 @@ export const Route = createFileRoute("/iletisim")({
       {
         name: "description",
         content:
-          "LawKit ile iletişime geçin. Kurumsal teklifler, pilot başvurular ve genel sorular için.",
+          "LawKit ile iletişime geçin. Kurumsal teklifler, pilot başvurular ve genel sorularınız için.",
       },
     ],
   }),
@@ -29,7 +29,7 @@ function ContactPage() {
             <span className="italic text-gold">Kısa tutalım.</span>
           </>
         }
-        lead="Kurumsal teklif, pilot başvuru, içerik önerisi veya basit bir merak — formu doldurun, 1 iş günü içinde dönüş yapıyoruz."
+        lead="Kurumsal teklif, pilot başvuru, içerik önerisi ya da bir sorunuz varsa formu doldurun. Bir iş günü içinde dönüş yapıyoruz."
       />
 
       <section className="mx-auto max-w-2xl px-6 py-16 lg:px-8">
@@ -37,7 +37,7 @@ function ContactPage() {
           <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-8 text-center">
             <p className="font-display text-2xl font-bold text-ink">Teşekkürler.</p>
             <p className="mt-2 text-sm text-ink/60">
-              Mesajınız bize ulaştı. 1 iş günü içinde döneceğiz.
+              Mesajınız bize ulaştı. Bir iş günü içinde döneceğiz.
             </p>
           </div>
         ) : (
