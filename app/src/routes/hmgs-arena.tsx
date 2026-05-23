@@ -9,6 +9,9 @@ import {
   Trophy,
   RotateCcw,
   Target,
+  Loader2,
+  Bot,
+  BookOpen,
 } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
 import {
@@ -24,7 +27,11 @@ import { defaultRubric } from "@/content/rubrics";
 import type { RubricKey } from "@/content/types";
 import { listCases } from "@/content/cases";
 import { BetaGate } from "@/components/site/BetaGate";
+import { aiGenerateQuestions } from "@/lib/api/aiClient";
+import type { GeneratedQuestion } from "@/lib/ai-orchestrator/types";
 import { cn } from "@/lib/utils";
+
+type Phase = "intro" | "loading" | "running" | "result";
 
 export const Route = createFileRoute("/hmgs-arena")({
   head: () => ({
@@ -33,14 +40,12 @@ export const Route = createFileRoute("/hmgs-arena")({
       {
         name: "description",
         content:
-          "10 soruluk mini tanı testi. HMGS müfredatından kritik konuları kapsar; sonunda zayıf alanını + sana özel vaka önerini gör.",
+          "10 soruluk mini tanı testi. AI ile yeni sorular üretin ya da sabit havuzdan ilerleyin.",
       },
     ],
   }),
   component: HmgsArenaGated,
 });
-
-type Phase = "intro" | "running" | "result";
 
 function HmgsArenaGated() {
   return (
@@ -56,10 +61,12 @@ function HmgsArenaPage() {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, "a" | "b" | "c" | "d">>({});
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
+  const [genError, setGenError] = useState<string | null>(null);
 
   const totalAvailable = hmgsQuestions.length;
 
   const start = (count: number) => {
+    // Direkt sabit havuzdan başlat (hızlı yol)
     const set = pickDiagnosticSet(count);
     setQuestions(set);
     setCurrentIdx(0);
@@ -68,7 +75,69 @@ function HmgsArenaPage() {
     setPhase("running");
   };
 
+  const startWithAI = async (count: number) => {
+    setPhase("loading");
+    setGenError(null);
+    try {
+      const branches = Object.keys(BRANCH_LABELS) as HmgsBranch[];
+      const res = await aiGenerateQuestions({
+        branch: branches[Math.floor(Math.random() * branches.length)],
+        difficulty: 2,
+        count,
+        contextSourceIds: [],
+      });
+
+      if (res.questions.length > 0) {
+        const mapped: HmgsQuestion[] = res.questions.map((q: GeneratedQuestion) => ({
+          id: q.id,
+          branch: (q.branch as HmgsBranch) || "is_hukuku",
+          difficulty: (q.difficulty as 1 | 2 | 3 | 4) || 2,
+          primarySkill: "mesele" as const,
+          stem: q.stem,
+          choices: q.choices as HmgsQuestion["choices"],
+          correctId: q.correctId as "a" | "b" | "c" | "d",
+          explanation: q.explanation,
+          distractorReasons: q.distractorReasons as HmgsQuestion["distractorReasons"],
+          sources: q.sources,
+        }));
+        setQuestions(mapped);
+        setCurrentIdx(0);
+        setAnswers({});
+        setRevealed({});
+        setPhase("running");
+      } else {
+        throw new Error("AI soru üretemedi.");
+      }
+    } catch (e) {
+      setGenError(e instanceof Error ? e.message : "Bilinmeyen hata");
+      // Fallback: sabit havuzdan başlat
+      setTimeout(() => start(count), 500);
+    }
+  };
+
   const restart = () => setPhase("intro");
+
+  if (phase === "loading") {
+    return (
+      <PageShell>
+        <section className="mx-auto flex max-w-lg flex-col items-center px-6 py-24 text-center">
+          <div className="mb-6 grid size-16 place-items-center rounded-full bg-gold/10">
+            <Loader2 className="size-8 animate-spin text-gold" />
+          </div>
+          <h1 className="font-display text-2xl font-bold text-ink">Sorular hazırlanıyor</h1>
+          <p className="mt-2 text-sm text-ink/55">
+            AI size özel sorular üretiyor. Hukuki kaynaklardan beslenen,
+            daha önce görmediğiniz sorular.
+          </p>
+          {genError && (
+            <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-700">
+              AI bağlantısı kurulamadı — sabit havuzdan devam ediliyor.
+            </p>
+          )}
+        </section>
+      </PageShell>
+    );
+  }
 
   if (phase === "intro") {
     return (
@@ -82,15 +151,15 @@ function HmgsArenaPage() {
             <div className="mb-4 inline-flex items-center gap-2 rounded-md bg-indigo-soft/40 px-3 py-1">
               <Target className="size-3.5 text-indigo" />
               <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo">
-                Tanı Testi · {totalAvailable} soruluk havuzdan
+                Tanı Testi · {totalAvailable} sabit + AI üretim
               </span>
             </div>
             <h1 className="font-display text-3xl font-extrabold text-ink-1 lg:text-4xl">
-              Nerede iyisin, nerede zayıfsın?
+              Nerede iyisiniz, nerede zayıfsınız?
             </h1>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-2">
-              10 dakikada bittikçe sana hangi konuda öncelik vermek gerektiğini söyleyeceğiz.
-              Her sorunun ardından açıklama göreceksin — yanlışın bile öğreten yanlış olacak.
+              AI ile daha önce görmediğiniz sorular üretin ya da sabit havuzdan ilerleyin.
+              Her sorunun ardından açıklama görürsünüz — yanlışınız bile öğretir.
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -102,10 +171,20 @@ function HmgsArenaPage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <button
                 type="button"
+                onClick={() => startWithAI(10)}
+                className="inline-flex items-center gap-2 rounded-xl bg-gold px-6 py-3 text-sm font-bold text-ink transition hover:bg-gold/90"
+              >
+                <Bot className="size-4" />
+                AI ile 10 soru üret
+                <Sparkles className="size-3.5" />
+              </button>
+              <button
+                type="button"
                 onClick={() => start(10)}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-ink-1 px-6 py-3 text-sm font-bold text-surface-raised hover:bg-ink-1/90"
               >
-                10 soruluk testi başlat <ArrowRight className="size-4" />
+                10 soruluk testi başlat
+                <ArrowRight className="size-4" />
               </button>
               <button
                 type="button"

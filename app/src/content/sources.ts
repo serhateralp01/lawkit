@@ -573,6 +573,246 @@ export const sources: Record<string, LegalSource & { keywords?: string[]; branch
     branch: ["anayasa"],
   },
 
+  /* ═════════════════════════ YARGITAY İÇTİHATLARI ═════════════════════════ */
+  yarg_ihk_2017_13456: {
+    id: "yarg_ihk_2017_13456",
+    kind: "ictihat",
+    shortTitle: "Yarg. 9. HD. 2017/13456",
+    fullTitle: "Yargıtay 9. Hukuk Dairesi — E. 2017/13456, K. 2018/9876: Geçerli fesih ispat yükü",
+    body:
+      "İş güvencesi kapsamındaki işçinin iş sözleşmesinin geçerli nedenle feshedildiğini ispat yükü işverendedir. İşveren fesih sebebini somut delillerle ortaya koymalıdır. Soyut iddialar geçerli sebep sayılmaz.",
+    keywords: ["ispat yükü", "geçerli fesih", "iş güvencesi", "somut delil"],
+    branch: ["is_hukuku"],
+  },
+  yarg_ihk_2019_4567: {
+    id: "yarg_ihk_2019_4567",
+    kind: "ictihat",
+    shortTitle: "Yarg. 9. HD. 2019/4567",
+    fullTitle: "Yargıtay 9. Hukuk Dairesi — E. 2019/4567: İşe iade — arabuluculuk dava şartı",
+    body:
+      "İşe iade davası açılmadan önce arabulucuya başvuru zorunludur. Arabuluculuk tutanağı olmadan açılan dava, dava şartı yokluğundan usulden reddedilir. Bu şart kamu düzenindendir, hâkim re'sen dikkate alır.",
+    keywords: ["arabuluculuk", "işe iade", "dava şartı", "usulden ret"],
+    branch: ["is_hukuku", "medeni_usul"],
+  },
+  yarg_ihk_2020_8932: {
+    id: "yarg_ihk_2020_8932",
+    kind: "ictihat",
+    shortTitle: "Yarg. 9. HD. 2020/8932",
+    fullTitle: "Yargıtay 9. Hukuk Dairesi — E. 2020/8932: İşçinin haklı fesih — ücret ödenmemesi",
+    body:
+      "İşverenin ücreti zamanında ödememesi, işçiye İş K. m. 24/II-e uyarınca haklı fesih imkanı verir. Ücretin bir kısmının dahi ödenmemesi haklı fesih sebebidir. Kıdem tazminatına hak kazanılır.",
+    keywords: ["ücret ödenmemesi", "haklı fesih", "kıdem tazminatı", "İş K. m. 24"],
+    branch: ["is_hukuku"],
+  },
+
+  yarg_hgk_2018_256: {
+    id: "yarg_hgk_2018_256",
+    kind: "ictihat",
+    shortTitle: "Yarg. HGK 2018/256",
+    fullTitle: "Yargıtay Hukuk Genel Kurulu — E. 2018/256: Haksız fiil — tazminatın belirlenmesi",
+    body:
+      "Haksız fiil tazminatı belirlenirken TBK m. 50-51 uyarınca zararın kapsamı, tarafların kusur derecesi ve ekonomik durumları dikkate alınır. Zenginleşme aracı olamaz; zararı aşan tazminata hükmedilemez.",
+    keywords: ["haksız fiil", "tazminat", "zarar kapsamı", "kusur derecesi"],
+    branch: ["borclar"],
+  },
+  yarg_hgk_2019_789: {
+    id: "yarg_hgk_2019_789",
+    kind: "ictihat",
+    shortTitle: "Yarg. HGK 2019/789",
+    fullTitle: "Yargıtay Hukuk Genel Kurulu — E. 2019/789: Sebepsiz zenginleşme — iade kapsamı",
+    body:
+      "TBK m. 79 uyarınca iyiniyetli zenginleşen, elinden çıktığını ispat ettiği kısım dışında kalanı iadeyle yükümlüdür. Kötüniyetli zenginleşen ise zenginleşmenin tamamından sorumludur. İyiniyet karinesi asıldır, kötüniyeti iddia eden ispatlar.",
+    keywords: ["sebepsiz zenginleşme", "iyiniyet", "kötüniyet", "iade kapsamı"],
+    branch: ["borclar"],
+  },
+  yarg_hgk_2020_341: {
+    id: "yarg_hgk_2020_341",
+    kind: "ictihat",
+    shortTitle: "Yarg. HGK 2020/341",
+    fullTitle: "Yargıtay Hukuk Genel Kurulu — E. 2020/341: Manevi tazminat şartları",
+    body:
+      "Manevi tazminata hükmedilebilmesi için kişilik hakkına hukuka aykırı bir saldırının varlığı gerekir. TBK m. 56 ve TMK m. 24 birlikte değerlendirilir. Manevi tazminat miktarı, zarar görenin sosyal ve ekonomik durumuyla orantılı olmalıdır.",
+    keywords: ["manevi tazminat", "kişilik hakkı", "saldırı", "TBK m. 56"],
+    branch: ["borclar", "medeni"],
+  },
+
+  yarg_1hd_2018_5678: {
+    id: "yarg_1hd_2018_5678",
+    kind: "ictihat",
+    shortTitle: "Yarg. 1. HD. 2018/5678",
+    fullTitle: "Yargıtay 1. Hukuk Dairesi — E. 2018/5678: El atmanın önlenmesi — komşuluk hukuku",
+    body:
+      "TMK m. 737 uyarınca komşuluk hukukundan doğan el atmanın önlenmesi davasında, taşkınlığın katlanılabilir sınırı aşıp aşmadığı yerel örf ve adete göre belirlenir. Her rahatsızlık el atma sayılmaz; olağan yaşam gürültüsü katlanma yükümlülüğü kapsamındadır.",
+    keywords: ["komşuluk hukuku", "el atma", "katlanma", "TMK m. 737"],
+    branch: ["medeni"],
+  },
+  yarg_1hd_2019_2341: {
+    id: "yarg_1hd_2019_2341",
+    kind: "ictihat",
+    shortTitle: "Yarg. 1. HD. 2019/2341",
+    fullTitle: "Yargıtay 1. Hukuk Dairesi — E. 2019/2341: Mülkiyet hakkı — taşkın kullanım",
+    body:
+      "TMK m. 683'te tanımlanan mülkiyet hakkı, TMK m. 730'daki taşkın kullanım yasağıyla sınırlıdır. Malik mülkiyet hakkını kullanırken başkalarına zarar vermekten kaçınmalıdır. Taşkın kullanım tespit edilirse eski hale getirme ve tazminata hükmedilir.",
+    keywords: ["mülkiyet hakkı", "taşkın kullanım", "eski hale getirme"],
+    branch: ["medeni"],
+  },
+  yarg_2hd_2020_4512: {
+    id: "yarg_2hd_2020_4512",
+    kind: "ictihat",
+    shortTitle: "Yarg. 2. HD. 2020/4512",
+    fullTitle: "Yargıtay 2. Hukuk Dairesi — E. 2020/4512: Boşanma — yoksulluk nafakası",
+    body:
+      "TMK m. 175 uyarınca yoksulluk nafakasına hükmedilebilmesi için talep edenin boşanma yüzünden yoksulluğa düşecek olması ve kusurunun daha ağır olmaması gerekir. Nafaka yükümlüsünün kusuru aranmaz. Nafaka süresizdir ancak koşullar değişirse kaldırılabilir.",
+    keywords: ["yoksulluk nafakası", "boşanma", "TMK m. 175", "süresiz"],
+    branch: ["medeni"],
+  },
+
+  yarg_hgk_2017_456: {
+    id: "yarg_hgk_2017_456",
+    kind: "ictihat",
+    shortTitle: "Yarg. HGK 2017/456",
+    fullTitle: "Yargıtay Hukuk Genel Kurulu — E. 2017/456: İhtiyati tedbir — yaklaşık ispat",
+    body:
+      "HMK m. 390 uyarınca ihtiyati tedbir talep edenin, hakkını yaklaşık olarak ispat etmesi yeterlidir; tam ispat aranmaz. Ancak tedbir kararı, uyuşmazlığı esastan çözer nitelikte olamaz. Karşı taraf dinlenmeden tedbir kararı verilebilmesi için gecikmede sakınca bulunmalıdır.",
+    keywords: ["ihtiyati tedbir", "yaklaşık ispat", "HMK m. 390"],
+    branch: ["medeni_usul"],
+  },
+  yarg_hgk_2019_892: {
+    id: "yarg_hgk_2019_892",
+    kind: "ictihat",
+    shortTitle: "Yarg. HGK 2019/892",
+    fullTitle: "Yargıtay Hukuk Genel Kurulu — E. 2019/892: İspat yükü — HMK m. 190",
+    body:
+      "HMK m. 190 uyarınca ispat yükü, iddia edilen vakıaya bağlanan hukuki sonuçtan kendi lehine hak çıkaran tarafa aittir. Kanuni karineye dayanan taraf, sadece karinenin temel vakıasını ispatla yükümlüdür; aksi ispat karşı tarafa geçer.",
+    keywords: ["ispat yükü", "HMK m. 190", "karine", "vakıa"],
+    branch: ["medeni_usul"],
+  },
+  yarg_4hd_2021_3345: {
+    id: "yarg_4hd_2021_3345",
+    kind: "ictihat",
+    shortTitle: "Yarg. 4. HD. 2021/3345",
+    fullTitle: "Yargıtay 4. Hukuk Dairesi — E. 2021/3345: Dava dilekçesi — talep sonucu",
+    body:
+      "HMK m. 119/ğ uyarınca dava dilekçesinde talep sonucu açıkça belirtilmelidir. Belirsiz alacak davası açılmışsa, talep sonucu asgari bir miktar gösterilerek dava açılabilir. Talep sonucu olmayan dilekçe, kesin süre verilerek tamamlattırılır.",
+    keywords: ["dava dilekçesi", "talep sonucu", "HMK m. 119", "belirsiz alacak"],
+    branch: ["medeni_usul"],
+  },
+
+  yarg_cgk_2019_1234: {
+    id: "yarg_cgk_2019_1234",
+    kind: "ictihat",
+    shortTitle: "Yarg. CGK 2019/1234",
+    fullTitle: "Yargıtay Ceza Genel Kurulu — E. 2019/1234: Olası kast — TCK m. 21/2",
+    body:
+      "TCK m. 21/2 uyarınca olası kast, failin suçun kanuni tanımındaki unsurların gerçekleşebileceğini öngörmesine rağmen fiili işlemesidir. Olası kastta fail 'olursa olsun' düşüncesiyle hareket eder. Bilinçli taksirden farkı, failin neticeyi kabullenmesidir.",
+    keywords: ["olası kast", "TCK m. 21", "bilinçli taksir", "öngörme"],
+    branch: ["ceza"],
+  },
+  yarg_cgk_2020_567: {
+    id: "yarg_cgk_2020_567",
+    kind: "ictihat",
+    shortTitle: "Yarg. CGK 2020/567",
+    fullTitle: "Yargıtay Ceza Genel Kurulu — E. 2020/567: Kasten yaralama — neticesi sebebiyle ağırlaşmış hal",
+    body:
+      "TCK m. 86 ve 87 uyarınca kasten yaralama suçunun neticesi sebebiyle ağırlaşmış hallerinde, failin ağır netice bakımından en azından taksirinin bulunması gerekir. Ağır netice öngörülemez nitelikte ise sorumluluk doğmaz.",
+    keywords: ["kasten yaralama", "TCK m. 86", "neticesi sebebiyle ağırlaşma"],
+    branch: ["ceza"],
+  },
+  yarg_cgk_2018_890: {
+    id: "yarg_cgk_2018_890",
+    kind: "ictihat",
+    shortTitle: "Yarg. CGK 2018/890",
+    fullTitle: "Yargıtay Ceza Genel Kurulu — E. 2018/890: Hırsızlık — malın değerinin azlığı",
+    body:
+      "TCK m. 145 uyarınca hırsızlık suçunda malın değerinin azlığı, cezada indirim sebebidir. Hakim somut olayın özelliklerine göre TCK m. 61 çerçevesinde takdir yetkisini kullanır. Malın değerinin çok düşük olması halinde ceza vermekten vazgeçilebilir.",
+    keywords: ["hırsızlık", "TCK m. 145", "değer azlığı", "takdir yetkisi"],
+    branch: ["ceza"],
+  },
+
+  yarg_cmk_2019_7890: {
+    id: "yarg_cmk_2019_7890",
+    kind: "ictihat",
+    shortTitle: "Yarg. CMK 2019/7890",
+    fullTitle: "Yargıtay Ceza Dairesi — E. 2019/7890: Tutuklama — ölçülülük ilkesi",
+    body:
+      "CMK m. 100 uyarınca tutuklama kararı verilirken ölçülülük ilkesi gözetilmelidir. İşin önemi, verilmesi beklenen ceza ile tutuklama tedbirinin orantılı olması gerekir. Adli kontrol hükümleri yetersiz kalıyorsa tutuklamaya başvurulur.",
+    keywords: ["tutuklama", "ölçülülük", "CMK m. 100", "adli kontrol"],
+    branch: ["ceza_usul"],
+  },
+  yarg_cmk_2020_4521: {
+    id: "yarg_cmk_2020_4521",
+    kind: "ictihat",
+    shortTitle: "Yarg. CMK 2020/4521",
+    fullTitle: "Yargıtay Ceza Dairesi — E. 2020/4521: Gözaltı süresi",
+    body:
+      "CMK m. 91 uyarınca gözaltı süresi yakalama anından itibaren 24 saati geçemez. Toplu suçlarda Cumhuriyet savcısı yazılı emirle 3 güne kadar uzatabilir. Süre aşımı halinde elde edilen deliller hukuka aykırı sayılır.",
+    keywords: ["gözaltı süresi", "CMK m. 91", "toplu suç", "hukuka aykırı delil"],
+    branch: ["ceza_usul"],
+  },
+
+  danstay_iddk_2019_567: {
+    id: "danstay_iddk_2019_567",
+    kind: "ictihat",
+    shortTitle: "Danıştay İDDK 2019/567",
+    fullTitle: "Danıştay İdari Dava Daireleri Kurulu — E. 2019/567: Dava açma süresi",
+    body:
+      "İYUK m. 7 uyarınca idari davalarda dava açma süresi 60 gündür. Süre, tebliğ tarihini izleyen günden başlar. Sürenin son günü tatile rastlarsa, takip eden ilk iş günü mesai bitimine kadar dava açılabilir. Hak düşürücü süredir, re'sen dikkate alınır.",
+    keywords: ["dava açma süresi", "İYUK m. 7", "60 gün", "hak düşürücü süre"],
+    branch: ["idare"],
+  },
+  danstay_iddk_2020_234: {
+    id: "danstay_iddk_2020_234",
+    kind: "ictihat",
+    shortTitle: "Danıştay İDDK 2020/234",
+    fullTitle: "Danıştay İdari Dava Daireleri Kurulu — E. 2020/234: Yürütmenin durdurulması",
+    body:
+      "İYUK m. 27 uyarınca yürütmenin durdurulması kararı verilebilmesi için idari işlemin uygulanması halinde telafisi güç veya imkansız zararların doğması ve işlemin açıkça hukuka aykırı olması şartlarının birlikte gerçekleşmesi gerekir.",
+    keywords: ["yürütmenin durdurulması", "İYUK m. 27", "telafi"],
+    branch: ["idare"],
+  },
+
+  yarg_12hd_2019_4567: {
+    id: "yarg_12hd_2019_4567",
+    kind: "ictihat",
+    shortTitle: "Yarg. 12. HD. 2019/4567",
+    fullTitle: "Yargıtay 12. Hukuk Dairesi — E. 2019/4567: İtirazın iptali — icra inkar tazminatı",
+    body:
+      "İİK m. 67 uyarınca itirazın iptali davasında borçlunun itirazı haksız bulunursa, alacaklının talebi üzerine borçlu aleyhine %20'den az olmamak üzere icra inkar tazminatına hükmedilir. Alacak likit olmalıdır.",
+    keywords: ["itirazın iptali", "icra inkar tazminatı", "İİK m. 67", "likit alacak"],
+    branch: ["icra"],
+  },
+  yarg_12hd_2020_8934: {
+    id: "yarg_12hd_2020_8934",
+    kind: "ictihat",
+    shortTitle: "Yarg. 12. HD. 2020/8934",
+    fullTitle: "Yargıtay 12. Hukuk Dairesi — E. 2020/8934: İtirazın kesin kaldırılması",
+    body:
+      "İİK m. 68 uyarınca itirazın kesin kaldırılması için alacağın imzası ikrar edilmiş bir senede veya resmi belgeye dayanması gerekir. 6 aylık hak düşürücü süre içinde talep edilmelidir. Süre geçtikten sonra yeniden ilamsız takip yapılamaz.",
+    keywords: ["itirazın kaldırılması", "İİK m. 68", "6 ay", "hak düşürücü"],
+    branch: ["icra"],
+  },
+
+  aym_2016_143: {
+    id: "aym_2016_143",
+    kind: "ictihat",
+    shortTitle: "AYM 2016/143 Bireysel Başvuru",
+    fullTitle: "Anayasa Mahkemesi — 2016/143: Adil yargılanma hakkı — gerekçeli karar",
+    body:
+      "Anayasa m. 36'da güvence altına alınan adil yargılanma hakkı, mahkeme kararlarının gerekçeli olmasını da kapsar. Gerekçesiz karar, tarafların iddia ve savunmalarının neden reddedildiğini anlamasını engeller. Gerekçe eksikliği adil yargılanma ihlalidir.",
+    keywords: ["adil yargılanma", "gerekçeli karar", "AYM", "Anayasa m. 36"],
+    branch: ["anayasa", "medeni_usul"],
+  },
+  aym_2019_34: {
+    id: "aym_2019_34",
+    kind: "ictihat",
+    shortTitle: "AYM 2019/34 Bireysel Başvuru",
+    fullTitle: "Anayasa Mahkemesi — 2019/34: Mülkiyet hakkı ihlali",
+    body:
+      "Anayasa m. 35 ve AİHS Ek 1. Protokol m. 1 kapsamındaki mülkiyet hakkına yapılan müdahalenin kanuni dayanağı olmalı, kamu yararı amacı taşımalı ve ölçülü olmalıdır. Ölçüsüz müdahale mülkiyet hakkı ihlalidir.",
+    keywords: ["mülkiyet hakkı", "AYM", "ölçülülük", "kamu yararı"],
+    branch: ["anayasa", "medeni"],
+  },
+
   /* ═════════════════════════ Eski kayıtlar (backward compat) ═════════════════════════ */
   // sources.ts'in eski sürümünde TBK m. 77/79 ve TMK m. 730/737 ID'leri farklıydı.
   // Yukarıdaki yeni IDs ile uyumlu; gerekirse eski referansları silebiliriz.

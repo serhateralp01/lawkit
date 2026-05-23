@@ -15,6 +15,7 @@ import type {
   AiBranchRequest,
   AssessmentRequest,
   GenerateCaseRequest,
+  GenerateQuestionRequest,
   GroundedRequest,
   RolePlayRequest,
 } from "@/lib/ai-orchestrator/types";
@@ -101,6 +102,13 @@ const GenerateCaseBody = z.object({
   difficulty: z.number().int().min(1).max(4),
   theme: z.string().optional(),
   characterTone: z.string().optional(),
+});
+
+const GenerateQuestionBody = z.object({
+  branch: z.string(),
+  difficulty: z.number().int().min(1).max(4),
+  count: z.number().int().min(1).max(5),
+  excludeIds: z.array(z.string()).optional(),
 });
 
 async function readBody(req: Request) {
@@ -266,6 +274,24 @@ export async function handleAi(
         console.error("[api] Case persist error:", persistErr);
       }
 
+      return json(res);
+    }
+
+    if (pathname === "/api/ai/generate-question") {
+      const parsed = GenerateQuestionBody.safeParse(body);
+      if (!parsed.success) {
+        return json({ error: parsed.error.flatten() }, { status: 400 });
+      }
+      const query = parsed.data.branch;
+      const relevantSources = searchSources(query, parsed.data.branch, 6);
+      const req: GenerateQuestionRequest = {
+        branch: parsed.data.branch,
+        difficulty: parsed.data.difficulty,
+        count: parsed.data.count,
+        excludeIds: parsed.data.excludeIds,
+        contextSourceIds: relevantSources.map((s) => s.id),
+      };
+      const res = await orchestrator.generateQuestions(req);
       return json(res);
     }
 

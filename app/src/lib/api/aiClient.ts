@@ -4,6 +4,8 @@ import type {
   AssessmentResponse,
   GenerateCaseRequest,
   GenerateCaseResponse,
+  GenerateQuestionRequest,
+  GenerateQuestionResponse,
   GroundedResponse,
   Persona,
   RolePlayResponse,
@@ -94,4 +96,8 @@ export interface GenerateCaseResult extends GenerateCaseResponse {
 
 export function aiGenerateCase(args: GenerateCaseRequest) {
   return post<GenerateCaseResult>("/api/ai/generate-case", args, true);
+}
+
+export function aiGenerateQuestions(args: GenerateQuestionRequest) {
+  return post<GenerateQuestionResponse>("/api/ai/generate-question", args, true);
 }

@@ -25,6 +25,8 @@ import type {
   AssessmentResponse,
   GenerateCaseRequest,
   GenerateCaseResponse,
+  GenerateQuestionRequest,
+  GenerateQuestionResponse,
   GroundedRequest,
   GroundedResponse,
   RolePlayRequest,
@@ -630,6 +632,120 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
         legalCase: generated,
         qualityScore: Number(qualityScore.toFixed(2)),
         flaggedForReview,
+        usedSources: req.contextSourceIds,
+      };
+    },
+
+    async generateQuestions(req: GenerateQuestionRequest): Promise<GenerateQuestionResponse> {
+      const branchLabels: Record<string, string> = {
+        is_hukuku: "İş Hukuku", borclar: "Borçlar Hukuku", medeni: "Medeni Hukuk",
+        medeni_usul: "Medeni Usul", ceza: "Ceza Hukuku", idare: "İdare Hukuku",
+        ticaret: "Ticaret Hukuku", anayasa: "Anayasa", ceza_usul: "Ceza Usul",
+        icra: "İcra İflas",
+      };
+      const label = branchLabels[req.branch] ?? req.branch;
+
+      const contextBlock = req.contextSourceIds.length > 0
+        ? [
+            "Aşağıdaki mevzuat maddelerini sorularına DAYANAK olarak kullan:",
+            ...req.contextSourceIds.map((id) => {
+              const s = sources[id];
+              return s ? `- ${s.shortTitle}: ${s.body.slice(0, 250)}` : null;
+            }).filter(Boolean),
+          ].join("\n")
+        : "";
+
+      const excludeBlock = req.excludeIds?.length
+        ? `Şu soru ID'leriyle aynı konuda soru ÜRETME: ${req.excludeIds.join(", ")}`
+        : "";
+
+      const system = [
+        "Sen LawKit'in HMGS soru yazarısın.",
+        "Türk hukuku çoktan seçmeli sınav sorusu üretiyorsun.",
+        "",
+        "KURALLAR:",
+        "1. Soru kökü (stem) bir olay veya hukuki mesele içermeli.",
+        "2. 4 şık olmalı (a, b, c, d).",
+        "3. SADECE BİR şık doğru. Diğerleri makul çeldiriciler olmalı.",
+        "4. Doğru cevap mevzuata DAYALI olmalı, ezoterik değil.",
+        "5. Çeldiriciler tipik öğrenci hatalarını yansıtmalı.",
+        "6. Her soruya 2-3 cümle açıklama (explanation) yaz.",
+        "7. Her çeldirici için kısa gerekçe (distractorReasons) yaz.",
+        "8. Kullandığın mevzuat maddelerini sources dizisinde referansla.",
+        "",
+        "ÇIKTI FORMATI — ZORUNLU JSON:",
+        JSON.stringify({
+          questions: [{
+            id: "q_is_001",
+            branch: "is_hukuku",
+            difficulty: 2,
+            stem: "Ali 7 yıldır X A.Ş.'de çalışmaktadır. İşveren... Buna göre aşağıdakilerden hangisi doğrudur?",
+            choices: [
+              { id: "a", text: "Doğru cevap..." },
+              { id: "b", text: "Çeldirici..." },
+              { id: "c", text: "Çeldirici..." },
+              { id: "d", text: "Tuzak..." },
+            ],
+            correctId: "a",
+            explanation: "Doğru cevap a şıkkıdır çünkü İş K. m. 18 uyarınca...",
+            distractorReasons: {
+              b: "B yanlış çünkü ihbar süresi kıdeme göre değişir.",
+              c: "C yanlış çünkü haklı fesih şartları oluşmamıştır.",
+              d: "D yanlış çünkü arabuluculuk dava şartıdır.",
+            },
+            sources: ["is_kanunu_m18"],
+          }],
+        }),
+        "",
+        "SADECE JSON döndür. Başka metin yazma.",
+      ].join("\n");
+
+      const user = [
+        `HUKUK DALI: ${label}`,
+        `ZORLUK: ${req.difficulty} (1=kolay, 4=zor)`,
+        `SORU SAYISI: ${req.count}`,
+        excludeBlock,
+        contextBlock,
+      ].filter(Boolean).join("\n");
+
+      const GenQuestionSchema = z.object({
+        questions: z.array(z.object({
+          id: z.string(),
+          branch: z.string(),
+          difficulty: z.number().int().min(1).max(4),
+          stem: z.string().min(1),
+          choices: z.array(z.object({
+            id: z.string(),
+            text: z.string().min(1),
+          })).length(4),
+          correctId: z.string(),
+          explanation: z.string(),
+          distractorReasons: z.record(z.string()).optional(),
+          sources: z.array(z.string()).optional(),
+        })),
+      });
+
+      const raw = await chatJson(GenQuestionSchema, system, user);
+
+      const refSet = new Set(Object.keys(sources));
+      let validSourceCount = 0;
+      let totalSourceCount = 0;
+      for (const q of raw.questions) {
+        for (const s of q.sources ?? []) {
+          totalSourceCount++;
+          if (refSet.has(s)) validSourceCount++;
+        }
+      }
+      const sourceQuality = totalSourceCount > 0 ? validSourceCount / totalSourceCount : 0.5;
+      const qualityScore = 0.4
+        + (raw.questions.length >= req.count ? 0.2 : 0)
+        + sourceQuality * 0.2
+        + (raw.questions.every((q) => q.explanation.length > 20) ? 0.2 : 0);
+
+      return {
+        questions: raw.questions as GenerateQuestionResponse["questions"],
+        qualityScore: Number(qualityScore.toFixed(2)),
+        flaggedForReview: sourceQuality < 0.5,
         usedSources: req.contextSourceIds,
       };
     },

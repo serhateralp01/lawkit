@@ -21,6 +21,8 @@ import type {
   DimensionScore,
   GenerateCaseRequest,
   GenerateCaseResponse,
+  GenerateQuestionRequest,
+  GenerateQuestionResponse,
   GroundedRequest,
   GroundedResponse,
   RolePlayRequest,
@@ -118,6 +120,46 @@ export const mockAdapter: AIOrchestrator = {
           { id: "n1", kind: "outcome", prompt: "Mock vaka", summary: "Bitti", idealAnswer: "—" },
         ],
       },
+      qualityScore: 0.5,
+      flaggedForReview: true,
+      usedSources: req.contextSourceIds,
+    };
+  },
+
+  async generateQuestions(req: GenerateQuestionRequest): Promise<GenerateQuestionResponse> {
+    const branchLabels: Record<string, string> = {
+      is_hukuku: "İş Hukuku",
+      borclar: "Borçlar Hukuku",
+      medeni: "Medeni Hukuk",
+      medeni_usul: "Medeni Usul",
+      ceza: "Ceza Hukuku",
+      idare: "İdare Hukuku",
+      ticaret: "Ticaret Hukuku",
+    };
+    const label = branchLabels[req.branch] ?? req.branch;
+    const fakeQuestions = Array.from({ length: req.count }, (_, i) => ({
+      id: `mock_q_${Date.now()}_${i}`,
+      branch: req.branch,
+      difficulty: req.difficulty,
+      stem: `[Mock] ${label} — ${i + 1}. soru. ${req.contextSourceIds.length > 0 ? "Kaynak: " + req.contextSourceIds[0] : "Kaynaksız"}. Bu bir test sorusudur.`,
+      choices: [
+        { id: "a", text: "A şıkkı — doğru cevap" },
+        { id: "b", text: "B şıkkı — çeldirici" },
+        { id: "c", text: "C şıkkı — çeldirici" },
+        { id: "d", text: "D şıkkı — tuzak" },
+      ],
+      correctId: "a",
+      explanation: "Mock açıklama. Gerçek AI bağlanmadığı için detaylı açıklama üretilemedi.",
+      distractorReasons: {
+        b: "B yanlış çünkü...",
+        c: "C ilgisiz.",
+        d: "D tuzak.",
+      },
+      sources: req.contextSourceIds.slice(0, 2),
+    }));
+
+    return {
+      questions: fakeQuestions,
       qualityScore: 0.5,
       flaggedForReview: true,
       usedSources: req.contextSourceIds,

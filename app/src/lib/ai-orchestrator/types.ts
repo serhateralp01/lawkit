@@ -152,6 +152,40 @@ export interface GenerateCaseResponse {
   usedSources: string[];
 }
 
+/* ─────────────── Question Generation ─────────────── */
+
+export interface GenerateQuestionRequest {
+  /** Hangi hukuk dalı */
+  branch: string;
+  /** 1-4 zorluk */
+  difficulty: 1 | 2 | 3 | 4;
+  /** Kaç soru üretilecek */
+  count: number;
+  /** Bu sorulardan farklı olsun (önceki soru ID'leri) */
+  excludeIds?: string[];
+  /** İlgili kaynak ID'leri (RAG) */
+  contextSourceIds: string[];
+}
+
+export interface GeneratedQuestion {
+  id: string;
+  branch: string;
+  difficulty: number;
+  stem: string;
+  choices: { id: string; text: string }[];
+  correctId: string;
+  explanation: string;
+  distractorReasons?: Record<string, string>;
+  sources?: string[];
+}
+
+export interface GenerateQuestionResponse {
+  questions: GeneratedQuestion[];
+  qualityScore: number;
+  flaggedForReview: boolean;
+  usedSources: string[];
+}
+
 /* ─────────────── Adapter ─────────────── */
 
 /**
@@ -168,6 +202,7 @@ export interface AIOrchestrator {
   assess(req: AssessmentRequest): Promise<AssessmentResponse>;
   branch(req: AiBranchRequest): Promise<AiBranchResponse>;
   generateCase(req: GenerateCaseRequest): Promise<GenerateCaseResponse>;
+  generateQuestions(req: GenerateQuestionRequest): Promise<GenerateQuestionResponse>;
 }
 
 /* ─────────────── Auditor ─────────────── */
