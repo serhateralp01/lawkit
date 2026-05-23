@@ -10,7 +10,6 @@ import {
   Gauge,
   Scale,
   Sparkles,
-  Trophy,
 } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
 import { MiniCaseRunner } from "@/components/composite/MiniCaseRunner";
@@ -64,12 +63,6 @@ function Hero() {
       <div className="mx-auto max-w-7xl px-6 pb-24 pt-16 lg:px-8 lg:pb-32 lg:pt-24">
         <div className="grid items-center gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
           <div className="lk-reveal">
-            <div className="mb-7 inline-flex items-center gap-2 rounded-md bg-gold/10 px-3 py-1.5">
-              <Sparkles className="size-3.5 text-gold" />
-              <span className="text-[10px] font-black uppercase italic tracking-[0.18em] text-gold">
-                Vaka simülatörü · HMGS 2026
-              </span>
-            </div>
             <h1 className="font-display text-[2.75rem] font-extrabold leading-[1.02] text-ink sm:text-6xl lg:text-[4.5rem]">
               Hukuku{" "}
               <span className="italic text-gold">ezberleme.</span>
@@ -77,50 +70,37 @@ function Hero() {
               Vakada uygula.
             </h1>
             <p className="mt-7 max-w-md text-lg leading-relaxed text-ink/60">
-              Müvekkille görüşün, olguları toplayın, dilekçenizi yazın, duruşmada karşı vekile
-              cevap verin. Her kararınız hikayeyi değiştirir. HMGS adayları ve genç avukatlar
-              için AI destekli vaka motoru.
+              Müvekkille görüşün, olguları toplayın, dilekçenizi yazın, duruşmada karşı
+              vekile cevap verin. Her kararınız hikayeyi değiştirir. HMGS adayları ve genç
+              avukatlar için tasarlandı.
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-5">
+            <div className="mt-10 flex flex-wrap items-center gap-4">
               {!loading && user ? (
                 <Link
                   to="/karne"
-                  className="group inline-flex items-center gap-2 rounded-xl bg-ink px-8 py-4 text-base font-bold text-paper transition-transform hover:scale-[1.02]"
+                  className="group inline-flex items-center gap-2 rounded-xl bg-ink px-8 py-4 text-base font-bold text-paper transition hover:bg-ink/90"
                 >
                   Karneme git
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               ) : (
-                <Link
-                  to="/kayit"
-                  className="group inline-flex items-center gap-2 rounded-xl bg-ink px-8 py-4 text-base font-bold text-paper transition-transform hover:scale-[1.02]"
-                >
-                  Ücretsiz dene
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                </Link>
+                <>
+                  <Link
+                    to="/kayit"
+                    className="group inline-flex items-center gap-2 rounded-xl bg-ink px-8 py-4 text-base font-bold text-paper transition hover:bg-ink/90"
+                  >
+                    Ücretsiz dene
+                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                  <Link
+                    to="/giris"
+                    className="rounded-xl border border-line px-6 py-4 text-sm font-semibold text-ink/70 transition hover:border-ink/20 hover:text-ink"
+                  >
+                    Giriş
+                  </Link>
+                </>
               )}
-              <div className="flex flex-col">
-                <span className="font-display text-2xl font-bold text-ink">+140 XP</span>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-ink/40">
-                  Günlük ortalama kazanım
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-12 flex items-center gap-4">
-              <div className="flex -space-x-2">
-                {["#0F172A", "#B45309", "#1E293B", "#92400E"].map((c, i) => (
-                  <div
-                    key={i}
-                    className="size-8 rounded-full border-2 border-paper"
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
-              </div>
-              <p className="text-xs font-semibold text-ink/55">
-                <span className="font-bold text-ink">1.200'den fazla aday</span> aktif olarak çalışıyor
-              </p>
             </div>
           </div>
 
@@ -134,19 +114,6 @@ function Hero() {
               height={1024}
               className="relative w-full rounded-2xl object-cover shadow-2xl shadow-ink/15 ring-1 ring-ink/5"
             />
-            <div className="absolute -bottom-6 -left-6 hidden rounded-xl bg-white p-4 shadow-xl ring-1 ring-line sm:block">
-              <div className="flex items-center gap-3">
-                <div className="grid size-10 place-items-center rounded-lg bg-gold/10">
-                  <Trophy className="size-5 text-gold" />
-                </div>
-                <div>
-                  <p className="font-display text-lg font-bold leading-none text-ink">%87</p>
-                  <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-ink/50">
-                    Kullanıcı tamamlama oranı
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -466,7 +433,7 @@ function Pricing() {
           Hazırlık stratejinizi seçin
         </h2>
         <p className="mx-auto mt-4 max-w-lg text-ink/55">
-          İster son hafta yoğunlaşın, ister yıl boyu düzenli ilerleyin.
+          Son hafta yoğunlaşın ya da yıl boyu düzenli ilerleyin.
         </p>
       </div>
 
@@ -484,7 +451,6 @@ function Pricing() {
           ]}
           cta="Sprint başlat"
           variant="primary"
-          badge="Sınav haftası"
         />
         <PriceCard
           name="Core"
@@ -521,12 +487,6 @@ function Pricing() {
         <Link to="/fiyatlandirma" className="underline hover:text-gold">
           Detaylı karşılaştırma
         </Link>
-        {" "}·{" "}
-        Kurumsal lisans için{" "}
-        <Link to="/iletisim" className="underline hover:text-gold">
-          iletişime geçin
-        </Link>
-        .
       </p>
     </section>
   );

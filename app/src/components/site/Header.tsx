@@ -104,9 +104,22 @@ export function Header() {
                 </Link>
               </li>
             ))}
-            <li>
-              <Link to="/giris" onClick={() => setOpen(false)}>
+            <li className="border-t border-line pt-3">
+              <Link
+                to="/giris"
+                onClick={() => setOpen(false)}
+                className="block rounded-lg bg-ink px-4 py-2 text-center text-paper"
+              >
                 Giriş
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/kayit"
+                onClick={() => setOpen(false)}
+                className="block rounded-lg border border-ink px-4 py-2 text-center"
+              >
+                Kayıt Ol
               </Link>
             </li>
           </ul>

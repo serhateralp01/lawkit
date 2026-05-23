@@ -9,8 +9,7 @@ export const Route = createFileRoute("/fiyatlandirma")({
       { title: "Fiyatlandırma | LawKit" },
       {
         name: "description",
-        content:
-          "Ücretsiz başlayın, ihtiyacınıza göre yükseltin. Sprint 50 TL, Core 250 TL/ay, Pro 400 TL/ay. Kurumsal planlar da mevcut.",
+        content: "Ücretsiz başlayın, ihtiyacınıza göre yükseltin. Sprint 50 TL, Core 250 TL/ay, Pro 400 TL/ay.",
       },
       { property: "og:title", content: "Fiyatlandırma | LawKit" },
     ],
@@ -126,31 +125,6 @@ function PricingPage() {
           ))}
         </div>
 
-        <div className="mt-16 rounded-2xl border border-line bg-white p-8 lg:p-10">
-          <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
-                Kurumsal
-              </p>
-              <h2 className="mt-2 font-display text-2xl font-bold text-ink">
-                Fakülte, baro ve hukuk büroları için
-              </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/60">
-                En az 50 kullanıcılı lisanslar. Kullanıcı başı 80–120 TL bandında fiyatlandırılır.
-                Toplu raporlama paneli, kuruma özel vaka ekleme, kurumsal fatura kesimi ve HMGS
-                dönemine özel pilot program dahildir. Detaylı teklif için iletişime geçin.
-              </p>
-            </div>
-            <Link
-              to="/iletisim"
-              className="inline-flex w-fit items-center gap-2 rounded-xl bg-ink px-6 py-3 text-sm font-bold text-paper transition hover:bg-ink/90"
-            >
-              Kurumsal teklif al
-              <ArrowRight className="size-4" />
-            </Link>
-          </div>
-        </div>
-
         <div className="mt-16 grid gap-6 lg:grid-cols-2">
           <FaqItem
             q="Free planda neler yapabilirim?"
@@ -180,19 +154,25 @@ function PricingPage() {
 
 function PlanCard({ plan }: { plan: Plan }) {
   const isDark = plan.variant === "core" || plan.variant === "pro";
-  const isHighlight = plan.variant === "sprint";
-
-  const bg = isDark ? "bg-ink text-paper" : "bg-white text-ink";
-  const border = isHighlight
-    ? "border-2 border-gold"
-    : "border border-line";
+  const isFeatured = plan.variant === "core";
 
   return (
-    <div className={cn("relative flex flex-col rounded-2xl p-7", bg, border)}>
+    <div
+      className={cn(
+        "relative flex flex-col rounded-2xl p-7 transition-all duration-300",
+        isFeatured
+          ? "bg-ink text-paper shadow-2xl shadow-ink/20 ring-2 ring-gold scale-[1.02] hover:scale-[1.03]"
+          : plan.variant === "sprint"
+            ? "border-2 border-gold bg-white text-ink shadow-sm hover:shadow-lg"
+            : plan.variant === "pro"
+              ? "bg-gradient-to-b from-ink to-ink/90 text-paper shadow-lg shadow-ink/10 hover:shadow-xl"
+              : "border border-line bg-white text-ink shadow-sm hover:shadow-md",
+      )}
+    >
       {plan.badge ? (
         <span
           className={cn(
-            "absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-0.5 text-[9px] font-bold uppercase tracking-widest",
+            "absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[9px] font-bold uppercase tracking-widest",
             isDark ? "bg-gold text-ink" : "bg-gold text-white",
           )}
         >
@@ -218,39 +198,29 @@ function PlanCard({ plan }: { plan: Plan }) {
             {plan.price === "0" ? "Ücretsiz" : `₺${plan.price}`}
           </span>
           {plan.period !== "—" && (
-            <span
-              className={cn(
-                "text-xs",
-                isDark ? "text-paper/55" : "text-ink/55",
-              )}
-            >
+            <span className={cn("text-xs", isDark ? "text-paper/55" : "text-ink/55")}>
               / {plan.period}
             </span>
           )}
         </div>
         {plan.yearly ? (
-          <p
-            className={cn(
-              "mt-1 text-[10px]",
-              isDark ? "text-paper/45" : "text-ink/45",
-            )}
-          >
+          <p className={cn("mt-1 text-[10px]", isDark ? "text-paper/45" : "text-ink/45")}>
             Yıllık ₺{plan.yearly.price} ({plan.yearly.saving} indirim)
           </p>
         ) : null}
       </div>
 
       <ul className="mb-6 flex-1 space-y-2.5">
-        {plan.includes ? (
+        {plan.includes && (
           <li
             className={cn(
-              "pb-2 text-[10px] font-bold uppercase tracking-wider",
-              isDark ? "text-paper/40" : "text-ink/35",
+              "border-b pb-2 text-[10px] font-bold uppercase tracking-wider",
+              isDark ? "border-paper/10 text-paper/40" : "border-line text-ink/35",
             )}
           >
             {plan.includes}
           </li>
-        ) : null}
+        )}
         {plan.features.map((f) => (
           <li key={f} className="flex items-start gap-2 text-xs">
             <CheckCircle2
@@ -259,9 +229,7 @@ function PlanCard({ plan }: { plan: Plan }) {
                 plan.variant === "free" ? "text-ink/50" : "text-gold",
               )}
             />
-            <span className={isDark ? "text-paper/80" : "text-ink/75"}>
-              {f}
-            </span>
+            <span className={isDark ? "text-paper/80" : "text-ink/75"}>{f}</span>
           </li>
         ))}
       </ul>
@@ -271,7 +239,7 @@ function PlanCard({ plan }: { plan: Plan }) {
         className={cn(
           "block rounded-xl px-4 py-3 text-center text-xs font-bold transition",
           plan.variant === "free"
-            ? "border border-ink bg-white text-ink hover:bg-ink/5"
+            ? "border border-line bg-white text-ink hover:bg-ink/5"
             : plan.variant === "sprint"
               ? "bg-gold text-ink hover:bg-gold/90"
               : plan.variant === "core"

@@ -1,17 +1,3 @@
-/**
- * AuthProvider — Supabase session'ını React context'e koyar.
- *
- * SSR güvenli:
- *   - İlk render'da session=null, loading=true
- *   - Tarayıcı mount'unda supabase.auth.getSession() çağrılır
- *   - onAuthStateChange ile login/logout güncellemeleri
- *
- * Kullanım:
- *   const { user, session, loading, signOut } = useAuth();
- *   if (loading) return <Spinner />
- *   if (!user) return <LoginPrompt />
- */
-
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabaseBrowser, hasSupabaseConfig } from "@/lib/supabase/client";
@@ -20,7 +6,6 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  /** Beta gating için: profiles.is_admin = true ise true. */
   isAdmin: boolean;
   signOut: () => Promise<void>;
 }
@@ -39,13 +24,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // SSR'da window yok; sadece client'ta çalışsın
     if (typeof window === "undefined") {
       setLoading(false);
       return;
     }
     if (!hasSupabaseConfig()) {
-      console.warn("[auth] Supabase config yok — anonim modda çalışıyor.");
       setLoading(false);
       return;
     }
@@ -53,46 +36,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = supabaseBrowser();
     let mounted = true;
 
-    const fetchProfile = async (userId: string | undefined, email: string | undefined) => {
+    async function fetchProfile(userId: string | undefined, email: string | undefined) {
       if (!userId) {
         setIsAdmin(false);
         return;
       }
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("is_admin")
-        .eq("id", userId)
-        .single();
-
-      if (error && error.code === "PGRST116") {
-        // Profil satırı yok → trigger tetiklenmemiş → manuel oluştur
-        console.warn("[auth] Profil bulunamadı, manuel oluşturuluyor:", userId);
-        const displayName = email?.split("@")[0] ?? "Kullanıcı";
-        const { error: insertErr } = await supabase
+      try {
+        const { data, error } = await supabase
           .from("profiles")
-          .insert({ id: userId, display_name: displayName, is_admin: false });
-        if (!insertErr) {
-          setIsAdmin(false);
-        } else {
-          console.error("[auth] Profil oluşturulamadı:", insertErr);
-          setIsAdmin(false);
-        }
-      } else if (mounted) {
-        setIsAdmin(!error && !!data?.is_admin);
-      }
-    };
+          .select("is_admin")
+          .eq("id", userId)
+          .single();
 
-    supabase.auth.getSession().then(async ({ data }) => {
+        if (error) {
+          if (error.code === "PGRST116" || error.code === "42P01") {
+            // Profil yok → manuel oluşturmayı dene
+            const displayName = email?.split("@")[0] ?? "Kullanıcı";
+            await supabase.from("profiles").insert({
+              id: userId,
+              display_name: displayName,
+              is_admin: false,
+            });
+          }
+          if (mounted) setIsAdmin(false);
+          return;
+        }
+
+        if (mounted) setIsAdmin(data?.is_admin === true);
+      } catch {
+        if (mounted) setIsAdmin(false);
+      }
+    }
+
+    // İlk session kontrolü
+    supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       setSession(data.session);
-      await fetchProfile(data.session?.user?.id, data.session?.user?.email);
-      setLoading(false);
+      fetchProfile(data.session?.user?.id, data.session?.user?.email).finally(() => {
+        if (mounted) setLoading(false);
+      });
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, s) => {
+    // Auth state değişikliklerini dinle
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       if (!mounted) return;
       setSession(s);
-      await fetchProfile(s?.user?.id, s?.user?.email);
+      fetchProfile(s?.user?.id, s?.user?.email);
     });
 
     return () => {
