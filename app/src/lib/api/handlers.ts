@@ -236,8 +236,8 @@ export async function handleAi(
       }
       // RAG: tema + dal ile ilgili mevzuat maddelerini çek
       const query = parsed.data.theme ?? parsed.data.branch;
-      // 3 source yeter — daha fazlası prompt'u şişirir, LLM yavaşlar.
-      const relevantSources = searchSources(query, parsed.data.branch, 3);
+      // 6 source — daha geniş bağlam, hız v4-flash + thinking disabled ile dengelenir.
+      const relevantSources = searchSources(query, parsed.data.branch, 6);
       const req: GenerateCaseRequest = {
         branch: parsed.data.branch,
         difficulty: parsed.data.difficulty,
@@ -306,7 +306,7 @@ export async function handleAi(
     if (pathname === "/api/ai/generate-petition") {
       const parsed = GeneratePetitionBody.safeParse(body);
       if (!parsed.success) return json({ error: parsed.error.flatten() }, { status: 400 });
-      const relevantSources = searchSources(parsed.data.theme ?? parsed.data.branch, parsed.data.branch, 5);
+      const relevantSources = searchSources(parsed.data.theme ?? parsed.data.branch, parsed.data.branch, 6);
       const req: GeneratePetitionRequest = {
         branch: parsed.data.branch,
         difficulty: parsed.data.difficulty,

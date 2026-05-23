@@ -206,20 +206,27 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
     schema: z.ZodType<T>,
     system: string,
     user: string,
-    opts: { maxTokens?: number } = {},
+    opts: { modelOverride?: string; thinking?: "enabled" | "disabled" } = {},
   ): Promise<T> {
-    const completion = await client.chat.completions.create({
-      model,
+    const selectedModel = opts.modelOverride ?? model;
+    // DeepSeek thinking parametresi: body'nin içine merge edilir (OpenAI uyumlu
+    // SDK pass-through). Default v4-pro'da thinking=enabled (default), v4-flash'ta
+    // disabled vererek "low effort" hızını alıyoruz.
+    const body: Record<string, unknown> = {
+      model: selectedModel,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },
       ],
       temperature: 0.2,
-      // max_tokens: çıktıyı sınırlayarak LLM'in uzun yazımını engelle ve hızlandır.
-      // Vaka üretimi ~3000 token yeterli, dilekçe ~2000, sorular ~1500.
-      max_tokens: opts.maxTokens ?? 4096,
-    });
+    };
+    if (opts.thinking) {
+      body.thinking = { type: opts.thinking };
+    }
+    const completion = await client.chat.completions.create(
+      body as Parameters<typeof client.chat.completions.create>[0],
+    );
 
     if (!completion?.choices || completion.choices.length === 0) {
       const errMsg =
@@ -496,11 +503,10 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
 
       const contextBlock = req.contextSourceIds.length > 0
         ? [
-            "Dayanak mevzuat (en az 1'ini option.sources'da referansla):",
+            "Dayanak mevzuat (en az 1-2'sini option.sources'da referansla):",
             ...req.contextSourceIds.map((id) => {
               const s = sources[id];
-              // Body kısa — LLM zaten madde başlığından bağlamı çıkarıyor.
-              return s ? `- ${s.shortTitle}: ${s.body.slice(0, 120)}` : null;
+              return s ? `- ${s.shortTitle}: ${s.body.slice(0, 200)}` : null;
             }).filter(Boolean),
           ].join("\n")
         : "Mevzuat bağlamı yok — Türk hukukunun ilgili dalından güncel mevzuatla uyumlu üret.";
@@ -559,12 +565,13 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
       let flaggedForReview = false;
 
       try {
-        // Vaka için ~3000 token yeterli (5-9 node × kısa prompt'lar).
+        // Vaka üretimi: v4-flash + thinking disabled (low-effort) — hız öncelikli.
+        // Kullanıcı isteğiyle bu spesifik akışta hızlı modele düşüyoruz.
         const raw = (await chatJson(
           LegalCaseOutputSchema as z.ZodType<Record<string, unknown>>,
           system,
           user,
-          { maxTokens: 3500 },
+          { modelOverride: "deepseek-v4-flash", thinking: "disabled" },
         )) as Record<string, unknown>;
 
         // Normalize branch
@@ -861,7 +868,11 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
         }).passthrough()).optional().default([]),
       }).passthrough();
 
-      const raw = await chatJson(schema, system, user);
+      // Dilekçe üretimi: v4-flash + thinking disabled (low-effort) — hız öncelikli.
+      const raw = await chatJson(schema, system, user, {
+        modelOverride: "deepseek-v4-flash",
+        thinking: "disabled",
+      });
       return {
         template: raw as GeneratePetitionResponse["template"],
         qualityScore: (raw.sections as unknown[])?.length >= 4 ? 0.7 : 0.4,
