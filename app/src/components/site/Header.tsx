@@ -14,7 +14,7 @@ const navLinks = [
 
 export function Header() {
   const [open, setOpen] = useState(false);
-  const { user, signOut, loading } = useAuth();
+  const { user, isAdmin, signOut, loading } = useAuth();
   const displayName =
     (user?.user_metadata?.display_name as string | undefined) ??
     user?.email?.split("@")[0] ??
@@ -43,6 +43,14 @@ export function Header() {
         <div className="flex items-center gap-3">
           {loading ? null : user ? (
             <>
+              {isAdmin ? (
+                <span
+                  className="hidden items-center gap-1 rounded-full bg-amber/20 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-foreground sm:inline-flex"
+                  title="Beta erişim — yönetici hesabı"
+                >
+                  ⚡ Beta
+                </span>
+              ) : null}
               <Link
                 to="/profil"
                 className="hidden items-center gap-2 rounded-full bg-paper-warm px-3 py-1.5 text-xs font-semibold text-ink/80 hover:text-ink sm:inline-flex"

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, FileText, Sparkles } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
+import { BetaGate } from "@/components/site/BetaGate";
 import { petitionTemplates } from "@/content/petition-templates";
 import { cn } from "@/lib/utils";
 
@@ -16,8 +17,16 @@ export const Route = createFileRoute("/dilekce-lab")({
       },
     ],
   }),
-  component: DilekceLabIndex,
+  component: DilekceLabGated,
 });
+
+function DilekceLabGated() {
+  return (
+    <BetaGate feature="Dilekçe Lab">
+      <DilekceLabIndex />
+    </BetaGate>
+  );
+}
 
 function DilekceLabIndex() {
   return (

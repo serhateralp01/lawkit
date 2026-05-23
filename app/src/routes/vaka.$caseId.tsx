@@ -24,6 +24,7 @@ import { AiBranchStage } from "@/components/composite/AiBranchStage";
 import { ClientChatStage } from "@/components/composite/ClientChatStage";
 import { StageView } from "@/components/composite/StageView";
 import { CaseClosing } from "@/components/composite/CaseClosing";
+import { BetaGate } from "@/components/site/BetaGate";
 import type { CaseOption, CharacterDef, LegalCase } from "@/content/types";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +47,14 @@ export const Route = createFileRoute("/vaka/$caseId")({
 });
 
 function CasePage() {
+  return (
+    <BetaGate feature="Vaka simülasyonu">
+      <CasePageInner />
+    </BetaGate>
+  );
+}
+
+function CasePageInner() {
   const { case: legalCase } = Route.useLoaderData();
 
   // Intro durumu — sadece client'ta okunur (SSR safe).

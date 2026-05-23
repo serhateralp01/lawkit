@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Loader2, AlertCircle, CheckCircle2, LogOut, User as UserIcon } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
+import { BetaGate } from "@/components/site/BetaGate";
 import { supabaseBrowser, hasSupabaseConfig } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useGamificationStore } from "@/lib/gamification";
@@ -10,8 +11,16 @@ export const Route = createFileRoute("/profil")({
   head: () => ({
     meta: [{ title: "Profilim | LawKit" }],
   }),
-  component: ProfilePage,
+  component: ProfilePageGated,
 });
+
+function ProfilePageGated() {
+  return (
+    <BetaGate feature="Profil ayarları">
+      <ProfilePage />
+    </BetaGate>
+  );
+}
 
 interface ProfileRow {
   display_name: string | null;

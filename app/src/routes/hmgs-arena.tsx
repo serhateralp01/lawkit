@@ -23,6 +23,7 @@ import {
 import { defaultRubric } from "@/content/rubrics";
 import type { RubricKey } from "@/content/types";
 import { listCases } from "@/content/cases";
+import { BetaGate } from "@/components/site/BetaGate";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/hmgs-arena")({
@@ -36,10 +37,18 @@ export const Route = createFileRoute("/hmgs-arena")({
       },
     ],
   }),
-  component: HmgsArenaPage,
+  component: HmgsArenaGated,
 });
 
 type Phase = "intro" | "running" | "result";
+
+function HmgsArenaGated() {
+  return (
+    <BetaGate feature="HMGS Arena tanı testi">
+      <HmgsArenaPage />
+    </BetaGate>
+  );
+}
 
 function HmgsArenaPage() {
   const [phase, setPhase] = useState<Phase>("intro");

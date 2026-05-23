@@ -22,6 +22,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { defaultRubric } from "@/content/rubrics";
 import { getCase, listCases } from "@/content/cases";
 import { PageShell } from "@/components/site/PageShell";
+import { BetaGate } from "@/components/site/BetaGate";
 import { cn } from "@/lib/utils";
 import type { RubricKey } from "@/content/types";
 
@@ -74,7 +75,8 @@ function KarnePage() {
     : [];
 
   return (
-    <PageShell>
+    <BetaGate feature="Karne ve istatistikler">
+      <PageShell>
       <div className="mx-auto max-w-6xl px-4 pb-20 pt-10 lg:px-8 lg:pt-14">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -299,7 +301,8 @@ function KarnePage() {
           )}
         </motion.section>
       </div>
-    </PageShell>
+      </PageShell>
+    </BetaGate>
   );
 }
 

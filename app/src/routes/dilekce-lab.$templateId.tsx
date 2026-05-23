@@ -10,6 +10,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
+import { BetaGate } from "@/components/site/BetaGate";
 import { getPetitionTemplate } from "@/content/petition-templates";
 import type { PetitionSection } from "@/content/petition-templates";
 import { defaultRubric } from "@/content/rubrics";
@@ -28,8 +29,16 @@ export const Route = createFileRoute("/dilekce-lab/$templateId")({
   head: ({ loaderData }) => ({
     meta: [{ title: `${loaderData?.template.title} — Dilekçe Lab | LawKit` }],
   }),
-  component: PetitionWorkbench,
+  component: PetitionWorkbenchGated,
 });
+
+function PetitionWorkbenchGated() {
+  return (
+    <BetaGate feature="Dilekçe Lab">
+      <PetitionWorkbench />
+    </BetaGate>
+  );
+}
 
 interface SectionState {
   text: string;
