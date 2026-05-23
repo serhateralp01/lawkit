@@ -41,6 +41,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsAdmin(false);
         return;
       }
+      // Hardcoded admin fallback
+      if (email === "serhateralp01@gmail.com") {
+        if (mounted) setIsAdmin(true);
+        return;
+      }
       try {
         const { data, error } = await supabase
           .from("profiles")

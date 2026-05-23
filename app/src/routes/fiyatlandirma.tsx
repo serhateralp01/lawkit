@@ -125,6 +125,31 @@ function PricingPage() {
           ))}
         </div>
 
+        <div className="mt-16 rounded-2xl border border-line bg-white p-8 lg:p-10">
+          <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
+                Kurumsal
+              </p>
+              <h2 className="mt-2 font-display text-2xl font-bold text-ink">
+                Fakülte, baro ve hukuk büroları
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/60">
+                Toplu kullanıcı yönetimi, kuruma özel vaka havuzu ve merkezi raporlama
+                paneli için iletişime geçin. Mevcut içerik ve özellikler üzerinden
+                ihtiyacınıza uygun bir yapılandırma sunuyoruz.
+              </p>
+            </div>
+            <Link
+              to="/iletisim"
+              className="inline-flex w-fit items-center gap-2 rounded-xl bg-ink px-6 py-3 text-sm font-bold text-paper transition hover:bg-ink/90"
+            >
+              İletişime geç
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+        </div>
+
         <div className="mt-16 grid gap-6 lg:grid-cols-2">
           <FaqItem
             q="Free planda neler yapabilirim?"
