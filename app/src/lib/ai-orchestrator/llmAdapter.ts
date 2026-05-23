@@ -133,7 +133,7 @@ const CaseGenOutcomeSchema = z.object({
 const LegalCaseOutputSchema = z.object({
   id: z.string(),
   title: z.string().min(1),
-  branch: z.enum(["is_hukuku", "borclar", "medeni", "medeni_usul", "ceza", "idare", "ticaret"]),
+  branch: z.string(),
   difficulty: z.number().int().min(1).max(4),
   estimatedMinutes: z.number().int(),
   rubricId: z.string(),
@@ -141,20 +141,23 @@ const LegalCaseOutputSchema = z.object({
   facts: z.array(z.unknown()),
   startNode: z.string(),
   nodes: z.array(CaseGenNodeSchema),
-  outcomes: z.array(CaseGenOutcomeSchema).optional(),
+  outcomes: z.array(z.object({
+    id: z.string(),
+    title: z.string(),
+    mood: z.string(),
+    narrative: z.string(),
+    idealAnswer: z.string(),
+    condition: z.object({}).passthrough(),
+  }).passthrough()).optional(),
   cast: z.array(z.object({
     id: z.string(),
     role: z.string(),
     name: z.string(),
-    archetype: z.string().optional(),
-    initials: z.string().optional(),
-    hue: z.number().optional(),
-  })).optional(),
+  }).passthrough()).optional(),
   acts: z.array(z.object({
     number: z.number().int().min(1).max(3),
     title: z.string(),
-    setting: z.string().optional(),
-  })).optional(),
+  }).passthrough()).optional(),
 }).passthrough();
 
 /* ─────────── Auditor middleware ─────────── */
@@ -506,92 +509,26 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
         "ÜRETİM KURALLARI (KESİN):",
         "1. Vaka toplam 7-15 node (karar noktası) arasında OLMALI.",
         "2. Her karar node'unda 2-4 option (seçenek) olmalı.",
-        "3. Seçeneklerin verdict'leri şöyle dağılmalı: en az 1 'good', 1 'partial', 1 'bad'.",
-        "4. 'good' seçenek gerçek hukuki doğruyu yansıtmalı — mevzuata DAYALI olmalı.",
-        "5. 'bad' seçenek tipik öğrenci hatası olmalı — havalı görünen ama yanlış strateji.",
-        "6. Her seçeneğe 1-2 cümle KISA 'feedback' yaz — neden doğru/yanlış.",
-        "7. Başlangıç node'u 'n1' olmalı (kind: 'info' — olayı anlatır).",
-        "8. İlk karar node'u genelde 'n2' olur (kind: 'decision').",
-        "9. Müvekkil karakteri EKLE — cast'e 'muvekkil' role'da bir karakter gir.",
+        "3. KESİN branch değerleri (sadece bunlardan biri): is_hukuku, borclar, medeni, medeni_usul, ceza, idare, ticaret",
+        "4. mood değerleri (sadece bunlar): triumph, neutral, warning, loss",
+        "5. verdict değerleri (sadece bunlar): good, partial, bad",
+        "6. 'good' seçenek mevzuata DAYALI olmalı.",
+        "7. 'bad' seçenek tipik öğrenci hatası olmalı.",
+        "8. Başlangıç node'u 'n1' olmalı (kind: 'info').",
+        "9. İlk karar node'u genelde 'n2' olur (kind: 'decision').",
         "10. Zorluk 1-2 ise 7-10 node, 3-4 ise 10-15 node olsun.",
         "",
         "VAKA YAPISI:",
-        "- n1: info node — müvekkil olayı anlatır (speaker: 'muvekkil').",
-        "- n2: decision node — avukatın ilk stratejik kararı.",
+        "- n1: info — müvekkil olayı anlatır (speaker: 'muvekkil').",
+        "- n2: decision — avukatın ilk stratejik kararı.",
         "- n3-n5: olgu toplama / usul kararları.",
-        "- n6-n10: esas strateji — hukuki meseleyi çözme.",
-        "- n11+: outcome/decision — sonuç ve kapanış.",
-        "",
-        "KARAKTERLER (cast):",
-        "- Her karakter için: id, role (muvekkil/hakim/karsi_vekil/staj_patron), name, archetype.",
-        "- Müvekkil gerçekçi olmalı — hukuk bilmez, duygusal.",
-        "- Karşı taraf / karşı vekil olmazsa olmaz — çatışma yoksa vaka olmaz.",
+        "- n6-n10: esas strateji.",
+        "- n11+: outcome — sonuç.",
         "",
         "KAYNAK REFERANSLARI:",
         "- Verilen mevzuat maddelerinden EN AZ 2 tanesini option'ların sources alanında referansla.",
-        "- Source id'leri TAM OLARAK verilen id'lerle eşleşmeli (örn: 'tbk_m49', 'is_kanunu_m18').",
-        "- Sahne açıklamalarında (scene, summary) yasal madde numaralarına ATIF yap.",
         "",
-        "ÇIKTI FORMATI — ZORUNLU olarak şu JSON yapısında döndür:",
-        JSON.stringify({
-          id: "is_hukuku_003",
-          title: "Fesih Sebebiyle...",
-          branch: "is_hukuku",
-          difficulty: 2,
-          estimatedMinutes: 35,
-          rubricId: "rubric_v1",
-          summary: "Kısa özet (2 cümle)...",
-          facts: ["Olgu 1", "Olgu 2"],
-          documents: [{ label: "İş sözleşmesi" }],
-          startNode: "n1",
-          nodes: [{
-            id: "n1", kind: "info", speaker: "muvekkil",
-            prompt: "Müvekkilin anlatımı...", summary: "Olay özeti...",
-          }, {
-            id: "n2", kind: "decision", prompt: "Ne yapmalısınız?",
-            speaker: "staj_patron",
-            options: [{
-              id: "opt1", label: "Doğru seçenek", next: "n3",
-              verdict: "good", feedback: "Doğru çünkü...",
-              sources: ["tbk_m49"],
-            }, {
-              id: "opt2", label: "Yanlış seçenek", next: "n4",
-              verdict: "bad", feedback: "Yanlış çünkü...",
-            }],
-          }, {
-            id: "n_last", kind: "outcome", prompt: "Sonuç...",
-            summary: "Vaka sonlandı.", idealAnswer: "Doğru strateji...",
-          }],
-          outcomes: [{
-            id: "triumph", title: "Müvekkil kazandı",
-            mood: "triumph", narrative: "Tebrikler...",
-            idealAnswer: "Doğru yol...",
-            condition: { minLedgerAvg: 3.0 },
-          }, {
-            id: "loss", title: "Dava kaybedildi",
-            mood: "loss", narrative: "Maalesef...",
-            idealAnswer: "Kaçınılan hatalar...",
-            condition: { default: true },
-          }],
-          cast: [{
-            id: "muvekkil_1", role: "muvekkil", name: "Ahmet Bey",
-            archetype: "Küçük işletme sahibi, 45 yaş",
-          }, {
-            id: "patron_1", role: "staj_patron", name: "Av. Elif Demir",
-            archetype: "Kıdemli avukat, titiz",
-          }],
-          acts: [
-            { number: 1, title: "Müvekkil Görüşmesi" },
-            { number: 2, title: "Strateji ve Deliller" },
-            { number: 3, title: "Karar ve Sonuç" },
-          ],
-        }),
-        "",
-        "ÖNEMLİ:",
-        "- n1 İLK node'dur — startNode: 'n1' oalrak ver.",
-        "- n1'in kind'ı 'info' olmalı.",
-        "- Çıktıyı YUKARIDAKİ JSON FORMATINDA döndür. Ekstra metin yazma.",
-        "- SADECE JSON döndür. Başka hiçbir şey yazma.",
+        "SADECE JSON döndür. Başka hiçbir şey yazma.",
       ].join("\n");
 
       const user = [
@@ -610,7 +547,22 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
 
       try {
         const raw = await chatJson(LegalCaseOutputSchema as z.ZodType<LegalCase>, system, user);
-        generated = raw;
+        // Normalize branch değeri (LLM bazen idare_hukuku, İdare Hukuku vs dönebiliyor)
+        const branchMap: Record<string, string> = {
+          "iş hukuku": "is_hukuku", "is hukuku": "is_hukuku", "iş_hukuku": "is_hukuku",
+          "borçlar hukuku": "borclar", "borclar hukuku": "borclar", "borçlar": "borclar",
+          "medeni hukuk": "medeni", "medeni": "medeni",
+          "medeni usul": "medeni_usul", "medeni usul hukuku": "medeni_usul",
+          "ceza hukuku": "ceza", "ceza": "ceza", "ceza_hukuku": "ceza",
+          "idare hukuku": "idare", "idare": "idare", "idare_hukuku": "idare",
+          "ticaret hukuku": "ticaret", "ticaret": "ticaret", "ticaret_hukuku": "ticaret",
+        };
+        const rawBranch = ((raw as Record<string, unknown>).branch as string)?.toLowerCase() ?? "";
+        if (branchMap[rawBranch]) (raw as Record<string, unknown>).branch = branchMap[rawBranch];
+        if (!["is_hukuku", "borclar", "medeni", "medeni_usul", "ceza", "idare", "ticaret"].includes((raw as Record<string, unknown>).branch as string)) {
+          (raw as Record<string, unknown>).branch = "borclar"; // fallback
+        }
+        generated = raw as unknown as LegalCase;
 
         // Quality audit
         const nodeCount = (raw as { nodes?: unknown[] }).nodes?.length ?? 0;
