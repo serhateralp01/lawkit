@@ -24,49 +24,49 @@ const stages: { n: string; title: string; output: string; status: Status }[] = [
   {
     n: "0",
     title: "Temel",
-    output: "Repo, marka, alan adı, ödeme sağlayıcı evrakları, KVKK aydınlatma, mesafeli satış sözleşmesi, içerik stil rehberi, çerçeve dokümanı v0.1.",
+    output: "Marka, alan adı, ödeme altyapısı, KVKK aydınlatma, mesafeli satış sözleşmesi, içerik stil rehberi, çerçeve dokümanı.",
     status: "done",
   },
   {
     n: "1",
     title: "Şema ve engine",
-    output: "Case JSON şeması, rubric şeması, source şeması; case-engine paketi (state machine + transition validator); tek oyuncak vaka ile end-to-end test.",
+    output: "Case JSON şeması, rubric şeması, source şeması; case engine (state machine + transition validator); tek oyuncak vaka ile uçtan uca test.",
     status: "active",
   },
   {
     n: "2",
-    title: "Tasarım sistemi sürümü",
-    output: "Token dondurulur, primitive + composite bileşenler kurulur, kontrast ve klavye erişilebilirliği denetlenir. 25-30 stabil bileşen.",
+    title: "Tasarım sistemi",
+    output: "Token dondurulur, bileşen kütüphanesi kurulur, kontrast ve klavye erişilebilirliği denetlenir. 25-30 stabil bileşen.",
     status: "active",
   },
   {
     n: "3",
     title: "Dikey MVP",
-    output: "Tek hukuk dalı (İş Hukuku), üç vaka, HMGS Arena iş hukuku alt küme, dilekçe lab temel sürümü, karne ekranı, ödeme. AI orchestration canlı. 20-30 öğrenciyle kapalı beta.",
+    output: "Tek hukuk dalı (İş Hukuku), üç vaka, HMGS Arena iş hukuku alt kümesi, Dilekçe Lab temel sürümü, karne ekranı, ödeme. AI orchestration canlı. 20-30 öğrenciyle kapalı beta.",
     status: "queued",
   },
   {
     n: "4",
     title: "Geri bildirim ve iyileştirme",
-    output: "Beta verisinden: hangi adımda kayıp, hangi rubric boyutu düşük. Engine threshold ve case zorluk yeniden ayarlanır. Eval test seti büyür.",
+    output: "Beta verisinden: Hangi adımda kayıp var, hangi rubric boyutu düşük. Engine threshold ve vaka zorlukları yeniden ayarlanır. Değerlendirme test seti büyür.",
     status: "queued",
   },
   {
     n: "5",
-    title: "Genişleme — dikey",
-    output: "Borçlar genel hükümler, medeni usul, arabuluculuk daha derin işlenir. Vaka sayısı 10-15'e çıkar.",
+    title: "Dikey genişleme",
+    output: "Borçlar genel hükümler, medeni usul, arabuluculuk derinleştirilir. Vaka sayısı 10-15'e çıkar.",
     status: "queued",
   },
   {
     n: "6",
-    title: "Dilekçe lab tam sürümü",
-    output: "Yapılandırılmış parça-parça dilekçe → her parça için rubric → kümülatif kalite skoru. Karneye dilekçe portföyü.",
+    title: "Dilekçe Lab tam sürüm",
+    output: "Parça parça yapılandırılmış dilekçe yazımı, her parça için rubrik, kümülatif kalite skoru. Karneye dilekçe portföyü.",
     status: "queued",
   },
   {
     n: "7",
     title: "Ölçek",
-    output: "HMGS geniş içerik kapsama planı, branş akademisi modülü, B2B fakülte/baro lisans değerlendirmesi. Geçiş kararı kullanıcı verisiyle alınır.",
+    output: "HMGS kapsamlı içerik planı, branş akademisi modülü, B2B fakülte/baro lisans modeli. Geçiş kararı kullanıcı verisiyle alınır.",
     status: "queued",
   },
 ];
@@ -81,13 +81,13 @@ function RoadmapPage() {
   return (
     <PageShell>
       <PageHero
-        eyebrow="Yol haritası · v0.1"
+        eyebrow="Yol haritası"
         title={
           <>
             Her aşama, <span className="italic text-amber">test edilebilir</span> bir çıktı.
           </>
         }
-        lead="Pazarlama metni değil mühendislik planı. Her aşamanın sonunda go / iterate / kill kapısı; uydurma metrikle ileri gidilmez."
+        lead="Bu bir pazarlama metni değil, mühendislik planıdır. Her aşamanın sonunda go, iterate ya da kill kararı verilir. Uydurma metriklerle ilerlenmez."
       />
 
       <section className="mx-auto max-w-3xl px-6 pb-24 lg:px-8">
@@ -133,7 +133,7 @@ function RoadmapPage() {
         </ol>
       </section>
 
-      <CTAFooter title="Yola dahil ol — erken erişim listesinde yerini ayır." />
+      <CTAFooter title="Yola dahil olun — erken erişim listesinde yerinizi ayırın." />
     </PageShell>
   );
 }

@@ -10,28 +10,26 @@ import {
   Gauge,
   Scale,
   Sparkles,
-  Trophy,
 } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
 import { MiniCaseRunner } from "@/components/composite/MiniCaseRunner";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import heroDesk from "@/assets/hero-desk.jpg";
 
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "LawKit — Hukuku ezberleme. Vakada uygula." },
+      { title: "LawKit — Hukuku ezberleme, vakada uygula." },
       {
         name: "description",
         content:
-          "HMGS hazırlığından staj sürecine kadar vaka-temelli, AI destekli Türk hukuk eğitimi. Case Studio, HMGS Arena ve Dilekçe Lab tek platformda.",
+          "HMGS hazırlığı ve staj süreci için vaka temelli, AI destekli hukuk eğitimi. Case Studio, HMGS Arena ve Dilekçe Lab tek platformda.",
       },
-      { property: "og:title", content: "LawKit — Hukuku ezberleme. Vakada uygula." },
+      { property: "og:title", content: "LawKit — Hukuku ezberleme, vakada uygula." },
       {
         property: "og:description",
         content:
-          "Türkiye'nin ilk vaka-temelli hukuk eğitim platformu. HMGS adayları ve stajyer avukatlar için.",
+          "Türkiye'nin vaka temelli hukuk eğitim platformu. HMGS adayları ve stajyer avukatlar için.",
       },
     ],
   }),
@@ -65,12 +63,6 @@ function Hero() {
       <div className="mx-auto max-w-7xl px-6 pb-24 pt-16 lg:px-8 lg:pb-32 lg:pt-24">
         <div className="grid items-center gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
           <div className="lk-reveal">
-            <div className="mb-7 inline-flex items-center gap-2 rounded-md bg-gold/10 px-3 py-1.5">
-              <Sparkles className="size-3.5 text-gold" />
-              <span className="text-[10px] font-black uppercase italic tracking-[0.18em] text-gold">
-                Türkiye'nin ilk vaka simülatörü · HMGS 2026
-              </span>
-            </div>
             <h1 className="font-display text-[2.75rem] font-extrabold leading-[1.02] text-ink sm:text-6xl lg:text-[4.5rem]">
               Hukuku{" "}
               <span className="italic text-gold">ezberleme.</span>
@@ -78,50 +70,37 @@ function Hero() {
               Vakada uygula.
             </h1>
             <p className="mt-7 max-w-md text-lg leading-relaxed text-ink/60">
-              Müvekkille konuş, doğru olguları topla, dilekçeyi yaz, duruşmada karşı vekile
-              cevap ver. Her kararın hikayeyi değiştirir. HMGS adayları ve genç avukatlar için
-              AI destekli vaka motoru.
+              Müvekkille görüşün, olguları toplayın, dilekçenizi yazın, duruşmada karşı
+              vekile cevap verin. Her kararınız hikayeyi değiştirir. HMGS adayları ve genç
+              avukatlar için tasarlandı.
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-5">
+            <div className="mt-10 flex flex-wrap items-center gap-4">
               {!loading && user ? (
                 <Link
                   to="/karne"
-                  className="group inline-flex items-center gap-2 rounded-xl bg-ink px-8 py-4 text-base font-bold text-paper transition-transform hover:scale-[1.02]"
+                  className="group inline-flex items-center gap-2 rounded-xl bg-ink px-8 py-4 text-base font-bold text-paper transition hover:bg-ink/90"
                 >
                   Karneme git
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               ) : (
-                <Link
-                  to="/kayit"
-                  className="group inline-flex items-center gap-2 rounded-xl bg-ink px-8 py-4 text-base font-bold text-paper transition-transform hover:scale-[1.02]"
-                >
-                  Ücretsiz vakayı dene
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                </Link>
+                <>
+                  <Link
+                    to="/kayit"
+                    className="group inline-flex items-center gap-2 rounded-xl bg-ink px-8 py-4 text-base font-bold text-paper transition hover:bg-ink/90"
+                  >
+                    Ücretsiz dene
+                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                  <Link
+                    to="/giris"
+                    className="rounded-xl border border-line px-6 py-4 text-sm font-semibold text-ink/70 transition hover:border-ink/20 hover:text-ink"
+                  >
+                    Giriş
+                  </Link>
+                </>
               )}
-              <div className="flex flex-col">
-                <span className="font-display text-2xl font-bold text-ink">+140 XP</span>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-ink/40">
-                  Günlük Ortalama Kazanım
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-12 flex items-center gap-4">
-              <div className="flex -space-x-2">
-                {["#0F172A", "#B45309", "#1E293B", "#92400E"].map((c, i) => (
-                  <div
-                    key={i}
-                    className="size-8 rounded-full border-2 border-paper"
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
-              </div>
-              <p className="text-xs font-semibold text-ink/55">
-                <span className="font-bold text-ink">1.200+ aday</span> aktif olarak çalışıyor
-              </p>
             </div>
           </div>
 
@@ -135,19 +114,6 @@ function Hero() {
               height={1024}
               className="relative w-full rounded-2xl object-cover shadow-2xl shadow-ink/15 ring-1 ring-ink/5"
             />
-            <div className="absolute -bottom-6 -left-6 hidden rounded-xl bg-white p-4 shadow-xl ring-1 ring-line sm:block">
-              <div className="flex items-center gap-3">
-                <div className="grid size-10 place-items-center rounded-lg bg-gold/10">
-                  <Trophy className="size-5 text-gold" />
-                </div>
-                <div>
-                  <p className="font-display text-lg font-bold leading-none text-ink">%87</p>
-                  <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-ink/50">
-                    Kullanıcı tamamlama oranı
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -164,7 +130,7 @@ function PainStat() {
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
           <div className="lg:col-span-5">
             <p className="mb-5 text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
-              HMGS Gerçeği · 2024–2025
+              HMGS 2024–2025 verisi
             </p>
             <p className="font-display text-[5rem] font-black leading-none text-ink sm:text-[7rem]">
               %30,13
@@ -175,17 +141,17 @@ function PainStat() {
           </div>
           <div className="space-y-6 border-t border-line pt-8 lg:col-span-7 lg:border-l lg:border-t-0 lg:pl-16 lg:pt-0">
             <p className="text-2xl font-medium leading-snug text-ink sm:text-3xl">
-              31.489 adaydan <span className="text-gold">22.004'ü</span> baraj altı kaldı.
+              31.489 adaydan <span className="text-gold">22.004'ü</span> barajın altında kaldı.
             </p>
             <p className="max-w-xl text-base leading-relaxed text-ink/55">
-              HMGS, soru zorluğu oturum oturum arttığı halde barajı sabit tutuyor. Eylül 2024'te
-              %42 olan başarı, Nisan 2025'te %24'e geriledi. Sorun ezberlenen kanun maddesi
-              değil — uygulamaya geçirilemeyen muhakeme.
+              Soru zorluğu oturumdan oturuma artarken baraj sabit kalıyor. Eylül 2024'te %42
+              olan başarı, Nisan 2025'te %24'e geriledi. Mesele ezberlenen kanun maddesi değil;
+              uygulamaya geçirilemeyen muhakeme.
             </p>
             <dl className="grid grid-cols-3 gap-6 border-t border-line pt-8 sm:gap-10">
-              <Stat label="Eyl 2024" value="%42,67" sub="9.142 aday" />
-              <Stat label="Nis 2025" value="%23,81" sub="5.912 aday" />
-              <Stat label="Eyl 2025" value="%25,86" sub="16.240 aday" />
+              <Stat label="Eylül 2024" value="%42,67" sub="9.142 aday" />
+              <Stat label="Nisan 2025" value="%23,81" sub="5.912 aday" />
+              <Stat label="Eylül 2025" value="%25,86" sub="16.240 aday" />
             </dl>
           </div>
         </div>
@@ -210,24 +176,24 @@ function ScienceStrip() {
   const items = [
     {
       v: "CBL",
-      title: "Vaka-temelli öğrenme",
-      d: "Harvard / McMaster geleneği. Pasif okumaya kıyasla muhakeme ve transferi anlamlı artırır (Thistlethwaite, 2012).",
+      title: "Vaka temelli öğrenme",
+      d: "Harvard ve McMaster geleneği. Pasif okumaya kıyasla muhakeme ve bilgi transferini belirgin biçimde artırır (Thistlethwaite, 2012).",
     },
     {
       v: "Retrieval",
       title: "Aktif geri çağırma",
-      d: "Okumak değil hatırlamak öğretir. Roediger & Karpicke (2006) test effect, Cepeda (2008) aralıklı tekrar.",
+      d: "Okumak değil, hatırlamak öğretir. Roediger ve Karpicke (2006) test etkisi; Cepeda (2008) aralıklı tekrar.",
     },
     {
       v: "Rubric",
-      title: "Formatif değerlendirme",
-      d: "Bloom mastery + AAC&U VALUE. Yüzde yarışı yerine boyut bazlı dürüst geri bildirim.",
+      title: "Biçimlendirici değerlendirme",
+      d: "Bloom mastery ve AAC&U VALUE çerçevesi. Yüzde yarışı yerine boyut bazlı, dürüst geri bildirim.",
     },
   ];
   return (
     <section className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
       <p className="mb-10 text-[11px] font-bold uppercase tracking-[0.2em] text-amber">
-        Bilimsel temel · 100 yıllık vaka yöntemi + 50 yıllık bilişsel bilim
+        Bilimsel temel · 100 yıllık vaka yöntemi, 50 yıllık bilişsel bilim
       </p>
       <div className="grid gap-12 md:grid-cols-3">
         {items.map((i) => (
@@ -242,7 +208,6 @@ function ScienceStrip() {
   );
 }
 
-
 /* ─────────────────────── MODULES ─────────────────────── */
 
 function Modules() {
@@ -251,7 +216,7 @@ function Modules() {
       no: "01",
       level: "Çekirdek",
       title: "Case Studio",
-      d: "Gerçek dosyalardan kurgulanmış dallanan vakalar. Her kararınız sonraki adımı değiştirir.",
+      d: "Gerçek dosyalardan kurgulanmış, dallanan vakalar. Verdiğiniz her karar bir sonraki adımı belirler.",
       to: "/urun/case-studio" as const,
       icon: Scale,
       progress: 26,
@@ -261,7 +226,7 @@ function Modules() {
       no: "02",
       level: "Sınav",
       title: "HMGS Arena",
-      d: "Zaman ayarlı denemeler, zayıf konu haritası ve gerçekçi sınav atmosferi.",
+      d: "Süreli denemeler, zayıf konu haritası ve gerçek sınav atmosferi.",
       to: "/urun/hmgs-arena" as const,
       icon: Gauge,
       progress: 0,
@@ -284,10 +249,10 @@ function Modules() {
       <div className="mb-14 flex flex-wrap items-end justify-between gap-6">
         <div className="max-w-xl">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
-            Üç Modül · Tek Çatı
+            Üç modül · Tek platform
           </p>
           <h2 className="font-display text-4xl font-extrabold leading-tight text-ink sm:text-5xl">
-            Öğrenme Parkurları
+            Öğrenme parkurları
           </h2>
           <p className="mt-4 text-base text-ink/55">
             Her modül bir seviye. Her seviye yeni bir yetkinlik.
@@ -348,10 +313,10 @@ function Modules() {
 
 function HowItWorks() {
   const steps = [
-    { n: "01", t: "Müvekkili dinle", d: "Olay anlatımını oku, eksik bilgileri sor." },
-    { n: "02", t: "Stratejini kur", d: "Dava türü, görev-yetki, zamanaşımı kararlarını ver." },
-    { n: "03", t: "Dilekçeni yaz", d: "Editörde gerekçe ve talep sonucunu inşa et." },
-    { n: "04", t: "Rubrikten oku", d: "AI puanı, kaçırılan unsur, doğru düşünme sırası." },
+    { n: "01", t: "Müvekkili dinleyin", d: "Olay anlatımını inceleyin, eksik bilgileri sorun." },
+    { n: "02", t: "Stratejinizi kurun", d: "Dava türü, görev, yetki ve zamanaşımı kararlarını verin." },
+    { n: "03", t: "Dilekçenizi yazın", d: "Gerekçe ve talep sonucunu editörde inşa edin." },
+    { n: "04", t: "Rubrikten okuyun", d: "AI puanı, kaçırılan unsurlar, ideal cevap sıralaması." },
   ];
   return (
     <section className="border-y border-line bg-white">
@@ -385,41 +350,40 @@ function CaseDemo() {
     <section className="mx-auto max-w-6xl px-6 py-24 lg:px-8 lg:py-32">
       <div className="mb-10 max-w-2xl">
         <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-amber">
-          Mini vaka · canlı demo
+          Canlı demo
         </p>
         <h2 className="font-display text-4xl font-extrabold text-ink-1 sm:text-5xl">
-          Karar senin. Sonuç ölçülür.
+          Karar sizin. Sonuç ölçülür.
         </h2>
         <p className="mt-4 max-w-xl text-base text-ink-2">
-          Aşağıdaki demo, gerçek case-engine'in basitleştirilmiş arayüzü. Olguyu oku, ipucu
-          merdivenini kullan, kararını ver — rubrik canlı dolar.
+          Aşağıdaki demo, case engine'in basitleştirilmiş arayüzüdür. Olguyu okuyun, ipucu
+          merdivenini kullanın, kararınızı verin. Rubrik canlı dolar.
         </p>
       </div>
       <MiniCaseRunner />
       <p className="mt-4 text-center text-[11px] font-medium uppercase tracking-widest text-ink-3">
-        Eğitim amaçlı simülasyon · Gerçek hukuki tavsiye değildir
+        Eğitim amaçlı simülasyon · Hukuki tavsiye niteliği taşımaz
       </p>
     </section>
   );
 }
-
 
 /* ─────────────────────── TESTIMONIALS ─────────────────────── */
 
 function Testimonials() {
   const quotes = [
     {
-      q: "Üçüncü oturumda baraj geçtim. Fark, soru çözmek değil — vakayı dallandırıp her ihtimali yazmaktı.",
+      q: "Üçüncü oturumda barajı geçtim. Fark, soru çözmek değil; vakayı dallandırıp her ihtimali yazmaktı.",
       a: "Z. Demir",
       r: "HMGS · Eylül 2025",
     },
     {
-      q: "Dilekçe Lab'in rubrik geri bildirimi, fakültede dört yıl boyunca alamadığım türden somut bir denetim.",
+      q: "Dilekçe Lab'in rubrik geri bildirimi, fakültede dört yıl boyunca alamadığım türden somut bir değerlendirme.",
       a: "M. Kaya",
       r: "Stajyer Avukat · İstanbul Barosu",
     },
     {
-      q: "İş hukuku case'inde sorduğum eksik soruyu sistem bana gösterdi. Müvekkil görüşmesinde aynı hatayı yapmadım.",
+      q: "İş hukuku vakasında sormadığım soruyu sistem bana gösterdi. Müvekkil görüşmesinde aynı hatayı bir daha yapmadım.",
       a: "E. Aslan",
       r: "Son sınıf · Ankara Hukuk",
     },
@@ -429,7 +393,7 @@ function Testimonials() {
       <div className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32">
         <div className="mb-14 max-w-2xl">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
-            Saha
+            Kullanıcı deneyimleri
           </p>
           <h2 className="font-display text-4xl font-extrabold text-ink sm:text-5xl">
             Hazırlıktan davaya
@@ -466,52 +430,63 @@ function Pricing() {
           Fiyatlandırma
         </p>
         <h2 className="font-display text-4xl font-extrabold text-ink sm:text-5xl">
-          Hazırlık stratejini seç
+          Hazırlık stratejinizi seçin
         </h2>
         <p className="mx-auto mt-4 max-w-lg text-ink/55">
-          İster son 8 haftalık kampa katıl, ister yıl boyu temelini sağlamla.
+          Son hafta yoğunlaşın ya da yıl boyu düzenli ilerleyin.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <PriceCard
-          name="Sprint"
-          desc="8 haftalık sınav kampı"
-          price="₺2.490"
-          period="tek seferlik"
-          features={[
-            "Haftalık 2 deneme sınavı",
-            "500+ odaklanmış vaka sorusu",
-            "Zayıf konu haritası",
-            "Hızlı tekrar notları (PDF)",
-            "Topluluk forumu erişimi",
-          ]}
-          cta="Kampa katıl"
-          variant="primary"
-          badge="Popüler"
-        />
-        <PriceCard
-          name="Core"
-          desc="Yıllık akademik üyelik"
-          price="₺5.990"
-          period="yıllık"
-          features={[
-            "Tüm modüllere sınırsız erişim",
-            "AI dilekçe analizi (sınırsız)",
-            "Tüm Case Studio vakaları",
-            "Mentor desteği (aylık 2 görüşme)",
-            "Staj portalı erişimi",
-          ]}
-          cta="Core'a geç"
-          variant="dark"
-        />
+      <div className="grid gap-5 md:grid-cols-3">
+          <PriceCard
+            name="Sprint"
+            desc="Sınav öncesi yoğun"
+            price="₺50"
+            period="7 gün"
+            features={[
+              "7 gün boyunca günlük 10 AI vaka",
+              "Tüm dilekçe şablonları",
+              "AI Tutor sınırsız",
+              "Tek seferlik, otomatik yenilenmez",
+            ]}
+            cta="Sprint başlat"
+            variant="primary"
+          />
+          <PriceCard
+            name="Core"
+            desc="Düzenli çalışma planı"
+            price="₺250"
+            period="ay"
+            features={[
+              "Sprint'teki her şey +",
+              "Günlük 10 AI vaka",
+              "Karne, radar ve mastery rozetleri",
+              "Yeni vakalar otomatik açılır",
+            ]}
+            cta="Core'a geç"
+            variant="dark"
+            badge="Popüler"
+          />
+          <PriceCard
+            name="Pro"
+            desc="Daha fazla AI ve analiz"
+            price="₺400"
+            period="ay"
+            features={[
+              "Core'daki her şey +",
+              "Günlük 20 AI vaka",
+              "Detaylı performans analizi",
+              "Boyut bazlı ilerleme raporları",
+            ]}
+            cta="Pro'ya geç"
+            variant="primary"
+          />
       </div>
       <p className="mt-8 text-center text-xs text-ink/45">
-        KDV dahildir. İlk 7 gün ücretsiz iade. Fakülte ve baro lisansı için{" "}
-        <Link to="/iletisim" className="underline hover:text-gold">
-          iletişime geçin
+        Ücretsiz başlayın — ayda 3 AI vaka. KDV dahil. İlk 7 gün koşulsuz iade.{" "}
+        <Link to="/fiyatlandirma" className="underline hover:text-gold">
+          Detaylı karşılaştırma
         </Link>
-        .
       </p>
     </section>
   );
@@ -565,9 +540,7 @@ function PriceCard({
       <ul className="mb-10 space-y-3.5">
         {features.map((f) => (
           <li key={f} className="flex items-start gap-3 text-sm">
-            <CheckCircle2
-              className={`mt-0.5 size-4 shrink-0 ${isDark ? "text-gold" : "text-gold"}`}
-            />
+            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-gold" />
             <span className={isDark ? "text-paper/85" : "text-ink/75"}>{f}</span>
           </li>
         ))}
@@ -592,22 +565,22 @@ function FAQ() {
   const items = [
     {
       q: "LawKit, HMGS'nin tamamını kapsıyor mu?",
-      a: "MVP sürümünde İş Hukuku, Borçlar Genel, Medeni Usul ve Anayasa temel konularına derinlik veriyoruz. 2026 Eylül oturumuna kadar 25 disiplinin tamamını kapsayacak şekilde genişliyoruz.",
+      a: "İlk sürümde İş Hukuku, Borçlar, Medeni Usul ve Anayasa'nın temel konularına odaklanıyoruz. 2026 Eylül oturumuna kadar 25 disiplinin tamamını kapsayacak şekilde genişliyoruz.",
     },
     {
-      q: "AI cevapları güvenilir mi? Halüsinasyon riski nedir?",
-      a: "Tüm AI çıktıları sadece doğruladığımız mevzuat ve içtihat veritabanı üzerinden çalışır (grounded RAG). Serbest metin değil, katı JSON şeması ile üretilir. Her ekranda 'eğitim amaçlı simülasyon' uyarısı bulunur.",
+      q: "AI cevapları güvenilir mi?",
+      a: "Bütün AI çıktıları yalnızca doğruladığımız mevzuat ve içtihat veritabanı üzerinden çalışır. Serbest metin değil, katı JSON şeması ile üretilir. Her ekranda eğitim amaçlı simülasyon uyarısı bulunur.",
     },
     {
-      q: "Avukatlık stajına başladım, hâlâ işime yarar mı?",
-      a: "Evet. Dilekçe Lab ve Case Studio özellikle stajyer avukatlar için tasarlandı. Müvekkil görüşmesi, dava şartı denetimi, dilekçe rubrik puanlaması — fakültede yapılmayan pratik.",
+      q: "Avukatlık stajında da işe yarar mı?",
+      a: "Evet. Dilekçe Lab ve Case Studio özellikle stajyer avukatlar için tasarlandı. Müvekkil görüşmesi, dava şartı denetimi, dilekçe rubrik puanlaması — fakültede yapılmayan pratik beceriler.",
     },
     {
       q: "Verilerim nerede saklanıyor?",
-      a: "KVKK uyarınca Türkiye'deki sunucularda. Üçüncü taraf modellerle çalışırken kişisel veri maskelenir, eğitim datası olarak kullanılmaz.",
+      a: "KVKK uyarınca Türkiye'deki sunucularda. Üçüncü taraf modellerle çalışırken kişisel veriler maskelenir; eğitim verisi olarak kullanılmaz.",
     },
     {
-      q: "Para iade garantisi var mı?",
+      q: "İade koşulları nedir?",
       a: "İlk 7 gün koşulsuz iade. Sonrasında oranlı iade için müşteri hizmetlerimize başvurabilirsiniz.",
     },
   ];
@@ -666,20 +639,20 @@ function ClosingCTA() {
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-paper/15 px-3 py-1">
             <BookOpen className="size-3.5 text-gold" />
             <span className="text-[10px] font-bold uppercase tracking-widest text-paper/70">
-              {isLogged ? "Kaldığın yerden devam" : "İlk vaka ücretsiz"}
+              {isLogged ? "Kaldığınız yerden devam" : "İlk vaka ücretsiz"}
             </span>
           </div>
           <h2 className="font-display text-4xl font-extrabold text-paper sm:text-5xl">
             {isLogged ? (
-              <>Sıradaki <span className="italic text-gold">vakaya</span> başla.</>
+              <>Sıradaki <span className="italic text-gold">vakaya</span> başlayın.</>
             ) : (
-              <>Kariyerinin ilk <span className="italic text-gold">'win'</span>ini al.</>
+              <>Kariyerinizin ilk <span className="italic text-gold">kazanımını</span> alın.</>
             )}
           </h2>
           <p className="mx-auto mt-5 max-w-lg text-paper/60">
             {isLogged
-              ? "Bir vaka 8-20 dakika. Boşluğunda 1 sahne çöz, becerilerini takip et."
-              : "Akademik bilgini profesyonel bir muhakeme aracına dönüştürmek 4 dakika sürer."}
+              ? "Bir vaka 8 ila 20 dakika. Boş bir anınızda bir sahne çözün, becerilerinizi takip edin."
+              : "Akademik bilginizi profesyonel bir muhakeme aracına dönüştürmek birkaç dakika sürer."}
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link

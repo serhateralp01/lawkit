@@ -5,8 +5,9 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 
 const navLinks = [
   { to: "/urun/case-studio", label: "Case Studio" },
-  { to: "/urun/hmgs-arena", label: "HMGS Arena" },
+  { to: "/hmgs-arena", label: "HMGS Arena" },
   { to: "/dilekce-lab", label: "Dilekçe Lab" },
+  { to: "/vaka-studio", label: "Vaka Studio" },
   { to: "/karne", label: "Karne" },
   { to: "/metodoloji", label: "Metodoloji" },
   { to: "/fiyatlandirma", label: "Fiyat" },
@@ -14,11 +15,11 @@ const navLinks = [
 
 export function Header() {
   const [open, setOpen] = useState(false);
-  const { user, signOut, loading } = useAuth();
+  const { user, isAdmin, signOut, loading } = useAuth();
   const displayName =
     (user?.user_metadata?.display_name as string | undefined) ??
     user?.email?.split("@")[0] ??
-    "Sen";
+    "Kullanıcı";
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-paper/80 backdrop-blur-md">
@@ -43,6 +44,14 @@ export function Header() {
         <div className="flex items-center gap-3">
           {loading ? null : user ? (
             <>
+              {isAdmin ? (
+                <span
+                  className="hidden items-center gap-1 rounded-full bg-amber/20 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-foreground sm:inline-flex"
+                  title="Beta erişim — yönetici hesabı"
+                >
+                  ⚡ Beta
+                </span>
+              ) : null}
               <Link
                 to="/profil"
                 className="hidden items-center gap-2 rounded-full bg-paper-warm px-3 py-1.5 text-xs font-semibold text-ink/80 hover:text-ink sm:inline-flex"
@@ -95,9 +104,22 @@ export function Header() {
                 </Link>
               </li>
             ))}
-            <li>
-              <Link to="/giris" onClick={() => setOpen(false)}>
+            <li className="border-t border-line pt-3">
+              <Link
+                to="/giris"
+                onClick={() => setOpen(false)}
+                className="block rounded-lg bg-ink px-4 py-2 text-center text-paper"
+              >
                 Giriş
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/kayit"
+                onClick={() => setOpen(false)}
+                className="block rounded-lg border border-ink px-4 py-2 text-center"
+              >
+                Kayıt Ol
               </Link>
             </li>
           </ul>

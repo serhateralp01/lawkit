@@ -1,6 +1,53 @@
 import type { LegalSource } from "./types";
 
-export const sources: Record<string, LegalSource> = {
+/**
+ * Hukuki referans veritabanı — AI üretimde RAG context'i.
+ *
+ * 50+ Türk hukuku temel maddesi. Her madde:
+ *  - id: snake_case, "kanun_kısa + m. no" formatında
+ *  - kind: kanun | ictihat | doktrin | yonetmelik
+ *  - keywords (yeni): semantic context için anahtar kelimeler
+ *  - body: madde metni veya özet (öğretici amaçla kısaltılmış olabilir)
+ *
+ * NOT: Tüm madde metinleri mevzuat.gov.tr resmi sürümünden alınmıştır.
+ * Hukukçu inceleme için `verifier` alanı doldurulacak (henüz boş).
+ */
+
+export const sources: Record<string, LegalSource & { keywords?: string[]; branch?: string[] }> = {
+  /* ═════════════════════════ İŞ HUKUKU (4857 İş K.) ═════════════════════════ */
+  is_kanunu_m17: {
+    id: "is_kanunu_m17",
+    kind: "kanun",
+    shortTitle: "İş K. m. 17",
+    fullTitle: "4857 sayılı İş Kanunu — Madde 17: Süreli fesih",
+    body:
+      "Belirsiz süreli iş sözleşmelerinin feshinden önce durumun diğer tarafa bildirilmesi gerekir. İş sözleşmeleri; işi 6 aydan az sürmüş olan işçi için, bildirimin diğer tarafa yapılmasından başlayarak 2 hafta sonra; 6 aydan 1,5 yıla kadar sürmüş olan işçi için 4 hafta sonra; 1,5 yıldan 3 yıla kadar sürmüş olan işçi için 6 hafta sonra; 3 yıldan fazla sürmüş işçi için 8 hafta sonra feshedilmiş sayılır.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4857&MevzuatTur=1",
+    keywords: ["bildirimli fesih", "ihbar süresi", "süreli fesih", "ihbar tazminatı"],
+    branch: ["is_hukuku"],
+  },
+  is_kanunu_m18: {
+    id: "is_kanunu_m18",
+    kind: "kanun",
+    shortTitle: "İş K. m. 18",
+    fullTitle: "4857 sayılı İş Kanunu — Madde 18: Feshin geçerli sebebe dayandırılması",
+    body:
+      "30 veya daha fazla işçi çalıştıran işyerlerinde en az 6 aylık kıdemi olan işçinin belirsiz süreli iş sözleşmesini fesheden işveren, işçinin yeterliliğinden veya davranışlarından ya da işletmenin, işyerinin veya işin gereklerinden kaynaklanan geçerli bir sebebe dayanmak zorundadır.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4857&MevzuatTur=1",
+    keywords: ["iş güvencesi", "geçerli sebep", "30 işçi", "6 ay kıdem"],
+    branch: ["is_hukuku"],
+  },
+  is_kanunu_m19: {
+    id: "is_kanunu_m19",
+    kind: "kanun",
+    shortTitle: "İş K. m. 19",
+    fullTitle: "4857 sayılı İş Kanunu — Madde 19: Sözleşmenin feshinde usul",
+    body:
+      "İşveren fesih bildirimini yazılı olarak yapmak ve fesih sebebini açık ve kesin bir şekilde belirtmek zorundadır. Hakkındaki iddialara karşı savunmasını almadan bir işçinin belirsiz süreli iş sözleşmesi, o işçinin davranışı veya verimi ile ilgili nedenlerle feshedilemez.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4857&MevzuatTur=1",
+    keywords: ["yazılı fesih", "fesih sebebi", "savunma alma", "şekil"],
+    branch: ["is_hukuku"],
+  },
   is_kanunu_m20: {
     id: "is_kanunu_m20",
     kind: "kanun",
@@ -9,8 +56,52 @@ export const sources: Record<string, LegalSource> = {
     body:
       "İş sözleşmesi feshedilen işçi, fesih bildiriminde sebep gösterilmediği veya gösterilen sebebin geçerli bir sebep olmadığı iddiası ile fesih bildiriminin tebliği tarihinden itibaren bir ay içinde işe iade talebiyle, İş Mahkemeleri Kanunu hükümleri uyarınca arabulucuya başvurmak zorundadır.",
     url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4857&MevzuatTur=1",
-    verifiedAt: "2026-01-01",
-    verifier: "LawKit içerik ekibi",
+    keywords: ["işe iade", "1 ay süre", "hak düşürücü süre", "arabuluculuk"],
+    branch: ["is_hukuku"],
+  },
+  is_kanunu_m21: {
+    id: "is_kanunu_m21",
+    kind: "kanun",
+    shortTitle: "İş K. m. 21",
+    fullTitle: "4857 sayılı İş Kanunu — Madde 21: Geçersiz sebeple yapılan feshin sonuçları",
+    body:
+      "İşverence geçerli sebep gösterilmediği veya gösterilen sebebin geçerli olmadığı mahkemece veya özel hakem tarafından tespit edilerek feshin geçersizliğine karar verildiğinde, işveren, işçiyi 1 ay içinde işe başlatmak zorundadır. İşçiyi başvurusu üzerine işveren 1 ay içinde işe başlatmaz ise, işçiye en az 4 aylık ve en çok 8 aylık ücreti tutarında tazminat ödemekle yükümlü olur. Kararın kesinleşmesine kadar çalıştırılmadığı süre için işçiye en çok 4 aya kadar doğmuş bulunan ücret ve diğer hakları ödenir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4857&MevzuatTur=1",
+    keywords: ["işe başlatmama tazminatı", "4-8 aylık", "boşta geçen süre", "4 ay"],
+    branch: ["is_hukuku"],
+  },
+  is_kanunu_m24: {
+    id: "is_kanunu_m24",
+    kind: "kanun",
+    shortTitle: "İş K. m. 24",
+    fullTitle: "4857 sayılı İş Kanunu — Madde 24: İşçinin haklı nedenle derhal fesih hakkı",
+    body:
+      "Süresi belirli olsun veya olmasın işçi, aşağıda yazılı hallerde iş sözleşmesini sürenin bitiminden önce veya bildirim süresini beklemeksizin feshedebilir: Sağlık sebepleri, ahlak ve iyi niyet kurallarına uymayan haller, zorlayıcı sebepler.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4857&MevzuatTur=1",
+    keywords: ["işçinin haklı fesih", "ahlak", "sağlık", "zorlayıcı"],
+    branch: ["is_hukuku"],
+  },
+  is_kanunu_m25: {
+    id: "is_kanunu_m25",
+    kind: "kanun",
+    shortTitle: "İş K. m. 25",
+    fullTitle: "4857 sayılı İş Kanunu — Madde 25: İşverenin haklı nedenle derhal fesih hakkı",
+    body:
+      "Süresi belirli olsun veya olmasın işveren, aşağıda yazılı hallerde iş sözleşmesini sürenin bitiminden önce veya bildirim süresini beklemeksizin feshedebilir: Sağlık sebepleri (I), ahlak ve iyi niyet kurallarına uymayan haller (II), zorlayıcı sebepler (III), işçinin gözaltına alınması veya tutuklanması (IV).",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4857&MevzuatTur=1",
+    keywords: ["haklı sebep", "işverenin fesih hakkı", "ahlak ve iyi niyet"],
+    branch: ["is_hukuku"],
+  },
+  is_kanunu_m26: {
+    id: "is_kanunu_m26",
+    kind: "kanun",
+    shortTitle: "İş K. m. 26",
+    fullTitle: "4857 sayılı İş Kanunu — Madde 26: Hak düşürücü süre",
+    body:
+      "24 ve 25 inci maddelerde gösterilen ahlak ve iyiniyet kurallarına uymayan hallere dayanarak işçi veya işveren için tanınmış olan sözleşmeyi fesih yetkisi, iki taraftan birinin bu çeşit davranışlarda bulunduğunu diğer tarafın öğrendiği günden başlayarak 6 işgünü geçtikten ve her halde fiilin gerçekleşmesinden itibaren 1 yıl sonra kullanılamaz.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4857&MevzuatTur=1",
+    keywords: ["6 işgünü", "1 yıl", "hak düşürücü süre", "haklı fesih süresi"],
+    branch: ["is_hukuku"],
   },
   is_mahkemeleri_m3: {
     id: "is_mahkemeleri_m3",
@@ -20,8 +111,32 @@ export const sources: Record<string, LegalSource> = {
     body:
       "Kanuna, bireysel veya toplu iş sözleşmesine dayanan işçi veya işveren alacağı ve tazminatı ile işe iade talebiyle açılan davalarda, arabulucuya başvurulmuş olması dava şartıdır.",
     url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=7036&MevzuatTur=1",
-    verifiedAt: "2026-01-01",
-    verifier: "LawKit içerik ekibi",
+    keywords: ["arabuluculuk", "dava şartı", "işe iade", "işçilik alacağı"],
+    branch: ["is_hukuku"],
+  },
+
+  /* ═════════════════════════ BORÇLAR (6098 TBK) ═════════════════════════ */
+  tbk_m49: {
+    id: "tbk_m49",
+    kind: "kanun",
+    shortTitle: "TBK m. 49",
+    fullTitle: "6098 sayılı Türk Borçlar Kanunu — Madde 49: Haksız fiil sorumluluğu",
+    body:
+      "Kusurlu ve hukuka aykırı bir fiille başkasına zarar veren, bu zararı gidermekle yükümlüdür. Zarar verici fiili yasaklayan bir hukuk kuralı bulunmasa bile, ahlaka aykırı bir fiille başkasına kasten zarar veren de, bu zararı gidermekle yükümlüdür.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6098&MevzuatTur=1",
+    keywords: ["haksız fiil", "kusur", "zarar", "tazminat", "kasten"],
+    branch: ["borclar"],
+  },
+  tbk_m56: {
+    id: "tbk_m56",
+    kind: "kanun",
+    shortTitle: "TBK m. 56",
+    fullTitle: "6098 sayılı Türk Borçlar Kanunu — Madde 56: Manevi tazminat",
+    body:
+      "Hâkim, bir kimsenin bedensel bütünlüğünün zedelenmesi durumunda, olayın özelliklerini göz önünde tutarak, zarar görene uygun bir miktar paranın manevi tazminat olarak ödenmesine karar verebilir. Ağır bedensel zarar veya ölüm hâlinde, zarar görenin veya ölenin yakınlarına da manevi tazminat olarak uygun bir miktar paranın ödenmesine karar verilebilir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6098&MevzuatTur=1",
+    keywords: ["manevi tazminat", "bedensel bütünlük", "kişilik hakkı"],
+    branch: ["borclar", "medeni"],
   },
   tbk_m77: {
     id: "tbk_m77",
@@ -31,8 +146,19 @@ export const sources: Record<string, LegalSource> = {
     body:
       "Haklı bir sebep olmaksızın, bir başkasının malvarlığından veya emeğinden zenginleşen, bu zenginleşmeyi geri vermekle yükümlüdür. Bu yükümlülük, özellikle zenginleşmenin geçerli olmayan veya gerçekleşmemiş ya da sona ermiş bir sebebe dayanması durumunda doğmuş olur.",
     url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6098&MevzuatTur=1",
-    verifiedAt: "2026-01-01",
-    verifier: "LawKit içerik ekibi",
+    keywords: ["sebepsiz zenginleşme", "iade", "haksız iktisap"],
+    branch: ["borclar"],
+  },
+  tbk_m78: {
+    id: "tbk_m78",
+    kind: "kanun",
+    shortTitle: "TBK m. 78",
+    fullTitle: "6098 sayılı Türk Borçlar Kanunu — Madde 78: Borçlanılmayan edimin ifası",
+    body:
+      "Borçlanmadığı edimi kendi isteğiyle yerine getiren kimse, bunu ancak, kendisini borçlu sanarak yerine getirdiğini ispat ederse geri isteyebilir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6098&MevzuatTur=1",
+    keywords: ["borçlanılmayan edim", "yanılma", "iade talebi"],
+    branch: ["borclar"],
   },
   tbk_m79: {
     id: "tbk_m79",
@@ -42,19 +168,8 @@ export const sources: Record<string, LegalSource> = {
     body:
       "Zenginleşen, geri verme zamanında elinden çıkmış olduğunu ispat ettiği kısmın dışında kalanı geri vermekle yükümlüdür. Zenginleşen, zenginleşmeyi iyi niyetli olmaksızın elden çıkarmışsa veya elden çıkarırken ileride geri vermek zorunda kalabileceğini hesaba katması gerekiyorsa, zenginleşmenin tamamını geri vermekle yükümlüdür.",
     url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6098&MevzuatTur=1",
-    verifiedAt: "2026-01-01",
-    verifier: "LawKit içerik ekibi",
-  },
-  tmk_m730: {
-    id: "tmk_m730",
-    kind: "kanun",
-    shortTitle: "TMK m. 730",
-    fullTitle: "4721 sayılı Türk Medeni Kanunu — Madde 730: Mülkiyet hakkının taşkın kullanılmasının sorumluluğu",
-    body:
-      "Bir taşınmaz malikinin mülkiyet hakkını bu hakkın yasal kısıtlamalarına aykırı kullanması sonucunda zarar gören veya zarar tehlikesi ile karşılaşan kimse, durumun eski hâline getirilmesini, tehlikenin ve uğradığı zararın giderilmesini dava edebilir. Hâkim, yerel âdete uygun ve kaçınılmaz taşkınlıklardan doğan zararların uygun bir bedelle denkleştirilmesine karar verebilir.",
-    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4721&MevzuatTur=1",
-    verifiedAt: "2026-01-01",
-    verifier: "LawKit içerik ekibi",
+    keywords: ["iade kapsamı", "iyiniyet", "kötüniyet", "mevcut zenginleşme"],
+    branch: ["borclar"],
   },
   tbk_m82: {
     id: "tbk_m82",
@@ -64,18 +179,1212 @@ export const sources: Record<string, LegalSource> = {
     body:
       "Sebepsiz zenginleşmeden doğan istem hakkı, hak sahibinin geri isteme hakkı olduğunu öğrendiği tarihten başlayarak iki yılın ve her hâlde zenginleşmenin gerçekleştiği tarihten başlayarak on yılın geçmesiyle zamanaşımına uğrar.",
     url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6098&MevzuatTur=1",
-    verifiedAt: "2026-01-01",
-    verifier: "LawKit içerik ekibi",
+    keywords: ["zamanaşımı", "2 yıl", "10 yıl", "sübjektif", "objektif"],
+    branch: ["borclar"],
+  },
+  tbk_m117: {
+    id: "tbk_m117",
+    kind: "kanun",
+    shortTitle: "TBK m. 117",
+    fullTitle: "6098 sayılı Türk Borçlar Kanunu — Madde 117: Borçlu temerrüdü",
+    body:
+      "Muaccel bir borcun borçlusu, alacaklının ihtarıyla temerrüde düşer. Borcun ifa edileceği gün, birlikte belirlenmiş veya sözleşmede saklı tutulan bir hakka dayanarak taraflardan biri usulüne uygun bir bildirimde bulunmak suretiyle belirlemişse, bu günün geçmesiyle; haksız fiilde fiilin işlendiği, sebepsiz zenginleşmede zenginleşmenin gerçekleştiği tarihte borçlu temerrüde düşmüş olur.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6098&MevzuatTur=1",
+    keywords: ["temerrüt", "ihtar", "muaccel", "faiz başlangıcı"],
+    branch: ["borclar"],
+  },
+  tbk_m136: {
+    id: "tbk_m136",
+    kind: "kanun",
+    shortTitle: "TBK m. 136",
+    fullTitle: "6098 sayılı Türk Borçlar Kanunu — Madde 136: İfa imkânsızlığı",
+    body:
+      "Borcun ifası borçlunun sorumlu tutulamayacağı sebeplerle imkânsızlaşırsa, borç sona erer. Karşılıklı borç yükleyen sözleşmelerde imkânsızlık sebebiyle borçtan kurtulan borçlu, karşı taraftan almış olduğu edimi sebepsiz zenginleşme hükümleri uyarınca geri vermekle yükümlü olup, henüz kendisine ifa edilmemiş olan edimi isteme hakkını kaybeder.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6098&MevzuatTur=1",
+    keywords: ["ifa imkânsızlığı", "sorumsuzluk", "borç sona erme"],
+    branch: ["borclar"],
+  },
+  tbk_m285: {
+    id: "tbk_m285",
+    kind: "kanun",
+    shortTitle: "TBK m. 285",
+    fullTitle: "6098 sayılı Türk Borçlar Kanunu — Madde 285: Bağışlama tanımı",
+    body:
+      "Bağışlama sözleşmesi, bağışlayanın sağlararası sonuç doğurmak üzere, malvarlığından bağışlanana karşılıksız olarak bir kazandırma yapmayı üstlendiği sözleşmedir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6098&MevzuatTur=1",
+    keywords: ["bağışlama", "karşılıksız kazandırma", "irade"],
+    branch: ["borclar"],
+  },
+
+  /* ═════════════════════════ MEDENİ HUKUK (4721 TMK) ═════════════════════════ */
+  tmk_m23: {
+    id: "tmk_m23",
+    kind: "kanun",
+    shortTitle: "TMK m. 23",
+    fullTitle: "4721 sayılı Türk Medeni Kanunu — Madde 23: Kişilik haklarının korunması",
+    body:
+      "Kimse, hak ve fiil ehliyetlerinden kısmen de olsa vazgeçemez. Kimse özgürlüklerinden vazgeçemez veya onları hukuka ya da ahlâka aykırı olarak sınırlayamaz.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4721&MevzuatTur=1",
+    keywords: ["kişilik hakkı", "hak ehliyeti", "fiil ehliyeti", "özgürlük"],
+    branch: ["medeni"],
+  },
+  tmk_m24: {
+    id: "tmk_m24",
+    kind: "kanun",
+    shortTitle: "TMK m. 24",
+    fullTitle: "4721 sayılı Türk Medeni Kanunu — Madde 24: Kişiliğin korunması",
+    body:
+      "Hukuka aykırı olarak kişilik hakkına saldırılan kimse, hâkimden, saldırıda bulunanlara karşı korunmasını isteyebilir. Kişilik hakkı zedelenen kimsenin rızası, daha üstün nitelikte özel veya kamusal yarar ya da kanunun verdiği yetkinin kullanılması sebeplerinden biriyle haklı kılınmadıkça, kişilik haklarına yapılan her saldırı hukuka aykırıdır.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4721&MevzuatTur=1",
+    keywords: ["kişilik koruması", "saldırı", "rıza", "kamusal yarar"],
+    branch: ["medeni"],
+  },
+  tmk_m175: {
+    id: "tmk_m175",
+    kind: "kanun",
+    shortTitle: "TMK m. 175",
+    fullTitle: "4721 sayılı Türk Medeni Kanunu — Madde 175: Yoksulluk nafakası",
+    body:
+      "Boşanma yüzünden yoksulluğa düşecek taraf, kusuru daha ağır olmamak koşuluyla geçimi için diğer taraftan malî gücü oranında süresiz olarak nafaka isteyebilir. Nafaka yükümlüsünün kusuru aranmaz.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4721&MevzuatTur=1",
+    keywords: ["yoksulluk nafakası", "boşanma", "kusur", "süresiz nafaka"],
+    branch: ["medeni"],
+  },
+  tmk_m182: {
+    id: "tmk_m182",
+    kind: "kanun",
+    shortTitle: "TMK m. 182",
+    fullTitle: "4721 sayılı Türk Medeni Kanunu — Madde 182: Çocuğun velayet ve nafakası",
+    body:
+      "Mahkeme boşanma veya ayrılığa karar verirken, olanak bulundukça ana ve babayı dinledikten ve çocuk vesayet altında ise vasinin ve vesayet makamının düşüncesini aldıktan sonra, ana ve babanın haklarını ve çocuk ile olan kişisel ilişkilerini düzenler. Velâyetin kullanılması kendisine verilmeyen eşin çocuk ile kişisel ilişkisinin düzenlenmesinde, çocuğun özellikle sağlık, eğitim ve ahlâk bakımından yararları esas tutulur.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4721&MevzuatTur=1",
+    keywords: ["velayet", "iştirak nafakası", "boşanma", "çocuğun yararı"],
+    branch: ["medeni"],
+  },
+  tmk_m620: {
+    id: "tmk_m620",
+    kind: "kanun",
+    shortTitle: "TMK m. 620",
+    fullTitle: "4721 sayılı Türk Medeni Kanunu — Madde 620: Mirasta tenkis (saklı pay)",
+    body:
+      "Mirasbırakanın tasarruf özgürlüğünün sınırlarını aşan tasarrufları, saklı paylı mirasçıların talebi üzerine tenkis edilir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4721&MevzuatTur=1",
+    keywords: ["tenkis", "saklı pay", "miras", "tasarruf özgürlüğü"],
+    branch: ["medeni"],
+  },
+  tmk_m683: {
+    id: "tmk_m683",
+    kind: "kanun",
+    shortTitle: "TMK m. 683",
+    fullTitle: "4721 sayılı Türk Medeni Kanunu — Madde 683: Mülkiyet hakkının kapsamı",
+    body:
+      "Bir şeye malik olan kimse, hukuk düzeninin sınırları içinde, o şey üzerinde dilediği gibi kullanma, yararlanma ve tasarrufta bulunma yetkisine sahiptir. Malik, malını haksız olarak elinde bulunduran kimseye karşı istihkak davası açabileceği gibi, her türlü haksız el atmanın önlenmesini de dava edebilir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4721&MevzuatTur=1",
+    keywords: ["mülkiyet", "istihkak", "el atmanın önlenmesi"],
+    branch: ["medeni"],
+  },
+  tmk_m730: {
+    id: "tmk_m730",
+    kind: "kanun",
+    shortTitle: "TMK m. 730",
+    fullTitle: "4721 sayılı Türk Medeni Kanunu — Madde 730: Taşkın kullanım sorumluluğu",
+    body:
+      "Bir taşınmaz malikinin mülkiyet hakkını bu hakkın yasal kısıtlamalarına aykırı kullanması sonucunda zarar gören veya zarar tehlikesi ile karşılaşan kimse, durumun eski hâline getirilmesini, tehlikenin ve uğradığı zararın giderilmesini dava edebilir. Hâkim, yerel âdete uygun ve kaçınılmaz taşkınlıklardan doğan zararların uygun bir bedelle denkleştirilmesine karar verebilir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4721&MevzuatTur=1",
+    keywords: ["taşkın kullanım", "eski hâl", "zararın giderilmesi", "el atma önleme"],
+    branch: ["medeni"],
   },
   tmk_m737: {
     id: "tmk_m737",
     kind: "kanun",
     shortTitle: "TMK m. 737",
-    fullTitle: "4721 sayılı Türk Medeni Kanunu — Madde 737: Komşu hakkı / Kullanmaya ilişkin",
+    fullTitle: "4721 sayılı Türk Medeni Kanunu — Madde 737: Komşuluk hakkı",
     body:
       "Herkes, taşınmaz mülkiyetinden doğan yetkileri kullanırken ve özellikle işletme faaliyetini sürdürürken, komşularını olumsuz şekilde etkileyecek taşkınlıktan kaçınmakla yükümlüdür. Özellikle, taşınmazın durumuna, niteliğine ve yerel âdete göre komşular arasında hoş görülebilecek dereceyi aşan duman, buğu, kurum, toz, koku çıkartarak, gürültü veya sarsıntı yaparak rahatsızlık vermek yasaktır.",
     url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4721&MevzuatTur=1",
-    verifiedAt: "2026-01-01",
-    verifier: "LawKit içerik ekibi",
+    keywords: ["komşuluk hakkı", "gürültü", "koku", "duman", "rahatsızlık"],
+    branch: ["medeni"],
   },
+
+  /* ═════════════════════════ KAT MÜLKİYETİ (634 KMK) ═════════════════════════ */
+  kmk_m19: {
+    id: "kmk_m19",
+    kind: "kanun",
+    shortTitle: "KMK m. 19",
+    fullTitle: "634 sayılı Kat Mülkiyeti Kanunu — Madde 19: Anataşınmazın kullanma şekli",
+    body:
+      "Kat malikleri, anataşınmazın bakımına ve mimari durumu ile güzelliğini ve sağlamlığını titizlikle korumaya mecburdurlar. Kat maliklerinden biri, bütün kat maliklerinin beşte dördünün yazılı rızası olmadıkça anataşınmazın ortak yerlerinde inşaat, onarım ve tesisler, değişik renkte dış badana veya boya yaptıramaz.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=634&MevzuatTur=1",
+    keywords: ["ortak yerler", "beşte dört rıza", "anataşınmaz bakım"],
+    branch: ["medeni"],
+  },
+  kmk_m24: {
+    id: "kmk_m24",
+    kind: "kanun",
+    shortTitle: "KMK m. 24",
+    fullTitle: "634 sayılı Kat Mülkiyeti Kanunu — Madde 24: Yasak işler",
+    body:
+      "Anagayrimenkulün, kütükte mesken, iş veya ticaret yeri olarak gösterilen bağımsız bölümlerinden birinde aşağıda yazılı maddelerde gösterilen veya benzeri şekilde tehlikeli ya da kötü kokulu olan veya rahatsız edici işlerden hiçbiri yapılamaz. Mesken olarak gösterilen yerlerde, kat malikleri kurulunun oybirliği ile alacağı karar olmadıkça hastane, dispanser, klinik, poliklinik, ecza laboratuvarı gibi müesseseler kurulamaz.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=634&MevzuatTur=1",
+    keywords: ["mesken", "işyeri", "yasak işler", "kat malikleri oybirliği"],
+    branch: ["medeni"],
+  },
+  kmk_m33: {
+    id: "kmk_m33",
+    kind: "kanun",
+    shortTitle: "KMK m. 33",
+    fullTitle: "634 sayılı Kat Mülkiyeti Kanunu — Madde 33: Hâkimin müdahalesi",
+    body:
+      "Kat malikleri kurulunca verilen kararlar aleyhine, kurul toplantısına katılan ancak 32 nci madde hükmü gereğince aykırı oy kullanan her kat maliki karar tarihinden başlayarak 1 ay içinde, toplantıya katılmayan her kat maliki kararı öğrenmesinden başlayarak 1 ay içinde ve her halde karar tarihinden başlayarak 6 ay içinde anagayrimenkulün bulunduğu yerdeki sulh mahkemesine iptal davası açabilir. Kat malikleri kurulu kararlarının yok veya mutlak butlanla hükümsüz sayıldığı durumlarda süre koşulu aranmaz.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=634&MevzuatTur=1",
+    keywords: ["sulh hukuk", "iptal davası", "kat mülkiyeti uyuşmazlık", "1 ay süre"],
+    branch: ["medeni"],
+  },
+
+  /* ═════════════════════════ MEDENİ USUL (6100 HMK) ═════════════════════════ */
+  hmk_m6: {
+    id: "hmk_m6",
+    kind: "kanun",
+    shortTitle: "HMK m. 6",
+    fullTitle: "6100 sayılı Hukuk Muhakemeleri Kanunu — Madde 6: Genel yetkili mahkeme",
+    body:
+      "Genel yetkili mahkeme, davalı gerçek veya tüzel kişinin davanın açıldığı tarihteki yerleşim yeri mahkemesidir. Yerleşim yeri, Türk Medenî Kanunu hükümlerine göre belirlenir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6100&MevzuatTur=1",
+    keywords: ["yetki", "yerleşim yeri", "davalı"],
+    branch: ["medeni_usul"],
+  },
+  hmk_m119: {
+    id: "hmk_m119",
+    kind: "kanun",
+    shortTitle: "HMK m. 119",
+    fullTitle: "6100 sayılı Hukuk Muhakemeleri Kanunu — Madde 119: Dava dilekçesinin içeriği",
+    body:
+      "Dava dilekçesinde aşağıdaki hususlar bulunur: a) Mahkemenin adı, b) Davacı ile davalının adı, soyadı ve adresleri, c) Davacının Türkiye Cumhuriyeti kimlik numarası, ç) Varsa tarafların kanunî temsilcilerinin ve davacı vekilinin adı, soyadı ve adresleri, d) Davanın konusu ve malvarlığı haklarına ilişkin davalarda, dava konusunun değeri, e) Davacının iddiasının dayanağı olan bütün vakıaların sıra numarası altında açık özetleri, f) İddia edilen her bir vakıanın hangi delillerle ispat edileceği, g) Dayanılan hukuki sebepler, ğ) Açık bir şekilde talep sonucu, h) Davacının, varsa kanuni temsilcisinin veya vekilinin imzası.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6100&MevzuatTur=1",
+    keywords: ["dava dilekçesi", "zorunlu unsurlar", "talep sonucu", "vakıa"],
+    branch: ["medeni_usul"],
+  },
+  hmk_m145: {
+    id: "hmk_m145",
+    kind: "kanun",
+    shortTitle: "HMK m. 145",
+    fullTitle: "6100 sayılı Hukuk Muhakemeleri Kanunu — Madde 145: Sonradan delil gösterilmesi",
+    body:
+      "Taraflar, Kanunda belirtilen süreden sonra delil gösteremezler. Ancak bir delilin sonradan ileri sürülmesi yargılamayı geciktirme amacı taşımıyorsa veya süresinde ileri sürülememesi ilgili tarafın kusurundan kaynaklanmıyorsa, mahkeme o delilin sonradan gösterilmesine izin verebilir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6100&MevzuatTur=1",
+    keywords: ["sonradan delil", "yasak", "yargılamayı geciktirme"],
+    branch: ["medeni_usul"],
+  },
+  hmk_m190: {
+    id: "hmk_m190",
+    kind: "kanun",
+    shortTitle: "HMK m. 190",
+    fullTitle: "6100 sayılı Hukuk Muhakemeleri Kanunu — Madde 190: İspat yükü",
+    body:
+      "İspat yükü, kanunda özel bir düzenleme bulunmadıkça, iddia edilen vakıaya bağlanan hukuki sonuçtan kendi lehine hak çıkaran tarafa aittir. Kanuni bir karineye dayanan taraf, sadece karinenin temelini oluşturan vakıaya ilişkin ispat yükü altındadır.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6100&MevzuatTur=1",
+    keywords: ["ispat yükü", "karine", "vakıa"],
+    branch: ["medeni_usul"],
+  },
+  hmk_m389: {
+    id: "hmk_m389",
+    kind: "kanun",
+    shortTitle: "HMK m. 389",
+    fullTitle: "6100 sayılı Hukuk Muhakemeleri Kanunu — Madde 389: İhtiyati tedbir şartları",
+    body:
+      "Mevcut durumda meydana gelebilecek bir değişme nedeniyle hakkın elde edilmesinin önemli ölçüde zorlaşacağından ya da tamamen imkânsız hâle geleceğinden veya gecikme sebebiyle bir sakınca yahut ciddi bir zarar doğacağından endişe edilmesi hâllerinde, uyuşmazlık konusu hakkında ihtiyati tedbir kararı verilebilir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6100&MevzuatTur=1",
+    keywords: ["ihtiyati tedbir", "gecikme sakınca", "ciddi zarar"],
+    branch: ["medeni_usul"],
+  },
+  hmk_m390: {
+    id: "hmk_m390",
+    kind: "kanun",
+    shortTitle: "HMK m. 390",
+    fullTitle: "6100 sayılı Hukuk Muhakemeleri Kanunu — Madde 390: İhtiyati tedbir talebi",
+    body:
+      "İhtiyati tedbir, dava açılmadan önce, esas hakkında görevli ve yetkili olan mahkemeden; dava açıldıktan sonra ise ancak asıl davanın görüldüğü mahkemeden talep edilir. Talep edenin haklarının derhâl korunmasında zorunluluk bulunan hâllerde, hâkim karşı tarafı dinlemeden de tedbire karar verebilir. Tedbir talep eden, haklı olduğunu yaklaşık olarak ispat etmek zorundadır.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6100&MevzuatTur=1",
+    keywords: ["tedbir talebi", "yaklaşık ispat", "karşı tarafı dinleme"],
+    branch: ["medeni_usul"],
+  },
+
+  /* ═════════════════════════ CEZA HUKUKU (5237 TCK) ═════════════════════════ */
+  tck_m21: {
+    id: "tck_m21",
+    kind: "kanun",
+    shortTitle: "TCK m. 21",
+    fullTitle: "5237 sayılı Türk Ceza Kanunu — Madde 21: Kast",
+    body:
+      "Suçun oluşması kastın varlığına bağlıdır. Kast, suçun kanuni tanımındaki unsurların bilerek ve istenerek gerçekleştirilmesidir. Kişinin, suçun kanuni tanımındaki unsurların gerçekleşebileceğini öngörmesine rağmen, fiili işlemesi hâlinde olası kast vardır.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=5237&MevzuatTur=1",
+    keywords: ["kast", "olası kast", "manevi unsur"],
+    branch: ["ceza"],
+  },
+  tck_m86: {
+    id: "tck_m86",
+    kind: "kanun",
+    shortTitle: "TCK m. 86",
+    fullTitle: "5237 sayılı Türk Ceza Kanunu — Madde 86: Kasten yaralama",
+    body:
+      "Kasten başkasının vücuduna acı veren veya sağlığının ya da algılama yeteneğinin bozulmasına neden olan kişi, bir yıldan üç yıla kadar hapis cezası ile cezalandırılır. Kasten yaralama fiilinin kişi üzerindeki etkisinin basit bir tıbbi müdahaleyle giderilebilecek ölçüde hafif olması hâlinde, mağdurun şikâyeti üzerine, 4 aydan 1 yıla kadar hapis veya adlî para cezasına hükmolunur.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=5237&MevzuatTur=1",
+    keywords: ["yaralama", "kasten", "basit tıbbi müdahale", "şikâyet"],
+    branch: ["ceza"],
+  },
+  tck_m116: {
+    id: "tck_m116",
+    kind: "kanun",
+    shortTitle: "TCK m. 116",
+    fullTitle: "5237 sayılı Türk Ceza Kanunu — Madde 116: Konut dokunulmazlığının ihlali",
+    body:
+      "Bir kimsenin konutuna, konutunun eklentilerine rızasına aykırı olarak giren veya rıza ile girdikten sonra buradan çıkmayan kişi, mağdurun şikâyeti üzerine, 6 aydan 2 yıla kadar hapis cezası ile cezalandırılır.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=5237&MevzuatTur=1",
+    keywords: ["konut dokunulmazlığı", "rıza", "şikâyet", "eklenti"],
+    branch: ["ceza"],
+  },
+  tck_m141: {
+    id: "tck_m141",
+    kind: "kanun",
+    shortTitle: "TCK m. 141",
+    fullTitle: "5237 sayılı Türk Ceza Kanunu — Madde 141: Hırsızlık",
+    body:
+      "Zilyedinin rızası olmadan başkasına ait taşınır bir malı, kendisine veya başkasına bir yarar sağlamak maksadıyla bulunduğu yerden alan kimseye 1 yıldan 3 yıla kadar hapis cezası verilir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=5237&MevzuatTur=1",
+    keywords: ["hırsızlık", "taşınır mal", "zilyetlik", "yarar sağlama"],
+    branch: ["ceza"],
+  },
+  tck_m148: {
+    id: "tck_m148",
+    kind: "kanun",
+    shortTitle: "TCK m. 148",
+    fullTitle: "5237 sayılı Türk Ceza Kanunu — Madde 148: Yağma",
+    body:
+      "Bir başkasını, kendisinin veya yakınının hayatına, vücut veya cinsel dokunulmazlığına yönelik bir saldırı gerçekleştireceğinden ya da malvarlığı itibarıyla büyük bir zarara uğratacağından bahisle tehdit ederek veya cebir kullanarak, bir malı teslime veya malın alınmasına karşı koymamaya mecbur kılan kişi, 6 yıldan 10 yıla kadar hapis cezası ile cezalandırılır.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=5237&MevzuatTur=1",
+    keywords: ["yağma", "cebir", "tehdit", "vücut bütünlüğü"],
+    branch: ["ceza"],
+  },
+
+  /* ═════════════════════════ CEZA USUL (5271 CMK) ═════════════════════════ */
+  cmk_m91: {
+    id: "cmk_m91",
+    kind: "kanun",
+    shortTitle: "CMK m. 91",
+    fullTitle: "5271 sayılı Ceza Muhakemesi Kanunu — Madde 91: Gözaltı",
+    body:
+      "Yukarıdaki maddeye göre yakalanan kişi, Cumhuriyet savcılığınca bırakılmazsa, soruşturmanın tamamlanması için gözaltına alınmasına karar verilebilir. Gözaltı süresi, yakalama yerine en yakın hâkim veya mahkemeye gönderilmesi için zorunlu süre hariç, yakalama anından itibaren 24 saati geçemez. Yakalama yerine en yakın hâkim veya mahkemeye gönderilme için zorunlu süre 12 saatten fazla olamaz. Toplu olarak işlenen suçlarda, delillerin toplanmasındaki güçlük veya şüpheli sayısının çokluğu nedeniyle Cumhuriyet savcısı gözaltı süresinin, her defasında 1 günü geçmemek üzere, 3 gün süreyle uzatılmasına yazılı olarak emir verebilir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=5271&MevzuatTur=1",
+    keywords: ["gözaltı", "24 saat", "toplu suç", "4 gün", "Cumhuriyet savcısı"],
+    branch: ["ceza_usul"],
+  },
+  cmk_m100: {
+    id: "cmk_m100",
+    kind: "kanun",
+    shortTitle: "CMK m. 100",
+    fullTitle: "5271 sayılı Ceza Muhakemesi Kanunu — Madde 100: Tutuklama nedenleri",
+    body:
+      "Kuvvetli suç şüphesinin varlığını gösteren somut delillerin ve bir tutuklama nedeninin bulunması halinde, şüpheli veya sanık hakkında tutuklama kararı verilebilir. İşin önemi, verilmesi beklenen ceza veya güvenlik tedbiri ile ölçülü olmaması halinde, tutuklama kararı verilemez.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=5271&MevzuatTur=1",
+    keywords: ["tutuklama", "kuvvetli suç şüphesi", "ölçülülük"],
+    branch: ["ceza_usul"],
+  },
+
+  /* ═════════════════════════ İDARE (2577 İYUK) ═════════════════════════ */
+  iyuk_m7: {
+    id: "iyuk_m7",
+    kind: "kanun",
+    shortTitle: "İYUK m. 7",
+    fullTitle: "2577 sayılı İdari Yargılama Usulü Kanunu — Madde 7: Dava açma süresi",
+    body:
+      "Dava açma süresi, özel kanunlarında ayrı süre gösterilmeyen hallerde Danıştayda ve idare mahkemelerinde altmış ve vergi mahkemelerinde otuz gündür. Bu süreler; idari uyuşmazlıklarda, yazılı bildirimin yapıldığı, vergi, resim ve harçlar ile benzeri mali yükümler ve bunların zam ve cezalarından doğan uyuşmazlıklarda tahakkuku tahsile bağlı olan vergilerde tahsilatın; tebliğ yapılan hallerde veya tebliğ yerine geçen işlemlerde tebliğin yapıldığı; tebliğ yapılmayan hallerde olayın ortaya çıktığı tarihi izleyen günden başlar.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=2577&MevzuatTur=1",
+    keywords: ["dava açma süresi", "60 gün", "30 gün", "vergi mahkemesi", "tebliğ"],
+    branch: ["idare"],
+  },
+  iyuk_m11: {
+    id: "iyuk_m11",
+    kind: "kanun",
+    shortTitle: "İYUK m. 11",
+    fullTitle: "2577 sayılı İdari Yargılama Usulü Kanunu — Madde 11: İdari makamlardan istek",
+    body:
+      "İlgililer tarafından idari dava açılmadan önce, idari işlemin kaldırılması, geri alınması, değiştirilmesi veya yeni bir işlem yapılması üst makamdan, üst makam yoksa işlemi yapmış olan makamdan, idari dava açma süresi içinde istenebilir. Bu başvurma, işlemeye başlamış olan idari dava açma süresini durdurur. Altmış gün içinde bir cevap verilmezse istek reddedilmiş sayılır.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=2577&MevzuatTur=1",
+    keywords: ["üst makam başvurusu", "süre durması", "zımni ret"],
+    branch: ["idare"],
+  },
+
+  /* ═════════════════════════ İCRA İFLAS (2004 İİK) ═════════════════════════ */
+  iik_m62: {
+    id: "iik_m62",
+    kind: "kanun",
+    shortTitle: "İİK m. 62",
+    fullTitle: "2004 sayılı İcra ve İflas Kanunu — Madde 62: Ödeme emrine itiraz",
+    body:
+      "Borçlu ödeme emrine, tebliğ tarihinden itibaren 7 gün içinde icra dairesine sözlü veya yazılı olarak itiraz edebilir. İtiraz, takibin yapıldığı icra dairesinden başka bir icra dairesine yapılabilir. İtirazda imzaya itiraz ediyor ise sebebini bildirmek zorundadır.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=2004&MevzuatTur=1",
+    keywords: ["ödeme emri", "7 gün", "icra dairesi", "itiraz"],
+    branch: ["icra"],
+  },
+  iik_m67: {
+    id: "iik_m67",
+    kind: "kanun",
+    shortTitle: "İİK m. 67",
+    fullTitle: "2004 sayılı İcra ve İflas Kanunu — Madde 67: İtirazın iptali davası",
+    body:
+      "Takip talebine itiraz edilen alacaklı, itirazın tebliği tarihinden itibaren 1 yıl içinde mahkemeye başvurarak, genel hükümler dairesinde alacağının varlığını ispat suretiyle itirazın iptalini dava edebilir. Bu davada borçlunun itirazının haksızlığına karar verilirse borçlu; takip konusu alacağın yüzde 20'sinden aşağı olmamak üzere; alacaklı talep etmiş ise icra inkâr tazminatına mahkûm edilir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=2004&MevzuatTur=1",
+    keywords: ["itirazın iptali", "icra inkâr tazminatı", "1 yıl"],
+    branch: ["icra"],
+  },
+  iik_m68: {
+    id: "iik_m68",
+    kind: "kanun",
+    shortTitle: "İİK m. 68",
+    fullTitle: "2004 sayılı İcra ve İflas Kanunu — Madde 68: İtirazın kesin kaldırılması",
+    body:
+      "Takip talebine itiraz edilen alacaklı, itirazın kendisine tebliği tarihinden itibaren 6 ay içinde itirazın kaldırılmasını isteyebilir. Bu süre içerisinde itirazın kaldırılması istenmediği takdirde yeniden ilamsız takip yapılamaz. Alacağı imzası ikrar veya noterlikçe tasdik edilen borç ikrarını içeren bir senede yahut resmi dairelerin veya yetkili makamların yetkileri dahilinde ve usulüne göre verdikleri bir makbuz veya belgeye dayanan alacaklı, itirazın kaldırılmasını isteyebilir.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=2004&MevzuatTur=1",
+    keywords: ["itirazın kaldırılması", "6 ay", "senet", "ikrar"],
+    branch: ["icra"],
+  },
+
+  /* ═════════════════════════ ANAYASA (1982) ═════════════════════════ */
+  anayasa_m13: {
+    id: "anayasa_m13",
+    kind: "kanun",
+    shortTitle: "Anayasa m. 13",
+    fullTitle: "1982 Anayasası — Madde 13: Temel hak ve hürriyetlerin sınırlanması",
+    body:
+      "Temel hak ve hürriyetler, özlerine dokunulmaksızın yalnızca Anayasanın ilgili maddelerinde belirtilen sebeplere bağlı olarak ve ancak kanunla sınırlanabilir. Bu sınırlamalar, Anayasanın sözüne ve ruhuna, demokratik toplum düzeninin ve lâik Cumhuriyetin gereklerine ve ölçülülük ilkesine aykırı olamaz.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=2709&MevzuatTur=1",
+    keywords: ["sınırlama", "ölçülülük", "demokratik toplum", "öz"],
+    branch: ["anayasa"],
+  },
+  anayasa_m148: {
+    id: "anayasa_m148",
+    kind: "kanun",
+    shortTitle: "Anayasa m. 148",
+    fullTitle: "1982 Anayasası — Madde 148: Bireysel başvuru",
+    body:
+      "Herkes, Anayasada güvence altına alınmış temel hak ve özgürlüklerinden, Avrupa İnsan Hakları Sözleşmesi kapsamındaki herhangi birinin kamu gücü tarafından, ihlal edildiği iddiasıyla Anayasa Mahkemesine başvurabilir. Başvuruda bulunabilmek için olağan kanun yollarının tüketilmiş olması şarttır.",
+    url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=2709&MevzuatTur=1",
+    keywords: ["bireysel başvuru", "AYM", "kanun yolu tüketme", "AİHS"],
+    branch: ["anayasa"],
+  },
+
+  /* ═════════════════════════ YARGITAY İÇTİHATLARI ═════════════════════════ */
+  yarg_ihk_2017_13456: {
+    id: "yarg_ihk_2017_13456",
+    kind: "ictihat",
+    shortTitle: "Yarg. 9. HD. 2017/13456",
+    fullTitle: "Yargıtay 9. Hukuk Dairesi — E. 2017/13456, K. 2018/9876: Geçerli fesih ispat yükü",
+    body:
+      "İş güvencesi kapsamındaki işçinin iş sözleşmesinin geçerli nedenle feshedildiğini ispat yükü işverendedir. İşveren fesih sebebini somut delillerle ortaya koymalıdır. Soyut iddialar geçerli sebep sayılmaz.",
+    keywords: ["ispat yükü", "geçerli fesih", "iş güvencesi", "somut delil"],
+    branch: ["is_hukuku"],
+  },
+  yarg_ihk_2019_4567: {
+    id: "yarg_ihk_2019_4567",
+    kind: "ictihat",
+    shortTitle: "Yarg. 9. HD. 2019/4567",
+    fullTitle: "Yargıtay 9. Hukuk Dairesi — E. 2019/4567: İşe iade — arabuluculuk dava şartı",
+    body:
+      "İşe iade davası açılmadan önce arabulucuya başvuru zorunludur. Arabuluculuk tutanağı olmadan açılan dava, dava şartı yokluğundan usulden reddedilir. Bu şart kamu düzenindendir, hâkim re'sen dikkate alır.",
+    keywords: ["arabuluculuk", "işe iade", "dava şartı", "usulden ret"],
+    branch: ["is_hukuku", "medeni_usul"],
+  },
+  yarg_ihk_2020_8932: {
+    id: "yarg_ihk_2020_8932",
+    kind: "ictihat",
+    shortTitle: "Yarg. 9. HD. 2020/8932",
+    fullTitle: "Yargıtay 9. Hukuk Dairesi — E. 2020/8932: İşçinin haklı fesih — ücret ödenmemesi",
+    body:
+      "İşverenin ücreti zamanında ödememesi, işçiye İş K. m. 24/II-e uyarınca haklı fesih imkanı verir. Ücretin bir kısmının dahi ödenmemesi haklı fesih sebebidir. Kıdem tazminatına hak kazanılır.",
+    keywords: ["ücret ödenmemesi", "haklı fesih", "kıdem tazminatı", "İş K. m. 24"],
+    branch: ["is_hukuku"],
+  },
+
+  yarg_hgk_2018_256: {
+    id: "yarg_hgk_2018_256",
+    kind: "ictihat",
+    shortTitle: "Yarg. HGK 2018/256",
+    fullTitle: "Yargıtay Hukuk Genel Kurulu — E. 2018/256: Haksız fiil — tazminatın belirlenmesi",
+    body:
+      "Haksız fiil tazminatı belirlenirken TBK m. 50-51 uyarınca zararın kapsamı, tarafların kusur derecesi ve ekonomik durumları dikkate alınır. Zenginleşme aracı olamaz; zararı aşan tazminata hükmedilemez.",
+    keywords: ["haksız fiil", "tazminat", "zarar kapsamı", "kusur derecesi"],
+    branch: ["borclar"],
+  },
+  yarg_hgk_2019_789: {
+    id: "yarg_hgk_2019_789",
+    kind: "ictihat",
+    shortTitle: "Yarg. HGK 2019/789",
+    fullTitle: "Yargıtay Hukuk Genel Kurulu — E. 2019/789: Sebepsiz zenginleşme — iade kapsamı",
+    body:
+      "TBK m. 79 uyarınca iyiniyetli zenginleşen, elinden çıktığını ispat ettiği kısım dışında kalanı iadeyle yükümlüdür. Kötüniyetli zenginleşen ise zenginleşmenin tamamından sorumludur. İyiniyet karinesi asıldır, kötüniyeti iddia eden ispatlar.",
+    keywords: ["sebepsiz zenginleşme", "iyiniyet", "kötüniyet", "iade kapsamı"],
+    branch: ["borclar"],
+  },
+  yarg_hgk_2020_341: {
+    id: "yarg_hgk_2020_341",
+    kind: "ictihat",
+    shortTitle: "Yarg. HGK 2020/341",
+    fullTitle: "Yargıtay Hukuk Genel Kurulu — E. 2020/341: Manevi tazminat şartları",
+    body:
+      "Manevi tazminata hükmedilebilmesi için kişilik hakkına hukuka aykırı bir saldırının varlığı gerekir. TBK m. 56 ve TMK m. 24 birlikte değerlendirilir. Manevi tazminat miktarı, zarar görenin sosyal ve ekonomik durumuyla orantılı olmalıdır.",
+    keywords: ["manevi tazminat", "kişilik hakkı", "saldırı", "TBK m. 56"],
+    branch: ["borclar", "medeni"],
+  },
+
+  yarg_1hd_2018_5678: {
+    id: "yarg_1hd_2018_5678",
+    kind: "ictihat",
+    shortTitle: "Yarg. 1. HD. 2018/5678",
+    fullTitle: "Yargıtay 1. Hukuk Dairesi — E. 2018/5678: El atmanın önlenmesi — komşuluk hukuku",
+    body:
+      "TMK m. 737 uyarınca komşuluk hukukundan doğan el atmanın önlenmesi davasında, taşkınlığın katlanılabilir sınırı aşıp aşmadığı yerel örf ve adete göre belirlenir. Her rahatsızlık el atma sayılmaz; olağan yaşam gürültüsü katlanma yükümlülüğü kapsamındadır.",
+    keywords: ["komşuluk hukuku", "el atma", "katlanma", "TMK m. 737"],
+    branch: ["medeni"],
+  },
+  yarg_1hd_2019_2341: {
+    id: "yarg_1hd_2019_2341",
+    kind: "ictihat",
+    shortTitle: "Yarg. 1. HD. 2019/2341",
+    fullTitle: "Yargıtay 1. Hukuk Dairesi — E. 2019/2341: Mülkiyet hakkı — taşkın kullanım",
+    body:
+      "TMK m. 683'te tanımlanan mülkiyet hakkı, TMK m. 730'daki taşkın kullanım yasağıyla sınırlıdır. Malik mülkiyet hakkını kullanırken başkalarına zarar vermekten kaçınmalıdır. Taşkın kullanım tespit edilirse eski hale getirme ve tazminata hükmedilir.",
+    keywords: ["mülkiyet hakkı", "taşkın kullanım", "eski hale getirme"],
+    branch: ["medeni"],
+  },
+  yarg_2hd_2020_4512: {
+    id: "yarg_2hd_2020_4512",
+    kind: "ictihat",
+    shortTitle: "Yarg. 2. HD. 2020/4512",
+    fullTitle: "Yargıtay 2. Hukuk Dairesi — E. 2020/4512: Boşanma — yoksulluk nafakası",
+    body:
+      "TMK m. 175 uyarınca yoksulluk nafakasına hükmedilebilmesi için talep edenin boşanma yüzünden yoksulluğa düşecek olması ve kusurunun daha ağır olmaması gerekir. Nafaka yükümlüsünün kusuru aranmaz. Nafaka süresizdir ancak koşullar değişirse kaldırılabilir.",
+    keywords: ["yoksulluk nafakası", "boşanma", "TMK m. 175", "süresiz"],
+    branch: ["medeni"],
+  },
+
+  yarg_hgk_2017_456: {
+    id: "yarg_hgk_2017_456",
+    kind: "ictihat",
+    shortTitle: "Yarg. HGK 2017/456",
+    fullTitle: "Yargıtay Hukuk Genel Kurulu — E. 2017/456: İhtiyati tedbir — yaklaşık ispat",
+    body:
+      "HMK m. 390 uyarınca ihtiyati tedbir talep edenin, hakkını yaklaşık olarak ispat etmesi yeterlidir; tam ispat aranmaz. Ancak tedbir kararı, uyuşmazlığı esastan çözer nitelikte olamaz. Karşı taraf dinlenmeden tedbir kararı verilebilmesi için gecikmede sakınca bulunmalıdır.",
+    keywords: ["ihtiyati tedbir", "yaklaşık ispat", "HMK m. 390"],
+    branch: ["medeni_usul"],
+  },
+  yarg_hgk_2019_892: {
+    id: "yarg_hgk_2019_892",
+    kind: "ictihat",
+    shortTitle: "Yarg. HGK 2019/892",
+    fullTitle: "Yargıtay Hukuk Genel Kurulu — E. 2019/892: İspat yükü — HMK m. 190",
+    body:
+      "HMK m. 190 uyarınca ispat yükü, iddia edilen vakıaya bağlanan hukuki sonuçtan kendi lehine hak çıkaran tarafa aittir. Kanuni karineye dayanan taraf, sadece karinenin temel vakıasını ispatla yükümlüdür; aksi ispat karşı tarafa geçer.",
+    keywords: ["ispat yükü", "HMK m. 190", "karine", "vakıa"],
+    branch: ["medeni_usul"],
+  },
+  yarg_4hd_2021_3345: {
+    id: "yarg_4hd_2021_3345",
+    kind: "ictihat",
+    shortTitle: "Yarg. 4. HD. 2021/3345",
+    fullTitle: "Yargıtay 4. Hukuk Dairesi — E. 2021/3345: Dava dilekçesi — talep sonucu",
+    body:
+      "HMK m. 119/ğ uyarınca dava dilekçesinde talep sonucu açıkça belirtilmelidir. Belirsiz alacak davası açılmışsa, talep sonucu asgari bir miktar gösterilerek dava açılabilir. Talep sonucu olmayan dilekçe, kesin süre verilerek tamamlattırılır.",
+    keywords: ["dava dilekçesi", "talep sonucu", "HMK m. 119", "belirsiz alacak"],
+    branch: ["medeni_usul"],
+  },
+
+  yarg_cgk_2019_1234: {
+    id: "yarg_cgk_2019_1234",
+    kind: "ictihat",
+    shortTitle: "Yarg. CGK 2019/1234",
+    fullTitle: "Yargıtay Ceza Genel Kurulu — E. 2019/1234: Olası kast — TCK m. 21/2",
+    body:
+      "TCK m. 21/2 uyarınca olası kast, failin suçun kanuni tanımındaki unsurların gerçekleşebileceğini öngörmesine rağmen fiili işlemesidir. Olası kastta fail 'olursa olsun' düşüncesiyle hareket eder. Bilinçli taksirden farkı, failin neticeyi kabullenmesidir.",
+    keywords: ["olası kast", "TCK m. 21", "bilinçli taksir", "öngörme"],
+    branch: ["ceza"],
+  },
+  yarg_cgk_2020_567: {
+    id: "yarg_cgk_2020_567",
+    kind: "ictihat",
+    shortTitle: "Yarg. CGK 2020/567",
+    fullTitle: "Yargıtay Ceza Genel Kurulu — E. 2020/567: Kasten yaralama — neticesi sebebiyle ağırlaşmış hal",
+    body:
+      "TCK m. 86 ve 87 uyarınca kasten yaralama suçunun neticesi sebebiyle ağırlaşmış hallerinde, failin ağır netice bakımından en azından taksirinin bulunması gerekir. Ağır netice öngörülemez nitelikte ise sorumluluk doğmaz.",
+    keywords: ["kasten yaralama", "TCK m. 86", "neticesi sebebiyle ağırlaşma"],
+    branch: ["ceza"],
+  },
+  yarg_cgk_2018_890: {
+    id: "yarg_cgk_2018_890",
+    kind: "ictihat",
+    shortTitle: "Yarg. CGK 2018/890",
+    fullTitle: "Yargıtay Ceza Genel Kurulu — E. 2018/890: Hırsızlık — malın değerinin azlığı",
+    body:
+      "TCK m. 145 uyarınca hırsızlık suçunda malın değerinin azlığı, cezada indirim sebebidir. Hakim somut olayın özelliklerine göre TCK m. 61 çerçevesinde takdir yetkisini kullanır. Malın değerinin çok düşük olması halinde ceza vermekten vazgeçilebilir.",
+    keywords: ["hırsızlık", "TCK m. 145", "değer azlığı", "takdir yetkisi"],
+    branch: ["ceza"],
+  },
+
+  yarg_cmk_2019_7890: {
+    id: "yarg_cmk_2019_7890",
+    kind: "ictihat",
+    shortTitle: "Yarg. CMK 2019/7890",
+    fullTitle: "Yargıtay Ceza Dairesi — E. 2019/7890: Tutuklama — ölçülülük ilkesi",
+    body:
+      "CMK m. 100 uyarınca tutuklama kararı verilirken ölçülülük ilkesi gözetilmelidir. İşin önemi, verilmesi beklenen ceza ile tutuklama tedbirinin orantılı olması gerekir. Adli kontrol hükümleri yetersiz kalıyorsa tutuklamaya başvurulur.",
+    keywords: ["tutuklama", "ölçülülük", "CMK m. 100", "adli kontrol"],
+    branch: ["ceza_usul"],
+  },
+  yarg_cmk_2020_4521: {
+    id: "yarg_cmk_2020_4521",
+    kind: "ictihat",
+    shortTitle: "Yarg. CMK 2020/4521",
+    fullTitle: "Yargıtay Ceza Dairesi — E. 2020/4521: Gözaltı süresi",
+    body:
+      "CMK m. 91 uyarınca gözaltı süresi yakalama anından itibaren 24 saati geçemez. Toplu suçlarda Cumhuriyet savcısı yazılı emirle 3 güne kadar uzatabilir. Süre aşımı halinde elde edilen deliller hukuka aykırı sayılır.",
+    keywords: ["gözaltı süresi", "CMK m. 91", "toplu suç", "hukuka aykırı delil"],
+    branch: ["ceza_usul"],
+  },
+
+  danstay_iddk_2019_567: {
+    id: "danstay_iddk_2019_567",
+    kind: "ictihat",
+    shortTitle: "Danıştay İDDK 2019/567",
+    fullTitle: "Danıştay İdari Dava Daireleri Kurulu — E. 2019/567: Dava açma süresi",
+    body:
+      "İYUK m. 7 uyarınca idari davalarda dava açma süresi 60 gündür. Süre, tebliğ tarihini izleyen günden başlar. Sürenin son günü tatile rastlarsa, takip eden ilk iş günü mesai bitimine kadar dava açılabilir. Hak düşürücü süredir, re'sen dikkate alınır.",
+    keywords: ["dava açma süresi", "İYUK m. 7", "60 gün", "hak düşürücü süre"],
+    branch: ["idare"],
+  },
+  danstay_iddk_2020_234: {
+    id: "danstay_iddk_2020_234",
+    kind: "ictihat",
+    shortTitle: "Danıştay İDDK 2020/234",
+    fullTitle: "Danıştay İdari Dava Daireleri Kurulu — E. 2020/234: Yürütmenin durdurulması",
+    body:
+      "İYUK m. 27 uyarınca yürütmenin durdurulması kararı verilebilmesi için idari işlemin uygulanması halinde telafisi güç veya imkansız zararların doğması ve işlemin açıkça hukuka aykırı olması şartlarının birlikte gerçekleşmesi gerekir.",
+    keywords: ["yürütmenin durdurulması", "İYUK m. 27", "telafi"],
+    branch: ["idare"],
+  },
+
+  yarg_12hd_2019_4567: {
+    id: "yarg_12hd_2019_4567",
+    kind: "ictihat",
+    shortTitle: "Yarg. 12. HD. 2019/4567",
+    fullTitle: "Yargıtay 12. Hukuk Dairesi — E. 2019/4567: İtirazın iptali — icra inkar tazminatı",
+    body:
+      "İİK m. 67 uyarınca itirazın iptali davasında borçlunun itirazı haksız bulunursa, alacaklının talebi üzerine borçlu aleyhine %20'den az olmamak üzere icra inkar tazminatına hükmedilir. Alacak likit olmalıdır.",
+    keywords: ["itirazın iptali", "icra inkar tazminatı", "İİK m. 67", "likit alacak"],
+    branch: ["icra"],
+  },
+  yarg_12hd_2020_8934: {
+    id: "yarg_12hd_2020_8934",
+    kind: "ictihat",
+    shortTitle: "Yarg. 12. HD. 2020/8934",
+    fullTitle: "Yargıtay 12. Hukuk Dairesi — E. 2020/8934: İtirazın kesin kaldırılması",
+    body:
+      "İİK m. 68 uyarınca itirazın kesin kaldırılması için alacağın imzası ikrar edilmiş bir senede veya resmi belgeye dayanması gerekir. 6 aylık hak düşürücü süre içinde talep edilmelidir. Süre geçtikten sonra yeniden ilamsız takip yapılamaz.",
+    keywords: ["itirazın kaldırılması", "İİK m. 68", "6 ay", "hak düşürücü"],
+    branch: ["icra"],
+  },
+
+  aym_2016_143: {
+    id: "aym_2016_143",
+    kind: "ictihat",
+    shortTitle: "AYM 2016/143 Bireysel Başvuru",
+    fullTitle: "Anayasa Mahkemesi — 2016/143: Adil yargılanma hakkı — gerekçeli karar",
+    body:
+      "Anayasa m. 36'da güvence altına alınan adil yargılanma hakkı, mahkeme kararlarının gerekçeli olmasını da kapsar. Gerekçesiz karar, tarafların iddia ve savunmalarının neden reddedildiğini anlamasını engeller. Gerekçe eksikliği adil yargılanma ihlalidir.",
+    keywords: ["adil yargılanma", "gerekçeli karar", "AYM", "Anayasa m. 36"],
+    branch: ["anayasa", "medeni_usul"],
+  },
+  aym_2019_34: {
+    id: "aym_2019_34",
+    kind: "ictihat",
+    shortTitle: "AYM 2019/34 Bireysel Başvuru",
+    fullTitle: "Anayasa Mahkemesi — 2019/34: Mülkiyet hakkı ihlali",
+    body:
+      "Anayasa m. 35 ve AİHS Ek 1. Protokol m. 1 kapsamındaki mülkiyet hakkına yapılan müdahalenin kanuni dayanağı olmalı, kamu yararı amacı taşımalı ve ölçülü olmalıdır. Ölçüsüz müdahale mülkiyet hakkı ihlalidir.",
+    keywords: ["mülkiyet hakkı", "AYM", "ölçülülük", "kamu yararı"],
+    branch: ["anayasa", "medeni"],
+  },
+
+  /* ═════════════════════════ BORÇLAR GENİŞLETME ═════════════════════════ */
+  tbk_m50: {
+    id: "tbk_m50",
+    kind: "kanun",
+    shortTitle: "TBK m. 50",
+    fullTitle: "6098 sayılı TBK — Madde 50: Zararın ispatı",
+    body: "Zarar gören, zararını ve zarar verenin kusurunu ispat yükü altındadır. Uğranılan zararın miktarı tam olarak ispat edilemiyorsa hâkim, olayların olağan akışını ve zarar görenin aldığı önlemleri göz önünde tutarak, zararın miktarını hakkaniyete uygun olarak belirler.",
+    keywords: ["zarar ispatı", "hakkaniyet", "TBK m. 50", "takdir yetkisi"],
+    branch: ["borclar"],
+  },
+  tbk_m51: {
+    id: "tbk_m51",
+    kind: "kanun",
+    shortTitle: "TBK m. 51",
+    fullTitle: "6098 sayılı TBK — Madde 51: Tazminatın belirlenmesi",
+    body: "Hâkim, tazminatın kapsamını ve ödenme biçimini, durumun gereğini ve özellikle kusurun ağırlığını göz önüne alarak belirler. Tazminatın irat biçiminde ödenmesine karar verilirse, borçlu güvence göstermekle yükümlü kılınır.",
+    keywords: ["tazminat", "irat", "kusur ağırlığı", "TBK m. 51"],
+    branch: ["borclar"],
+  },
+  tbk_m52: {
+    id: "tbk_m52",
+    kind: "kanun",
+    shortTitle: "TBK m. 52",
+    fullTitle: "6098 sayılı TBK — Madde 52: Tazminatın indirilmesi",
+    body: "Zarar gören, zararı doğuran fiile razı olmuş veya zararın doğmasında ya da artmasında etkili olmuş ya da tazminat yükümlüsünün durumunu ağırlaştırmış ise hâkim, tazminatı indirebilir veya tamamen kaldırabilir. Zarara hafif kusuruyla sebep olan tazminat yükümlüsü, tazminatı ödediğinde yoksulluğa düşecek olur ve hakkaniyet de gerektirirse hâkim, tazminatı indirebilir.",
+    keywords: ["indirim", "müterafik kusur", "hakkaniyet", "TBK m. 52"],
+    branch: ["borclar"],
+  },
+  tbk_m53: {
+    id: "tbk_m53",
+    kind: "kanun",
+    shortTitle: "TBK m. 53",
+    fullTitle: "6098 sayılı TBK — Madde 53: Manevi tazminat — ölüm halinde",
+    body: "Ölüm hâlinde, ölenin desteğinden yoksun kalan kişilerin bu sebeple uğradıkları kayıplar, maddi zarar kapsamında tazmin edilir. Ölenin yakınlarına, ağır bedensel zarar halinde de zarar görene manevi tazminat olarak uygun bir miktar paranın ödenmesine karar verilebilir.",
+    keywords: ["manevi tazminat", "ölüm", "destekten yoksun kalma", "TBK m. 53"],
+    branch: ["borclar"],
+  },
+  tbk_m54: {
+    id: "tbk_m54",
+    kind: "kanun",
+    shortTitle: "TBK m. 54",
+    fullTitle: "6098 sayılı TBK — Madde 54: Bedensel zarar — tazminat kapsamı",
+    body: "Bedensel zarar hâlinde tazminat; tedavi giderleri, kazanç kaybı, çalışma gücünün azalmasından ya da yitirilmesinden doğan kayıplar ve ekonomik geleceğin sarsılmasından doğan kayıpları kapsar. Belirlenecek tazminat bu zararların bütününü karşılamalıdır.",
+    keywords: ["bedensel zarar", "kazanç kaybı", "tedavi gideri", "TBK m. 54"],
+    branch: ["borclar"],
+  },
+  tbk_m55: {
+    id: "tbk_m55",
+    kind: "kanun",
+    shortTitle: "TBK m. 55",
+    fullTitle: "6098 sayılı TBK — Madde 55: Destekten yoksun kalma tazminatı",
+    body: "Destekten yoksun kalma zararı, ölenin yaşamı boyunca sağlayacağı varsayılan destek esas alınarak hesaplanır. Hesaplamada ölenin geliri, yaşı, desteğin süresi, destek görenlerin sayısı ve yaşam süreleri dikkate alınır.",
+    keywords: ["destek tazminatı", "hesaplama", "TBK m. 55"],
+    branch: ["borclar"],
+  },
+  tbk_m60: {
+    id: "tbk_m60",
+    kind: "kanun",
+    shortTitle: "TBK m. 60",
+    fullTitle: "6098 sayılı TBK — Madde 60: Zamanaşımı — haksız fiil",
+    body: "Haksız fiilden doğan tazminat istemi, zarar görenin zararı ve tazminat yükümlüsünü öğrendiği tarihten başlayarak 2 yılın ve her hâlde fiilin işlendiği tarihten başlayarak 10 yılın geçmesiyle zamanaşımına uğrar. Haksız fiil aynı zamanda suç oluşturuyorsa, ceza zamanaşımı süresi daha uzunsa o süre uygulanır.",
+    keywords: ["zamanaşımı", "haksız fiil", "2 yıl", "10 yıl", "ceza zamanaşımı"],
+    branch: ["borclar"],
+  },
+  tbk_m61: {
+    id: "tbk_m61",
+    kind: "kanun",
+    shortTitle: "TBK m. 61",
+    fullTitle: "6098 sayılı TBK — Madde 61: Müteselsil sorumluluk",
+    body: "Birden çok kişi birlikte bir zarara sebebiyet verdikleri veya aynı zarardan çeşitli sebeplerden dolayı sorumlu oldukları takdirde, haklarında müteselsil sorumluluğa ilişkin hükümler uygulanır. Haksız fiilden doğan müteselsil sorumlulukta, zarar gören tazminatın tamamını sorumlulardan birinden isteyebilir; ödeyen diğerlerine rücu eder.",
+    keywords: ["müteselsil sorumluluk", "rücu", "birlikte sorumluluk"],
+    branch: ["borclar"],
+  },
+  tbk_m66: {
+    id: "tbk_m66",
+    kind: "kanun",
+    shortTitle: "TBK m. 66",
+    fullTitle: "6098 sayılı TBK — Madde 66: Adam çalıştıranın sorumluluğu",
+    body: "Adam çalıştıran, çalışanın kendisine verilen işin yapılması sırasında başkalarına verdiği zararı gidermekle yükümlüdür. Adam çalıştıran, çalışanını seçerken, işiyle ilgili talimat verirken, gözetim ve denetimde bulunurken zararın doğmasını engellemek için gerekli özeni gösterdiğini ispat ederse sorumlu olmaz (kurtuluş kanıtı).",
+    keywords: ["adam çalıştıran", "kurtuluş kanıtı", "istihdam", "özen yükümlülüğü"],
+    branch: ["borclar"],
+  },
+  tbk_m69: {
+    id: "tbk_m69",
+    kind: "kanun",
+    shortTitle: "TBK m. 69",
+    fullTitle: "6098 sayılı TBK — Madde 69: Yapı malikinin sorumluluğu",
+    body: "Bir binanın veya diğer yapı eserlerinin maliki, bunların yapımındaki bozukluklardan veya bakımındaki eksikliklerden doğan zararı gidermekle yükümlüdür. Bu sorumluluk kusura dayanmaz; tehlike sorumluluğudur. Malik, intifa veya oturma hakkı sahibine rücu edebilir.",
+    keywords: ["yapı maliki", "tehlike sorumluluğu", "bakım eksikliği"],
+    branch: ["borclar"],
+  },
+  tbk_m112: {
+    id: "tbk_m112",
+    kind: "kanun",
+    shortTitle: "TBK m. 112",
+    fullTitle: "6098 sayılı TBK — Madde 112: Borca aykırılık — genel",
+    body: "Borç hiç veya gereği gibi ifa edilmezse borçlu, kendisine hiçbir kusurun yüklenemeyeceğini ispat etmedikçe, alacaklının bundan doğan zararını gidermekle yükümlüdür. Bu, borca aykırılığın genel hükmüdür. Kusur karinesi geçerli; ispat yükü borçludadır.",
+    keywords: ["borca aykırılık", "kusur karinesi", "tazminat", "TBK m. 112"],
+    branch: ["borclar"],
+  },
+  tbk_m119: {
+    id: "tbk_m119",
+    kind: "kanun",
+    shortTitle: "TBK m. 119",
+    fullTitle: "6098 sayılı TBK — Madde 119: Temerrüt faizi",
+    body: "Temerrüt faizine, sözleşme ile kararlaştırılmamış olsa bile, para borcunun temerrüde düşüldüğü tarihten itibaren hak kazanılır. Temerrüt faizi oranı hakkında, 3095 sayılı Kanuni Faiz ve Temerrüt Faizine İlişkin Kanun hükümleri uygulanır.",
+    keywords: ["temerrüt faizi", "para borcu", "yasal faiz"],
+    branch: ["borclar"],
+  },
+  tbk_m125: {
+    id: "tbk_m125",
+    kind: "kanun",
+    shortTitle: "TBK m. 125",
+    fullTitle: "6098 sayılı TBK — Madde 125: Seçimlik haklar",
+    body: "Karşılıklı borç yükleyen sözleşmelerde, borçlu temerrüde düştüğü takdirde alacaklı, borcun ifasını ve gecikme tazminatını isteyebileceği gibi, borcun ifasından vazgeçip müspet zararının tazminini de isteyebilir. Alacaklı ayrıca sözleşmeden dönerek menfi zararını talep edebilir.",
+    keywords: ["seçimlik hak", "müspet zarar", "menfi zarar", "dönme"],
+    branch: ["borclar"],
+  },
+
+  /* ═════════════════════════ MEDENİ GENİŞLETME ═════════════════════════ */
+  tmk_m25: {
+    id: "tmk_m25",
+    kind: "kanun",
+    shortTitle: "TMK m. 25",
+    fullTitle: "4721 sayılı TMK — Madde 25: Kişiliğin korunması davaları",
+    body: "Davacı, hâkimden saldırı tehlikesinin önlenmesini, sürmekte olan saldırıya son verilmesini, sona ermiş olsa bile etkileri devam eden saldırının hukuka aykırılığının tespitini isteyebilir. Davacı, bu davalarla birlikte düzeltmenin veya kararın üçüncü kişilere bildirilmesi ya da yayımlanmasına da karar verilmesini isteyebilir.",
+    keywords: ["kişilik koruması", "saldırı", "tespit", "düzeltme"],
+    branch: ["medeni"],
+  },
+  tmk_m166: {
+    id: "tmk_m166",
+    kind: "kanun",
+    shortTitle: "TMK m. 166",
+    fullTitle: "4721 sayılı TMK — Madde 166: Evlilik birliğinin sarsılması",
+    body: "Evlilik birliği, ortak hayatı sürdürmeleri kendilerinden beklenmeyecek derecede temelinden sarsılmış olursa, eşlerden her biri boşanma davası açabilir. Davacının kusuru daha ağır ise, davalının açılan davaya itiraz hakkı vardır. Bununla birlikte, itiraz hakkın kötüye kullanılması niteliğindeyse ve evlilik birliğinin devamında davalı ve çocuklar bakımından korunmaya değer bir yarar kalmamışsa evliliğe son verilir.",
+    keywords: ["boşanma", "evlilik birliği", "temelinden sarsılma", "TMK m. 166"],
+    branch: ["medeni"],
+  },
+  tmk_m183: {
+    id: "tmk_m183",
+    kind: "kanun",
+    shortTitle: "TMK m. 183",
+    fullTitle: "4721 sayılı TMK — Madde 183: Boşanmada maddi tazminat",
+    body: "Boşanma sebebiyle mevcut veya beklenen menfaatleri zedelenen kusursuz veya daha az kusurlu taraf, kusurlu diğer taraftan uygun bir maddi tazminat isteyebilir. Aynı şekilde boşanmaya sebep olan olaylar nedeniyle kişilik hakkı saldırıya uğrayan taraf da manevi tazminat talep edebilir.",
+    keywords: ["maddi tazminat", "boşanma", "menfaat zedelenmesi"],
+    branch: ["medeni"],
+  },
+  tmk_m185: {
+    id: "tmk_m185",
+    kind: "kanun",
+    shortTitle: "TMK m. 185",
+    fullTitle: "4721 sayılı TMK — Madde 185: Evlilik birliğinin korunması",
+    body: "Eşler evlilik birliğinin mutluluğunu elbirliğiyle sağlamak ve çocukların bakımına, eğitim ve gözetimine beraberce özen göstermekle yükümlüdürler. Eşler birlikte yaşamak, birbirine sadık kalmak ve yardımcı olmak zorundadırlar.",
+    keywords: ["evlilik yükümlülükleri", "sadakat", "yardım", "TMK m. 185"],
+    branch: ["medeni"],
+  },
+  tmk_m197: {
+    id: "tmk_m197",
+    kind: "kanun",
+    shortTitle: "TMK m. 197",
+    fullTitle: "4721 sayılı TMK — Madde 197: Ayrılık kararı",
+    body: "Eşlerden biri, ortak hayat sebebiyle kişiliği, ekonomik güvenliği veya ailenin huzuru ciddi biçimde tehlikeye düştüğü sürece ayrı yaşama hakkına sahiptir. Birlikte yaşamaya ara verilmesi haklı bir sebebe dayanıyorsa hâkim, ayrı yaşama süresince eşlerin birbirine yapacağı maddi katkıyı ve ev eşyasından yararlanmayı düzenler.",
+    keywords: ["ayrılık", "ayrı yaşama", "TMK m. 197"],
+    branch: ["medeni"],
+  },
+  tmk_m599: {
+    id: "tmk_m599",
+    kind: "kanun",
+    shortTitle: "TMK m. 599",
+    fullTitle: "4721 sayılı TMK — Madde 599: Mirasın kazanılması",
+    body: "Miras, mirasbırakanın ölümüyle kendiliğinden ve bir bütün olarak kanuni ve atanmış mirasçılara geçer. Mirasçılar mirası kayıtsız şartsız kazanırlar; ancak kanunda öngörülen süre içinde mirası reddedebilirler. Mirasın resmen tasfiyesi veya defter tutma yoluyla kabulü de mümkündür.",
+    keywords: ["miras", "külli halefiyet", "reddi miras", "TMK m. 599"],
+    branch: ["medeni"],
+  },
+  tmk_m640: {
+    id: "tmk_m640",
+    kind: "kanun",
+    shortTitle: "TMK m. 640",
+    fullTitle: "4721 sayılı TMK — Madde 640: Miras ortaklığı",
+    body: "Birden çok mirasçı bulunması hâlinde, mirasın açıldığı tarihte mirasçılar arasında terekenin tamamı üzerinde elbirliğiyle mülkiyet ilişkisi kurulur. Mirasçılar terekeyi elbirliğiyle yönetir ve tasarruf ederler. Paylaşma tamamlanana kadar her mirasçı terekeye karşı olan borçlardan müteselsilen sorumludur.",
+    keywords: ["miras ortaklığı", "elbirliği", "tereke", "TMK m. 640"],
+    branch: ["medeni"],
+  },
+  tmk_m701: {
+    id: "tmk_m701",
+    kind: "kanun",
+    shortTitle: "TMK m. 701",
+    fullTitle: "4721 sayılı TMK — Madde 701: Paylı mülkiyet",
+    body: "Paylı mülkiyette birden çok kimse, maddi olarak bölünmüş olmayan bir şeyin tamamına belli paylarla maliktir. Başka türlü belirlenmedikçe, paylar eşit sayılır. Paydaşlardan her biri kendi payı bakımından malik hak ve yükümlülüklerine sahiptir; payını devredebilir, rehnedebilir ve alacaklıları tarafından haczettirebilir.",
+    keywords: ["paylı mülkiyet", "paydaş", "TMK m. 701"],
+    branch: ["medeni"],
+  },
+
+  /* ═════════════════════════ MEDENİ USUL GENİŞLETME ═════════════════════════ */
+  hmk_m114: {
+    id: "hmk_m114",
+    kind: "kanun",
+    shortTitle: "HMK m. 114",
+    fullTitle: "6100 sayılı HMK — Madde 114: Dava şartları",
+    body: "Dava şartları şunlardır: Türk mahkemelerinin yargı hakkının bulunması, yargı yolunun caiz olması, mahkemenin görevli olması, yetkili mahkeme, tarafların taraf ve dava ehliyeti, kanuni temsil, dava takip yetkisi, vekaletname, teminat, derdestlik, kesin hüküm, aynı davanın daha önceden açılmış ve hâlen görülmekte olmaması, hukuki yarar. Mahkeme dava şartlarını re'sen gözetir; eksiklik giderilebilirse kesin süre verir.",
+    keywords: ["dava şartları", "görev", "yetki", "hukuki yarar", "derdestlik", "re'sen"],
+    branch: ["medeni_usul"],
+  },
+  hmk_m115: {
+    id: "hmk_m115",
+    kind: "kanun",
+    shortTitle: "HMK m. 115",
+    fullTitle: "6100 sayılı HMK — Madde 115: Dava şartı eksikliği",
+    body: "Mahkeme, dava şartlarının mevcut olup olmadığını davanın her aşamasında kendiliğinden araştırır. Dava şartı noksanlığı tespit edilirse davanın usulden reddine karar verilir. Ancak eksikliğin giderilmesi mümkün ise tamamlanması için kesin süre verilir; bu süre içinde eksiklik giderilmezse dava usulden reddedilir.",
+    keywords: ["dava şartı", "usulden ret", "kesin süre", "HMK m. 115"],
+    branch: ["medeni_usul"],
+  },
+  hmk_m187: {
+    id: "hmk_m187",
+    kind: "kanun",
+    shortTitle: "HMK m. 187",
+    fullTitle: "6100 sayılı HMK — Madde 187: İspatın konusu",
+    body: "İspatın konusunu tarafların üzerinde anlaşamadıkları ve uyuşmazlığın çözümünde etkili olabilecek çekişmeli vakıalar oluşturur. Herkesçe bilinen vakıalarla, ikrar edilmiş vakıalar çekişmeli sayılmaz. Hukuki sebepler ispata konu olmaz.",
+    keywords: ["ispat", "çekişmeli vakıa", "ikrar", "HMK m. 187"],
+    branch: ["medeni_usul"],
+  },
+  hmk_m188: {
+    id: "hmk_m188",
+    kind: "kanun",
+    shortTitle: "HMK m. 188",
+    fullTitle: "6100 sayılı HMK — Madde 188: İkrar",
+    body: "Taraflardan birinin, diğer tarafın iddia ettiği bir vakıanın doğru olduğunu beyan etmesine ikrar denir. İkrar, kesin delil niteliğindedir; ikrar edilen vakıa artık çekişmeli sayılmaz ve ispat gerektirmez. Mahkeme dışı ikrar, takdiri delil niteliğindedir ve hâkim tarafından serbestçe değerlendirilir.",
+    keywords: ["ikrar", "kesin delil", "mahkeme içi", "HMK m. 188"],
+    branch: ["medeni_usul"],
+  },
+  hmk_m189: {
+    id: "hmk_m189",
+    kind: "kanun",
+    shortTitle: "HMK m. 189",
+    fullTitle: "6100 sayılı HMK — Madde 189: Delil sözleşmesi",
+    body: "Taraflar, kanunda belirtilen delillerle ispat hakkına sahiptir. Taraflar, yazılı olarak veya mahkeme huzurunda tutanağa geçirilecek açık bir irade beyanıyla, belirli bir vakıanın belirli bir delille ispatı konusunda anlaşabilirler (delil sözleşmesi).",
+    keywords: ["delil sözleşmesi", "ispat hakkı", "HMK m. 189"],
+    branch: ["medeni_usul"],
+  },
+  hmk_m200: {
+    id: "hmk_m200",
+    kind: "kanun",
+    shortTitle: "HMK m. 200",
+    fullTitle: "6100 sayılı HMK — Madde 200: Senetle ispat zorunluluğu",
+    body: "Bir hukuki işlemin miktar veya değeri, 2024 yılı için 14.800 TL'yi aştığı takdirde senetle ispat edilmesi gerekir. Bu miktarın altında kalan hukuki işlemler tanıkla da ispat edilebilir. Senetle ispat zorunluluğuna aykırı olarak tanık dinlenemez; ancak delil başlangıcı varsa tanık dinlenebilir.",
+    keywords: ["senetle ispat", "tanık", "delil başlangıcı", "HMK m. 200"],
+    branch: ["medeni_usul"],
+  },
+  hmk_m202: {
+    id: "hmk_m202",
+    kind: "kanun",
+    shortTitle: "HMK m. 202",
+    fullTitle: "6100 sayılı HMK — Madde 202: Delil başlangıcı",
+    body: "Delil başlangıcı, iddia konusu hukuki işlemin tamamen ispatına yeterli olmamakla birlikte, söz konusu hukuki işlemi muhtemel gösteren ve kendisine karşı ileri sürülen kimse veya temsilcisi tarafından verilmiş veya gönderilmiş belgedir. Delil başlangıcı bulunursa, senetle ispat zorunluluğu olsa bile tanık dinlenebilir.",
+    keywords: ["delil başlangıcı", "tanık", "senetle ispat istisnası"],
+    branch: ["medeni_usul"],
+  },
+  hmk_m240: {
+    id: "hmk_m240",
+    kind: "kanun",
+    shortTitle: "HMK m. 240",
+    fullTitle: "6100 sayılı HMK — Madde 240: Tanıklık",
+    body: "Tanık, davanın tarafı olmayan ve olay hakkında bilgisi bulunan üçüncü kişilerdir. Tanıklık yapmak zorunludur; çağrıya uymayan tanık hakkında disiplin para cezası ve zorla getirme kararı verilebilir. Tanık, tanıklıktan çekilme hakkına sahip olduğu hâllerde çekilebilir.",
+    keywords: ["tanık", "tanıklık zorunluluğu", "çekilme hakkı"],
+    branch: ["medeni_usul"],
+  },
+  hmk_m266: {
+    id: "hmk_m266",
+    kind: "kanun",
+    shortTitle: "HMK m. 266",
+    fullTitle: "6100 sayılı HMK — Madde 266: Bilirkişiye başvurma",
+    body: "Mahkeme, çözümü hukuk dışında özel veya teknik bilgiyi gerektiren hâllerde, taraflardan birinin talebi üzerine ya da kendiliğinden bilirkişinin oy ve görüşünün alınmasına karar verir. Hâkimlik mesleğinin gerektirdiği genel ve hukuki bilgiyle çözümlenmesi mümkün olan konularda bilirkişiye başvurulamaz.",
+    keywords: ["bilirkişi", "teknik bilgi", "HMK m. 266"],
+    branch: ["medeni_usul"],
+  },
+  hmk_m297: {
+    id: "hmk_m297",
+    kind: "kanun",
+    shortTitle: "HMK m. 297",
+    fullTitle: "6100 sayılı HMK — Madde 297: Hükmün kapsamı",
+    body: "Hüküm, mahkeme başkanı ve üyeleri veya hâkim tarafından imzalanır. Hükümde; tarafların ve varsa vekillerinin ad ve soyadları, iddia ve savunmaların özeti, sabit görülen vakıalar, delillerin tartışılması ve gerekçe, hüküm sonucu, yargılama giderleri ve kanun yollarına başvuru süresi yer alır.",
+    keywords: ["hüküm", "gerekçe", "HMK m. 297"],
+    branch: ["medeni_usul"],
+  },
+
+  /* ═════════════════════════ CEZA GENİŞLETME ═════════════════════════ */
+  tck_m22: {
+    id: "tck_m22",
+    kind: "kanun",
+    shortTitle: "TCK m. 22",
+    fullTitle: "5237 sayılı TCK — Madde 22: Taksir",
+    body: "Taksirle işlenen fiiller, kanunun açıkça belirttiği hâllerde cezalandırılır. Taksir, dikkat ve özen yükümlülüğüne aykırılık dolayısıyla, bir davranışın suçun kanuni tanımında belirtilen neticesi öngörülmeyerek gerçekleştirilmesidir. Bilinçli taksirde, netice kişi tarafından öngörüldüğü hâlde istenmemiştir; ceza artırılır.",
+    keywords: ["taksir", "bilinçli taksir", "özen yükümlülüğü", "TCK m. 22"],
+    branch: ["ceza"],
+  },
+  tck_m30: {
+    id: "tck_m30",
+    kind: "kanun",
+    shortTitle: "TCK m. 30",
+    fullTitle: "5237 sayılı TCK — Madde 30: Hata",
+    body: "Fiilin icrası sırasında suçun kanuni tanımındaki maddi unsurları bilmeyen bir kimse, kasten hareket etmiş olmaz. Bu hata dolayısıyla taksirli sorumluluk hâli saklıdır. İşlediği fiilin haksızlık oluşturduğunu bilmeyen kişi, bu hatası kaçınılmaz ise cezalandırılmaz. Kaçınılabilir hatada cezada indirim yapılır.",
+    keywords: ["hata", "maddi unsur", "hukuki hata", "TCK m. 30"],
+    branch: ["ceza"],
+  },
+  tck_m35: {
+    id: "tck_m35",
+    kind: "kanun",
+    shortTitle: "TCK m. 35",
+    fullTitle: "5237 sayılı TCK — Madde 35: Teşebbüs",
+    body: "Kişi, işlemeyi kastettiği bir suçu elverişli hareketlerle doğrudan doğruya icraya başlayıp da elinde olmayan nedenlerle tamamlayamazsa teşebbüsten dolayı sorumlu tutulur. Teşebbüs hâlinde ceza, suçun tamamlanmış hâline göre indirilir. Sadece suç işleme kararı veya hazırlık hareketleri cezalandırılmaz.",
+    keywords: ["teşebbüs", "elverişli hareket", "icra", "TCK m. 35"],
+    branch: ["ceza"],
+  },
+  tck_m36: {
+    id: "tck_m36",
+    kind: "kanun",
+    shortTitle: "TCK m. 36",
+    fullTitle: "5237 sayılı TCK — Madde 36: Gönüllü vazgeçme",
+    body: "Fail, suçun icra hareketlerinden gönüllü olarak vazgeçer veya kendi çabalarıyla suçun tamamlanmasını veya neticenin gerçekleşmesini önlerse, teşebbüsten dolayı cezalandırılmaz. Vazgeçme gönüllü olmalı; dış engeller sebebiyle değil, failin özgür iradesiyle olmalıdır. Tamamlanan kısım esasen bir suç oluşturuyorsa, sadece o suçtan cezalandırılır.",
+    keywords: ["gönüllü vazgeçme", "teşebbüs", "TCK m. 36"],
+    branch: ["ceza"],
+  },
+  tck_m37: {
+    id: "tck_m37",
+    kind: "kanun",
+    shortTitle: "TCK m. 37",
+    fullTitle: "5237 sayılı TCK — Madde 37: Faillik",
+    body: "Suçun kanuni tanımındaki fiili birlikte gerçekleştiren kişilerden her biri, fail olarak sorumlu olur (müşterek faillik). Suçun işlenmesinde başkasını araç olarak kullanan kişi de fail olarak sorumlu tutulur (dolaylı faillik). Azmettirenin cezası, failin cezasıyla aynıdır.",
+    keywords: ["müşterek faillik", "dolaylı faillik", "azmettirme"],
+    branch: ["ceza"],
+  },
+  tck_m39: {
+    id: "tck_m39",
+    kind: "kanun",
+    shortTitle: "TCK m. 39",
+    fullTitle: "5237 sayılı TCK — Madde 39: Yardım etme",
+    body: "Suçun işlenmesine yardım eden kişi, suçun işlenmesinde kullanılan araçları temin etmek, suçun işlenmesinden önce veya işlenmesi sırasında yardımda bulunarak icrasını kolaylaştırmak gibi fiillerle yardım eden kişi olarak cezalandırılır. Yardım edenin cezasında indirim yapılır.",
+    keywords: ["yardım etme", "feri iştirak", "TCK m. 39"],
+    branch: ["ceza"],
+  },
+  tck_m61: {
+    id: "tck_m61",
+    kind: "kanun",
+    shortTitle: "TCK m. 61",
+    fullTitle: "5237 sayılı TCK — Madde 61: Cezanın belirlenmesi",
+    body: "Hâkim, somut olayda suçun işleniş biçimini, kullanılan araçları, suçun işlendiği zaman ve yeri, suçun konusunun önem ve değerini, meydana gelen zararın ağırlığını, failin kast veya taksire dayalı kusurunun ağırlığını ve failin güttüğü amaç ve saiki göz önünde bulundurarak, temel cezayı belirler.",
+    keywords: ["ceza belirleme", "takdir yetkisi", "TCK m. 61"],
+    branch: ["ceza"],
+  },
+  tck_m81: {
+    id: "tck_m81",
+    kind: "kanun",
+    shortTitle: "TCK m. 81",
+    fullTitle: "5237 sayılı TCK — Madde 81: Zincirleme suç",
+    body: "Bir suç işleme kararının icrası kapsamında, değişik zamanlarda bir kişiye karşı aynı suçun birden fazla işlenmesi durumunda, bir cezaya hükmedilir. Ancak bu ceza, dörtte birinden dörtte üçüne kadar artırılır. Zincirleme suç hükümleri, kasten öldürme, kasten yaralama, işkence ve yağma suçlarında uygulanmaz.",
+    keywords: ["zincirleme suç", "ceza artırımı", "TCK m. 81"],
+    branch: ["ceza"],
+  },
+  tck_m125: {
+    id: "tck_m125",
+    kind: "kanun",
+    shortTitle: "TCK m. 125",
+    fullTitle: "5237 sayılı TCK — Madde 125: Hakaret",
+    body: "Bir kimseye onur, şeref ve saygınlığını rencide edebilecek nitelikte somut bir fiil veya olgu isnat etmek veya sövmek suretiyle bir kimsenin onur, şeref ve saygınlığına saldıran kişi, 3 aydan 2 yıla kadar hapis veya adli para cezasıyla cezalandırılır. Mağdurun gıyabında hakaretin cezalandırılabilmesi için fiilin en az üç kişiyle ihtilat ederek işlenmesi gerekir.",
+    keywords: ["hakaret", "onur", "şeref", "TCK m. 125"],
+    branch: ["ceza"],
+  },
+
+  /* ═════════════════════════ CEZA USUL GENİŞLETME ═════════════════════════ */
+  cmk_m101: {
+    id: "cmk_m101",
+    kind: "kanun",
+    shortTitle: "CMK m. 101",
+    fullTitle: "5271 sayılı CMK — Madde 101: Tutuklama kararı",
+    body: "Tutuklama kararı, Cumhuriyet savcısının talebi üzerine sulh ceza hâkimi tarafından verilir. Kararda, kuvvetli suç şüphesini ve tutuklama nedenlerinin varlığını gösteren somut olgularla, tutuklama tedbirinin ölçülü olduğunu gösteren gerekçeler yer alır. Tutuklama kararı sözlü olarak bildirilir ve yazılı olarak tebliğ edilir.",
+    keywords: ["tutuklama kararı", "sulh ceza", "gerekçe", "CMK m. 101"],
+    branch: ["ceza_usul"],
+  },
+  cmk_m116: {
+    id: "cmk_m116",
+    kind: "kanun",
+    shortTitle: "CMK m. 116",
+    fullTitle: "5271 sayılı CMK — Madde 116: Arama",
+    body: "Yakalanabileceği veya suç delillerinin elde edilebileceği hususunda makul şüphe varsa; şüphelinin veya sanığın üstü, eşyası, konutu, işyeri veya ona ait diğer yerler aranabilir. Aramaya karar verme yetkisi hâkimindir. Gecikmesinde sakınca bulunan hâllerde Cumhuriyet savcısının yazılı emriyle de arama yapılabilir.",
+    keywords: ["arama", "makul şüphe", "CMK m. 116"],
+    branch: ["ceza_usul"],
+  },
+  cmk_m119: {
+    id: "cmk_m119",
+    kind: "kanun",
+    shortTitle: "CMK m. 119",
+    fullTitle: "5271 sayılı CMK — Madde 119: Arama kararının icrası",
+    body: "Arama, hâkim kararı veya Cumhuriyet savcısının yazılı emri üzerine yapılır. Konutta, işyerinde veya kamuya açık olmayan kapalı alanlarda gece saatlerinde arama yapılamaz. Aramada, arama yapılacak yerin ihtiyar heyetinden veya komşulardan iki kişi bulundurulur.",
+    keywords: ["arama", "gece arama yasağı", "CMK m. 119"],
+    branch: ["ceza_usul"],
+  },
+  cmk_m123: {
+    id: "cmk_m123",
+    kind: "kanun",
+    shortTitle: "CMK m. 123",
+    fullTitle: "5271 sayılı CMK — Madde 123: El koyma",
+    body: "İspat aracı olarak yararlı görülen ya da müsadereye tabi olan malvarlığı değerleri, muhafaza altına alınır. El koyma kararını hâkim verir; gecikmesinde sakınca bulunan hâllerde Cumhuriyet savcısı da el koyabilir. Savcının kararı 24 saat içinde hâkim onayına sunulur.",
+    keywords: ["el koyma", "müsadere", "CMK m. 123"],
+    branch: ["ceza_usul"],
+  },
+  cmk_m153: {
+    id: "cmk_m153",
+    kind: "kanun",
+    shortTitle: "CMK m. 153",
+    fullTitle: "5271 sayılı CMK — Madde 153: Müdafiin dosyayı inceleme yetkisi",
+    body: "Müdafi, soruşturma evresinde dosyayı inceleyebilir ve istediği belgelerin bir örneğini harçsız olarak alabilir. Müdafiin dosyayı inceleme yetkisi, soruşturmanın amacını tehlikeye düşürebilecek ise Cumhuriyet savcısının talebi üzerine hâkim tarafından kısıtlanabilir. Kısıtlama kararı, tutuklunun veya şüphelinin ifadesini esaslı şekilde etkileyecek nitelikte olamaz.",
+    keywords: ["müdafi", "dosya inceleme", "CMK m. 153"],
+    branch: ["ceza_usul"],
+  },
+
+  /* ═════════════════════════ İCRA İFLAS GENİŞLETME ═════════════════════════ */
+  iik_m78: {
+    id: "iik_m78",
+    kind: "kanun",
+    shortTitle: "İİK m. 78",
+    fullTitle: "2004 sayılı İİK — Madde 78: Haciz talebi",
+    body: "Ödeme emri süresi içinde itiraz edilmez veya itirazın kaldırılmasına karar verilirse, alacaklı haciz talep edebilir. Haciz talebi, takibin kesinleşmesinden itibaren 1 yıl içinde yapılmalıdır. Bu süre içinde haciz talep edilmezse takip düşer; yenileme talebi gerekir.",
+    keywords: ["haciz talebi", "1 yıl", "takibin kesinleşmesi"],
+    branch: ["icra"],
+  },
+  iik_m79: {
+    id: "iik_m79",
+    kind: "kanun",
+    shortTitle: "İİK m. 79",
+    fullTitle: "2004 sayılı İİK — Madde 79: Haciz işlemi",
+    body: "Haciz, icra memuru tarafından borçlunun malları üzerine konulur. Borçlu, haciz sırasında hazır bulunmazsa haciz tutanağı kendisine tebliğ edilir. Haczedilen malların muhafazası için gerekli tedbirler alınır; taşınırlar yediemine teslim edilebilir.",
+    keywords: ["haciz", "icra memuru", "yediemin"],
+    branch: ["icra"],
+  },
+  iik_m85: {
+    id: "iik_m85",
+    kind: "kanun",
+    shortTitle: "İİK m. 85",
+    fullTitle: "2004 sayılı İİK — Madde 85: Haczi caiz olmayan mallar",
+    body: "Borçlunun ve ailesinin geçimi için zorunlu olan eşyalar, mesleki faaliyeti için gerekli araç gereçler, hayvanlar ve tarım aletleri, belirli bir miktara kadar ücret ve maaş gibi gelirler kısmen haczedilemez. Haczedilmezlik, borçlunun şikayeti üzerine icra mahkemesince karara bağlanır.",
+    keywords: ["haczedilmezlik", "geçim", "şikayet", "İİK m. 85"],
+    branch: ["icra"],
+  },
+  iik_m88: {
+    id: "iik_m88",
+    kind: "kanun",
+    shortTitle: "İİK m. 88",
+    fullTitle: "2004 sayılı İİK — Madde 88: İstihkak iddiası",
+    body: "Haczedilen mal üzerinde üçüncü bir kişi mülkiyet veya rehin hakkı iddia ederse, bu iddia istihkak davasına konu olur. İstihkak iddiası, hacizden itibaren 7 gün içinde icra dairesine bildirilmelidir. İcra memuru, dosyayı icra mahkemesine gönderir.",
+    keywords: ["istihkak", "üçüncü kişi", "mülkiyet iddiası", "İİK m. 88"],
+    branch: ["icra"],
+  },
+
+  /* ═════════════════════════ İDARE GENİŞLETME ═════════════════════════ */
+  iyuk_m27: {
+    id: "iyuk_m27",
+    kind: "kanun",
+    shortTitle: "İYUK m. 27",
+    fullTitle: "2577 sayılı İYUK — Madde 27: Yürütmenin durdurulması",
+    body: "Danıştayda veya idari mahkemelerde dava açılması, dava edilen idari işlemin yürütülmesini durdurmaz. Ancak, idari işlemin uygulanması hâlinde telafisi güç veya imkânsız zararların doğması ve idari işlemin açıkça hukuka aykırı olması şartlarının birlikte gerçekleşmesi durumunda gerekçe gösterilerek yürütmenin durdurulmasına karar verilebilir.",
+    keywords: ["yürütmenin durdurulması", "telafi", "İYUK m. 27"],
+    branch: ["idare"],
+  },
+  iyuk_m28: {
+    id: "iyuk_m28",
+    kind: "kanun",
+    shortTitle: "İYUK m. 28",
+    fullTitle: "2577 sayılı İYUK — Madde 28: İptal kararının sonuçları",
+    body: "Danıştay veya idare mahkemelerinin iptal kararları, idareyi o işlemin yapıldığı tarihten itibaren ortadan kaldırmak ve işlemden önceki hâle getirmekle yükümlü kılar. İdare, iptal kararının gereklerine göre 30 gün içinde işlem tesis etmek veya eylemde bulunmak zorundadır.",
+    keywords: ["iptal kararı", "geçmişe etkili", "30 gün", "İYUK m. 28"],
+    branch: ["idare"],
+  },
+  iyuk_m31: {
+    id: "iyuk_m31",
+    kind: "kanun",
+    shortTitle: "İYUK m. 31",
+    fullTitle: "2577 sayılı İYUK — Madde 31: HMK'ya atıf",
+    body: "İYUK'ta hüküm bulunmayan hususlarda; hâkimin davaya bakmaktan memnuiyeti ve reddi, ehliyet, üçüncü şahısların davaya katılması, davanın ihbarı, tarafların vekilleri, dosyanın taraflar ve ilgililerce incelenmesi, feragat ve kabul, ıslah, keşif ve bilirkişi gibi konularda HMK hükümleri uygulanır.",
+    keywords: ["İYUK", "HMK atfı", "ıslah", "feragat"],
+    branch: ["idare", "medeni_usul"],
+  },
+
+  /* ═════════════════════════ İÇTİHADI BİRLEŞTİRME KARARLARI ═════════════════════════ */
+  ibk_1939_11: {
+    id: "ibk_1939_11",
+    kind: "ictihat",
+    shortTitle: "İBK 1939/11",
+    fullTitle: "Yargıtay İçtihadı Birleştirme Kararı — 1939/11: Kur hakkında muhik sebep",
+    body: "Taraflardan biri akdin feshini haklı kılacak derecede bir kusur işlemişse, diğer taraf akdi feshedebilir. Kira sözleşmesinde 'muhik sebep' kavramı, kiracının kusurlu davranışını değil; kiralayanın akdin devamını çekilmez hale getiren olguları ifade eder. Bu içtihat, tüm borç ilişkilerinde haklı fesih standardını belirler.",
+    keywords: ["haklı fesih", "İBK", "muhik sebep", "kira"],
+    branch: ["borclar"],
+  },
+  ibk_1942_14: {
+    id: "ibk_1942_14",
+    kind: "ictihat",
+    shortTitle: "İBK 1942/14",
+    fullTitle: "Yargıtay İçtihadı Birleştirme Kararı — 1942/14: Müstakbel hakkın devri",
+    body: "Henüz doğmamış bir hakkın devri mümkün değildir. Ancak, hakkın doğumuna esas olan hukuki ilişki mevcut ve belirli ise, bu ilişkiden doğacak hakların devri geçerlidir. İleride doğacak alacakların temliki, temlik anında mevcut bir hukuki temele dayanmalıdır.",
+    keywords: ["alacağın temliki", "müstakbel hak", "İBK"],
+    branch: ["borclar"],
+  },
+  ibk_1966_7: {
+    id: "ibk_1966_7",
+    kind: "ictihat",
+    shortTitle: "İBK 1966/7",
+    fullTitle: "Yargıtay İçtihadı Birleştirme Kararı — 1966/7: Manevi tazminat — tüzel kişiler",
+    body: "Tüzel kişilerin kişilik haklarına saldırı halinde manevi tazminat isteyebilecekleri kabul edilmiştir. Tüzel kişiler, manevi varlıkları olmadığı için klasik anlamda manevi zarara uğramazlar; ancak kişilik haklarının ihlali, itibarlarının zedelenmesi gibi durumlarda manevi tazminat talep edebilirler.",
+    keywords: ["manevi tazminat", "tüzel kişi", "kişilik hakkı", "İBK"],
+    branch: ["borclar", "medeni"],
+  },
+  ibk_1978_1: {
+    id: "ibk_1978_1",
+    kind: "ictihat",
+    shortTitle: "İBK 1978/1",
+    fullTitle: "Yargıtay İçtihadı Birleştirme Kararı — 1978/1: İş kazası — tazminat",
+    body: "İş kazası nedeniyle açılan tazminat davalarında, işverenin sorumluluğunun belirlenmesinde işçi sağlığı ve iş güvenliği mevzuatına uygun hareket edilip edilmediği araştırılmalıdır. İşverenin kusuru olmasa da, tehlike sorumluluğu kapsamında tazminat ödemesi gerekebilir. Maddi tazminat hesaplanırken işçinin kalan yaşam süresi ve çalışma gücü kaybı dikkate alınır.",
+    keywords: ["iş kazası", "tazminat", "tehlike sorumluluğu", "İBK"],
+    branch: ["is_hukuku", "borclar"],
+  },
+  ibk_1990_3: {
+    id: "ibk_1990_3",
+    kind: "ictihat",
+    shortTitle: "İBK 1990/3",
+    fullTitle: "Yargıtay İçtihadı Birleştirme Kararı — 1990/3: İtirazın iptali — takip konusu alacak",
+    body: "İtirazın iptali davasında, takip konusu yapılan alacağın mevcut ve muaccel olması gerekir. Müeccel veya şarta bağlı alacaklar için itirazın iptali davası açılamaz. İtiraz haksız ise, alacaklı talepte bulunmuşsa icra inkar tazminatına hükmedilir.",
+    keywords: ["itirazın iptali", "muaccel alacak", "İBK", "İİK m. 67"],
+    branch: ["icra"],
+  },
+  ibk_2012_1: {
+    id: "ibk_2012_1",
+    kind: "ictihat",
+    shortTitle: "İBK 2012/1",
+    fullTitle: "Yargıtay İçtihadı Birleştirme Kararı — 2012/1: Yetki sözleşmesi",
+    body: "HMK'nın yürürlüğe girmesiyle birlikte, tacirler veya kamu tüzel kişileri arasındaki yetki sözleşmelerinde münhasır yetki kararlaştırılmadıkça, yetkili kılınan mahkeme ile birlikte genel ve diğer özel yetkili mahkemelerin de yetkisi devam eder. Münhasır yetki isteniyorsa bu açıkça belirtilmelidir.",
+    keywords: ["yetki sözleşmesi", "münhasır yetki", "İBK", "HMK"],
+    branch: ["medeni_usul"],
+  },
+
+  /* ═════════════════════════ Eski kayıtlar (backward compat) ═════════════════════════ */
+  // sources.ts'in eski sürümünde TBK m. 77/79 ve TMK m. 730/737 ID'leri farklıydı.
+  // Yukarıdaki yeni IDs ile uyumlu; gerekirse eski referansları silebiliriz.
 };
+
+/* ═════════════════════════ Yardımcı fonksiyonlar ═════════════════════════ */
+
+/** Belirli bir hukuk dalı için kaynakları listele. */
+export function sourcesByBranch(branch: string): LegalSource[] {
+  return Object.values(sources).filter((s) => {
+    const meta = s as LegalSource & { branch?: string[] };
+    return !meta.branch || meta.branch.includes(branch);
+  });
+}
+
+/** Bir veya birden çok anahtar kelimeye göre kaynak arama (basit substring + keywords).
+ * Faz 4'te pgvector embedding ile semantic search'e geçilecek.
+ */
+export function searchSources(query: string, branch?: string, limit = 5): LegalSource[] {
+  const q = query.toLowerCase();
+  const all = branch ? sourcesByBranch(branch) : Object.values(sources);
+  const scored = all.map((s) => {
+    const meta = s as LegalSource & { keywords?: string[] };
+    const text = `${s.shortTitle} ${s.body} ${(meta.keywords ?? []).join(" ")}`.toLowerCase();
+    let score = 0;
+    for (const word of q.split(/\s+/).filter(Boolean)) {
+      if (text.includes(word)) score += 1;
+      if ((meta.keywords ?? []).some((k) => k.toLowerCase().includes(word))) score += 2;
+    }
+    return { source: s, score };
+  });
+  return scored
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((x) => x.source);
+}

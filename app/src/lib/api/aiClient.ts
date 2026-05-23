@@ -1,25 +1,44 @@
-/**
- * Tarayıcı tarafı AI client'ı.
- * /api/ai/* uçlarına fetch atar; sırlar asla client'a sızmaz.
- */
-
 import type { CaseSession } from "@/lib/case-engine";
 import type {
   AiBranchResponse,
   AssessmentResponse,
-  GeneratedCaseScenario,
+  GenerateCaseRequest,
+  GenerateCaseResponse,
+  GeneratePetitionRequest,
   GeneratePetitionResponse,
+  GenerateQuestionRequest,
+  GenerateQuestionResponse,
   GroundedResponse,
-  LegalBranch,
   Persona,
   RolePlayResponse,
 } from "@/lib/ai-orchestrator/types";
 import type { RubricKey } from "@/content/types";
+import { supabaseBrowser, hasSupabaseConfig } from "@/lib/supabase/client";
 
-async function post<T>(path: string, body: unknown): Promise<T> {
+async function post<T>(
+  path: string,
+  body: unknown,
+  auth = false,
+): Promise<T> {
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+  };
+  if (auth) {
+    try {
+      if (hasSupabaseConfig()) {
+        const sb = supabaseBrowser();
+        const { data } = await sb.auth.getSession();
+        if (data.session?.access_token) {
+          headers["authorization"] = `Bearer ${data.session.access_token}`;
+        }
+      }
+    } catch {
+      // Auth token alınamazsa devam et — sunucu zaten kontrol eder
+    }
+  }
   const res = await fetch(path, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers,
     body: JSON.stringify(body),
   });
   if (!res.ok) {
@@ -62,23 +81,6 @@ export function aiAssess(args: {
   return post<AssessmentResponse>("/api/ai/assess", args);
 }
 
-export function aiGeneratePetition(args: {
-  userScenario: string;
-  branch?: LegalBranch;
-}) {
-  return post<GeneratePetitionResponse>("/api/ai/generate-petition", args);
-}
-
-export function aiGenerateCase(args: {
-  userScenario?: string;
-  branch?: LegalBranch;
-  difficulty?: 1 | 2 | 3 | 4;
-  theme?: string;
-  characterTone?: string;
-}) {
-  return post<GeneratedCaseScenario>("/api/ai/generate-case", args);
-}
-
 export function aiBranch(args: {
   caseId: string;
   session: CaseSession;
@@ -94,4 +96,21 @@ export function aiBranch(args: {
   scoreDimensions?: RubricKey[];
 }) {
   return post<AiBranchResponse>("/api/ai/branch", args);
+}
+
+export interface GenerateCaseResult extends GenerateCaseResponse {
+  persistedId?: string;
+  caseId?: string;
+}
+
+export function aiGenerateCase(args: GenerateCaseRequest) {
+  return post<GenerateCaseResult>("/api/ai/generate-case", args, true);
+}
+
+export function aiGenerateQuestions(args: GenerateQuestionRequest) {
+  return post<GenerateQuestionResponse>("/api/ai/generate-question", args, true);
+}
+
+export function aiGeneratePetition(args: GeneratePetitionRequest) {
+  return post<GeneratePetitionResponse>("/api/ai/generate-petition", args, true);
 }

@@ -10,14 +10,14 @@ export function Footer() {
               LawKit
             </Link>
             <p className="max-w-sm text-sm leading-relaxed text-ink/55">
-              HMGS hazırlığından staj sürecine kadar vaka-temelli hukuk pratiği. Türkiye'nin ilk
-              AI destekli legaltech eğitim platformu.
+              HMGS hazırlığından staj sürecine kadar vaka temelli hukuk pratiği. AI destekli
+              hukuk eğitim platformu.
             </p>
             <p className="max-w-sm rounded-lg border border-line-soft bg-paper-warm px-4 py-3 text-[11px] leading-relaxed text-ink/60">
-              <span className="font-bold uppercase tracking-widest text-gold">Yasal Uyarı.</span>{" "}
+              <span className="font-bold uppercase tracking-widest text-gold">Yasal uyarı.</span>{" "}
               LawKit bir eğitim amaçlı simülasyon platformudur. Üretilen vaka çözümleri ve AI
               geri bildirimleri hukuki tavsiye niteliği taşımaz. Gerçek davalarınız için bir
-              avukata danışınız.
+              avukata danışın.
             </p>
           </div>
           <FooterCol
@@ -26,6 +26,7 @@ export function Footer() {
               { to: "/urun/case-studio", label: "Case Studio" },
               { to: "/urun/hmgs-arena", label: "HMGS Arena" },
               { to: "/urun/dilekce-lab", label: "Dilekçe Lab" },
+              { to: "/vaka-studio", label: "Vaka Studio" },
               { to: "/fiyatlandirma", label: "Fiyatlandırma" },
             ]}
           />
@@ -34,7 +35,7 @@ export function Footer() {
             links={[
               { to: "/metodoloji", label: "Metodoloji" },
               { to: "/yol-haritasi", label: "Yol haritası" },
-              { to: "/guvenlik-kvkk", label: "Güvenlik & KVKK" },
+              { to: "/guvenlik-kvkk", label: "Güvenlik ve KVKK" },
               { to: "/neden-lawkit", label: "Neden LawKit" },
               { to: "/hakkimizda", label: "Hakkımızda" },
               { to: "/iletisim", label: "İletişim" },
@@ -43,7 +44,7 @@ export function Footer() {
         </div>
         <div className="mt-14 flex flex-col items-start justify-between gap-4 border-t border-line pt-8 text-[11px] font-bold uppercase tracking-widest text-ink/40 md:flex-row md:items-center">
           <span>© {new Date().getFullYear()} LawKit Eğitim Teknolojileri</span>
-          <span>KVKK uyarınca verileriniz Türkiye sunucularında korunur.</span>
+          <span>KVKK uyarınca verileriniz Türkiye'deki sunucularda korunur.</span>
         </div>
       </div>
     </footer>

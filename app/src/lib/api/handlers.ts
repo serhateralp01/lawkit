@@ -9,12 +9,19 @@
 import { z } from "zod";
 import { getOrchestrator } from "@/lib/ai-orchestrator";
 import { getCase } from "@/content/cases";
+import { searchSources } from "@/content/sources";
+import { supabaseAdmin } from "@/lib/supabase/server";
 import type {
   AiBranchRequest,
   AssessmentRequest,
+  GenerateCaseRequest,
+  GeneratePetitionRequest,
+  GenerateQuestionRequest,
   GroundedRequest,
   RolePlayRequest,
 } from "@/lib/ai-orchestrator/types";
+import type { ServerEnv } from "@/lib/env";
+import { readServerEnv } from "@/lib/env";
 
 const json = (data: unknown, init: ResponseInit = {}) =>
   new Response(JSON.stringify(data), {
@@ -62,25 +69,6 @@ const AssessmentBody = z.object({
   ),
 });
 
-const GeneratePetitionBody = z.object({
-  userScenario: z.string().min(10),
-  branch: z.enum(["is_hukuku", "borclar", "medeni", "medeni_usul", "ceza", "idare", "ticaret"]).optional(),
-});
-
-const GenerateCaseBody = z
-  .object({
-    userScenario: z.string().min(10).optional(),
-    branch: z
-      .enum(["is_hukuku", "borclar", "medeni", "medeni_usul", "ceza", "idare", "ticaret"])
-      .optional(),
-    difficulty: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]).optional(),
-    theme: z.string().max(120).optional(),
-    characterTone: z.string().max(120).optional(),
-  })
-  .refine((d) => d.userScenario || d.branch || d.theme, {
-    message: "En az userScenario veya branch veya theme verilmeli",
-  });
-
 const BranchBody = z.object({
   caseId: z.string(),
   session: SessionShape,
@@ -102,9 +90,54 @@ const BranchBody = z.object({
     .optional(),
 });
 
+const GenerateCaseBody = z.object({
+  branch: z.enum([
+    "is_hukuku",
+    "borclar",
+    "medeni",
+    "medeni_usul",
+    "ceza",
+    "idare",
+    "ticaret",
+  ]),
+  difficulty: z.number().int().min(1).max(4),
+  theme: z.string().optional(),
+  characterTone: z.string().optional(),
+});
+
+const GenerateQuestionBody = z.object({
+  branch: z.string(),
+  difficulty: z.number().int().min(1).max(4),
+  count: z.number().int().min(1).max(5),
+  excludeIds: z.array(z.string()).optional(),
+});
+
+const GeneratePetitionBody = z.object({
+  branch: z.enum(["is_hukuku", "borclar", "medeni", "medeni_usul", "ceza", "idare"]),
+  difficulty: z.number().int().min(1).max(4),
+  theme: z.string().optional(),
+});
+
 async function readBody(req: Request) {
   try {
     return await req.json();
+  } catch {
+    return null;
+  }
+}
+
+async function userIdFromRequest(
+  req: Request,
+  env: ServerEnv,
+): Promise<string | null> {
+  const auth = req.headers.get("authorization");
+  if (!auth || !auth.startsWith("Bearer ")) return null;
+  const token = auth.slice(7);
+  try {
+    const sb = supabaseAdmin(env);
+    const { data, error } = await sb.auth.getUser(token);
+    if (error || !data.user) return null;
+    return data.user.id;
   } catch {
     return null;
   }
@@ -196,21 +229,90 @@ export async function handleAi(
       return json(res);
     }
 
-    if (pathname === "/api/ai/generate-petition") {
-      const parsed = GeneratePetitionBody.safeParse(body);
-      if (!parsed.success) {
-        return json({ error: parsed.error.flatten() }, { status: 400 });
-      }
-      const res = await orchestrator.generatePetition(parsed.data);
-      return json(res);
-    }
-
     if (pathname === "/api/ai/generate-case") {
       const parsed = GenerateCaseBody.safeParse(body);
       if (!parsed.success) {
         return json({ error: parsed.error.flatten() }, { status: 400 });
       }
-      const res = await orchestrator.generateCase(parsed.data);
+      // RAG: tema + dal ile ilgili mevzuat maddelerini çek
+      const query = parsed.data.theme ?? parsed.data.branch;
+      const relevantSources = searchSources(query, parsed.data.branch, 8);
+      const req: GenerateCaseRequest = {
+        branch: parsed.data.branch,
+        difficulty: parsed.data.difficulty,
+        theme: parsed.data.theme,
+        characterTone: parsed.data.characterTone,
+        contextSourceIds: relevantSources.map((s) => s.id),
+      };
+      const res = await orchestrator.generateCase(req);
+
+      // Persist to Supabase (eğer erişim varsa)
+      const serverEnv = readServerEnv(workerEnv);
+      try {
+        const userId = await userIdFromRequest(request, serverEnv);
+        if (userId && serverEnv.SUPABASE_URL && serverEnv.SUPABASE_SERVICE_ROLE_KEY) {
+          const sb = supabaseAdmin(serverEnv);
+          const caseUuid = crypto.randomUUID();
+          const caseWithId = {
+            ...(res.legalCase as Record<string, unknown>),
+            id: `gen_${caseUuid.slice(0, 8)}`,
+          };
+          const { error: insertErr } = await sb
+            .from("generated_cases")
+            .insert({
+              id: caseUuid,
+              user_id: userId,
+              case_json: caseWithId,
+              params: {
+                branch: parsed.data.branch,
+                difficulty: parsed.data.difficulty,
+                theme: parsed.data.theme ?? null,
+              },
+              quality_score: res.qualityScore,
+              status: res.flaggedForReview ? "flagged" : "active",
+            });
+          if (insertErr) {
+            console.error("[api] generated_cases insert error:", insertErr);
+          } else {
+            return json({ ...res, persistedId: caseUuid, caseId: caseWithId.id });
+          }
+        }
+      } catch (persistErr) {
+        console.error("[api] Case persist error:", persistErr);
+      }
+
+      return json(res);
+    }
+
+    if (pathname === "/api/ai/generate-question") {
+      const parsed = GenerateQuestionBody.safeParse(body);
+      if (!parsed.success) {
+        return json({ error: parsed.error.flatten() }, { status: 400 });
+      }
+      const query = parsed.data.branch;
+      const relevantSources = searchSources(query, parsed.data.branch, 6);
+      const req: GenerateQuestionRequest = {
+        branch: parsed.data.branch,
+        difficulty: parsed.data.difficulty,
+        count: parsed.data.count,
+        excludeIds: parsed.data.excludeIds,
+        contextSourceIds: relevantSources.map((s) => s.id),
+      };
+      const res = await orchestrator.generateQuestions(req);
+      return json(res);
+    }
+
+    if (pathname === "/api/ai/generate-petition") {
+      const parsed = GeneratePetitionBody.safeParse(body);
+      if (!parsed.success) return json({ error: parsed.error.flatten() }, { status: 400 });
+      const relevantSources = searchSources(parsed.data.theme ?? parsed.data.branch, parsed.data.branch, 5);
+      const req: GeneratePetitionRequest = {
+        branch: parsed.data.branch,
+        difficulty: parsed.data.difficulty,
+        theme: parsed.data.theme,
+        contextSourceIds: relevantSources.map((s) => s.id),
+      };
+      const res = await orchestrator.generatePetition(req);
       return json(res);
     }
 

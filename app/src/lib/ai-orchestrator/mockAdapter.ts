@@ -19,10 +19,12 @@ import type {
   AssessmentRequest,
   AssessmentResponse,
   DimensionScore,
-  GeneratedCaseScenario,
+  GenerateCaseRequest,
+  GenerateCaseResponse,
   GeneratePetitionRequest,
   GeneratePetitionResponse,
-  GenerateCaseRequest,
+  GenerateQuestionRequest,
+  GenerateQuestionResponse,
   GroundedRequest,
   GroundedResponse,
   LegalBranch,
@@ -104,85 +106,90 @@ export const mockAdapter: AIOrchestrator = {
     };
   },
 
-  async generatePetition(req: GeneratePetitionRequest): Promise<GeneratePetitionResponse> {
-    const branch: LegalBranch = req.branch ?? "borclar";
-    const slug = `mock_${branch}_${Date.now().toString(36)}`;
+  async generateCase(req: GenerateCaseRequest): Promise<GenerateCaseResponse> {
+    // Mock: hardcoded vaka şablonunu döndür (DeepSeek olmadığında dev için)
     return {
-      id: slug,
-      title: "AI Üretimi Dilekçe Şablonu (Mock)",
-      summary: `Senaryo: ${req.userScenario.slice(0, 120)}…`,
-      branch,
-      estimatedMinutes: 15,
-      difficulty: 3,
-      sections: [
-        {
-          key: "mahkeme",
-          title: "Mahkeme Başlığı",
-          guidance: "Yetkili + görevli mahkemeyi açıkça yaz.",
-          placeholder: "[YETKİLİ] MAHKEMESİ SAYIN HAKİMLİĞİNE",
-          minChars: 40,
-          assessDimensions: ["usul", "ifade"],
-          graderHint: "Doğru görevli mahkeme + yetkili yer.",
-        },
-        {
-          key: "vakialar",
-          title: "Vakıalar",
-          guidance: "Olay örgüsünü kronolojik yaz.",
-          placeholder: "1. …\n2. …\n3. …",
-          minChars: 180,
-          assessDimensions: ["olay", "mesele"],
-          graderHint: "Kronolojik, somut, belge dayanaklı.",
-        },
-        {
-          key: "sonuc_istem",
-          title: "Sonuç ve İstem",
-          guidance: "Numaralı + miktarlı talepler.",
-          placeholder: "1- …\n2- …",
-          minChars: 100,
-          assessDimensions: ["gerekce", "ifade"],
-          graderHint: "Talepler net + faiz başlangıcı + giderler.",
-        },
-      ],
-      flaggedForReview: false,
+      legalCase: {
+        id: `mock_${req.branch}_${Date.now()}`,
+        title: `Mock ${req.branch} vakası — ${req.theme ?? "genel"}`,
+        branch: req.branch,
+        difficulty: req.difficulty,
+        estimatedMinutes: 10,
+        rubricId: "rubric_v1",
+        summary: "Mock vaka (gerçek LLM bağlanmadı).",
+        facts: ["Mock olgu 1", "Mock olgu 2"],
+        startNode: "n1",
+        nodes: [
+          { id: "n1", kind: "outcome", prompt: "Mock vaka", summary: "Bitti", idealAnswer: "—" },
+        ],
+      },
+      qualityScore: 0.5,
+      flaggedForReview: true,
+      usedSources: req.contextSourceIds,
     };
   },
 
-  async generateCase(req: GenerateCaseRequest): Promise<GeneratedCaseScenario> {
-    const branch: LegalBranch = req.branch ?? "borclar";
-    const slug = `mock_case_${branch}_${Date.now().toString(36)}`;
-    const scenarioText =
-      req.userScenario ??
-      [
-        req.theme ? `Konu: ${req.theme}.` : "",
-        req.characterTone ? `Müvekkil: ${req.characterTone}.` : "",
-        "Anlaşmazlık devam ediyor ve hukuki çözüm aranıyor.",
-      ]
-        .filter(Boolean)
-        .join(" ");
+  async generateQuestions(req: GenerateQuestionRequest): Promise<GenerateQuestionResponse> {
+    const branchLabels: Record<string, string> = {
+      is_hukuku: "İş Hukuku",
+      borclar: "Borçlar Hukuku",
+      medeni: "Medeni Hukuk",
+      medeni_usul: "Medeni Usul",
+      ceza: "Ceza Hukuku",
+      idare: "İdare Hukuku",
+      ticaret: "Ticaret Hukuku",
+    };
+    const label = branchLabels[req.branch] ?? req.branch;
+    const fakeQuestions = Array.from({ length: req.count }, (_, i) => ({
+      id: `mock_q_${Date.now()}_${i}`,
+      branch: req.branch,
+      difficulty: req.difficulty,
+      stem: `[Mock] ${label} — ${i + 1}. soru. ${req.contextSourceIds.length > 0 ? "Kaynak: " + req.contextSourceIds[0] : "Kaynaksız"}. Bu bir test sorusudur.`,
+      choices: [
+        { id: "a", text: "A şıkkı — doğru cevap" },
+        { id: "b", text: "B şıkkı — çeldirici" },
+        { id: "c", text: "C şıkkı — çeldirici" },
+        { id: "d", text: "D şıkkı — tuzak" },
+      ],
+      correctId: "a",
+      explanation: "Mock açıklama. Gerçek AI bağlanmadığı için detaylı açıklama üretilemedi.",
+      distractorReasons: {
+        b: "B yanlış çünkü...",
+        c: "C ilgisiz.",
+        d: "D tuzak.",
+      },
+      sources: req.contextSourceIds.slice(0, 2),
+    }));
+
     return {
-      id: slug,
-      title:
-        (req.theme ? `${req.theme} · ` : "") + "AI Üretimi Vaka (Mock)",
-      branch,
-      summary: scenarioText.slice(0, 200),
-      clientNarrative:
-        "Müvekkil senin önünde oturuyor. " +
-        (req.characterTone ? `Karakter: ${req.characterTone}. ` : "") +
-        "Yorgun ama umutlu, anlatmaya başlıyor: " +
-        scenarioText.slice(0, 240),
-      keyIssues: [
-        "Hukuki nitelik tespiti",
-        "Görevli + yetkili mahkeme",
-        "Zamanaşımı / hak düşürücü süre",
-      ],
-      expectedFirstMoves: [
-        "Olguları kronolojik dök",
-        "İlgili mevzuat maddelerini tara",
-        "Delillerin tamamlığını test et",
-      ],
-      difficulty: req.difficulty ?? 3,
-      estimatedMinutes: 12,
-      flaggedForReview: false,
+      questions: fakeQuestions,
+      qualityScore: 0.5,
+      flaggedForReview: true,
+      usedSources: req.contextSourceIds,
+    };
+  },
+
+  async generatePetition(req: GeneratePetitionRequest): Promise<GeneratePetitionResponse> {
+    return {
+      template: {
+        id: `mock_pet_${Date.now()}`,
+        title: `Mock ${req.branch} dilekçesi — ${req.theme ?? "genel"}`,
+        category: "tazminat",
+        branch: req.branch,
+        summary: "Mock dilekçe şablonu (gerçek AI bağlanmadı).",
+        sections: [
+          { key: "mahkeme", title: "Mahkeme", guidance: "Görevli ve yetkili mahkemeyi yazın.", placeholder: "örn: İstanbul İş Mahkemesi", minChars: 10, assessDimensions: ["usul"], graderHint: "Görev ve yetki doğruluğu kontrol edilir." },
+          { key: "taraflar", title: "Taraflar", guidance: "Davacı ve davalıyı tanımlayın.", placeholder: "Davacı: ..., Davalı: ...", minChars: 15, assessDimensions: ["olay"], graderHint: "Taraf ehliyeti ve doğru tanımlama." },
+          { key: "vakialar", title: "Vakıalar", guidance: "Olayları kronolojik yazın.", placeholder: "1) ... 2) ...", minChars: 30, assessDimensions: ["olay", "mesele"], graderHint: "Vakıaların kronolojisi ve açıklığı." },
+          { key: "hukuki", title: "Hukuki Sebepler", guidance: "Dayanak kanun maddelerini yazın.", placeholder: "İş K. m. 18 uyarınca...", minChars: 20, assessDimensions: ["maddi", "gerekce"], graderHint: "Kanun maddelerinin doğruluğu." },
+          { key: "talep", title: "Talep Sonucu", guidance: "Açık ve net talep yazın.", placeholder: "Fazlaya ilişkin haklarım saklı kalmak kaydıyla...", minChars: 15, assessDimensions: ["usul", "ifade"], graderHint: "Talep sonucunun açıklığı." },
+        ],
+        estimatedMinutes: 20,
+        difficulty: req.difficulty,
+      },
+      qualityScore: 0.5,
+      flaggedForReview: true,
+      usedSources: req.contextSourceIds,
     };
   },
 };

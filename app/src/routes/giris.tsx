@@ -21,7 +21,6 @@ function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [magicSent, setMagicSent] = useState(false);
 
-  // Zaten giriş yapılmışsa karneye yönlendir
   if (!authLoading && user) {
     void navigate({ to: "/karne" });
   }
@@ -29,7 +28,7 @@ function LoginPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!hasSupabaseConfig()) {
-      setError("Sunucu yapılandırması eksik. Geliştiriciye haber ver.");
+      setError("Sunucu yapılandırması eksik. Geliştiriciye haber verin.");
       return;
     }
     setBusy(true);
@@ -48,7 +47,7 @@ function LoginPage() {
 
   const onMagicLink = async () => {
     if (!email) {
-      setError("Önce e-posta adresini yaz.");
+      setError("Önce e-posta adresinizi yazın.");
       return;
     }
     setBusy(true);
@@ -71,18 +70,18 @@ function LoginPage() {
   return (
     <PageShell>
       <section className="mx-auto flex max-w-md flex-col px-6 py-20">
-        <h1 className="font-display text-4xl font-extrabold text-ink-1">Tekrar hoş geldin.</h1>
+        <h1 className="font-display text-4xl font-extrabold text-ink-1">Tekrar hoş geldiniz.</h1>
         <p className="mt-2 text-sm text-ink-2">
-          E-posta ve şifrenle giriş yap, kaldığın yerden devam et.
+          E-posta ve şifrenizle giriş yapın, kaldığınız yerden devam edin.
         </p>
 
         {magicSent ? (
           <div className="mt-10 rounded-2xl border border-signal-positive/40 bg-signal-positive/5 p-6 text-center">
             <Mail className="mx-auto size-8 text-signal-positive" />
-            <p className="mt-3 font-display text-lg font-bold text-ink-1">Mailini kontrol et</p>
+            <p className="mt-3 font-display text-lg font-bold text-ink-1">E-postanızı kontrol edin</p>
             <p className="mt-1 text-sm text-ink-2">
-              <strong>{email}</strong> adresine giriş bağlantısı gönderdik. Tıklayınca otomatik
-              içeri alırız.
+              <strong>{email}</strong> adresine giriş bağlantısı gönderdik. Bağlantıya tıkladığınızda
+              otomatik olarak giriş yapmış olacaksınız.
             </p>
           </div>
         ) : (
@@ -150,9 +149,9 @@ function LoginPage() {
         )}
 
         <p className="mt-6 text-center text-sm text-ink-2">
-          Hesabın yok mu?{" "}
+          Hesabınız yok mu?{" "}
           <Link to="/kayit" className="font-bold text-ink-1 underline hover:text-indigo">
-            Ücretsiz oluştur
+            Ücretsiz hesap oluşturun
           </Link>
         </p>
       </section>
@@ -191,8 +190,8 @@ function Field({
 
 function translateError(e: unknown): string {
   const msg = e instanceof Error ? e.message : String(e);
-  if (msg.includes("Invalid login credentials")) return "E-posta veya şifre yanlış.";
-  if (msg.includes("Email not confirmed")) return "E-posta adresini doğrulamamışsın. Mailini kontrol et.";
-  if (msg.includes("rate limit")) return "Çok fazla deneme. Birkaç dakika sonra tekrar dene.";
+  if (msg.includes("Invalid login credentials")) return "E-posta veya şifre hatalı.";
+  if (msg.includes("Email not confirmed")) return "E-posta adresiniz henüz doğrulanmamış. Gelen kutunuzu kontrol edin.";
+  if (msg.includes("rate limit")) return "Çok fazla deneme yaptınız. Birkaç dakika sonra tekrar deneyin.";
   return msg;
 }

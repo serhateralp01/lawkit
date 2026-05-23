@@ -10,7 +10,7 @@ export const Route = createFileRoute("/urun/case-studio")({
       {
         name: "description",
         content:
-          "Gerçek dava dosyalarından kurgulanan, her kararınızın sonraki adımı değiştirdiği dallanan hukuk vakaları. Müvekkil görüşmesi, strateji, dilekçe ve rubrik geri bildirim.",
+          "Gerçek dava dosyalarından kurgulanan, her kararınızın sonraki adımı değiştirdiği vaka simülasyonları. Müvekkil görüşmesi, strateji, dilekçe ve rubrik geri bildirim.",
       },
       { property: "og:title", content: "Case Studio | LawKit" },
       {
@@ -29,11 +29,11 @@ function CaseStudioPage() {
         eyebrow="Modül 01 · Çekirdek"
         title={
           <>
-            Vakayı oku, karar ver,{" "}
-            <span className="italic text-gold">sonucunu yaşa.</span>
+            Vakayı okuyun, karar verin,{" "}
+            <span className="italic text-gold">sonucunu yaşayın.</span>
           </>
         }
-        lead="Case Studio, klasik soru-cevap mantığını terk eder. Müvekkilin anlattığı olay üzerinden ilerlersiniz; sorduğunuz her soru, verdiğiniz her karar senaryonun bundan sonrasını şekillendirir. Sistem doğru/yanlış demez — seçtiğiniz yolun hukuki sonucunu gösterir."
+        lead="Case Studio, klasik soru cevap mantığını terk eder. Müvekkilin anlattığı olay üzerinden ilerlersiniz; sorduğunuz her soru, verdiğiniz her karar senaryonun devamını şekillendirir. Sistem doğru ya da yanlış demez — seçtiğiniz yolun hukuki sonucunu gösterir."
       />
 
       <section className="mx-auto max-w-5xl px-6 py-20 lg:px-8">
@@ -42,16 +42,16 @@ function CaseStudioPage() {
             {
               icon: MessageSquare,
               t: "Müvekkil görüşmesi",
-              d: "Eksik bilgileri sorma pratiği. Sistem sorduğunuz ve sormadığınız tüm olguları kaydeder.",
+              d: "Eksik bilgileri sorma pratiği. Sistem, sorduğunuz ve sormadığınız bütün olguları kaydeder.",
             },
             {
               icon: GitBranch,
               t: "Dallanan senaryo",
-              d: "Her karar yeni bir alt-akış açar. Aynı vakanın 6 farklı sonu olabilir.",
+              d: "Her karar yeni bir alt akış açar. Aynı vakanın 6 farklı sonucu olabilir.",
             },
             {
               icon: Scale,
-              t: "Usul önce",
+              t: "Usul öncelikli",
               d: "Görev, yetki, dava şartı, zamanaşımı — esasa girmeden önce filtrelenir.",
             },
             {
@@ -80,15 +80,16 @@ function CaseStudioPage() {
       <section className="border-y border-line bg-paper-warm/40">
         <div className="mx-auto max-w-5xl px-6 py-20 lg:px-8">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
-            İlk Yayın Vakası
+            İlk yayın vakası
           </p>
           <h2 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">
             "Haksız fesih ve işe iade stratejisi"
           </h2>
           <p className="mt-5 max-w-2xl leading-relaxed text-ink/60">
-            7 yıl çalışmış işçinin sözlü fesih iddiası. Arabuluculuk şartı, fesih bildirimi
-            ispatı, ihbar-kıdem hesabı, işe iade vs alacak davası tercihi — tek senaryoda iş
-            hukuku, borçlar ve medeni usul bilginizi sahaya sürer.
+            Yedi yıl çalışmış bir işçinin sözlü fesih iddiası. Arabuluculuk şartı, fesih
+            bildirimi ispatı, ihbar ve kıdem hesabı, işe iade ile alacak davası arasındaki
+            stratejik tercih — tek senaryoda iş hukuku, borçlar ve medeni usul bilginizi test
+            eder.
           </p>
           <dl className="mt-10 grid gap-6 sm:grid-cols-3">
             {[
@@ -107,7 +108,7 @@ function CaseStudioPage() {
         </div>
       </section>
 
-      <CTAFooter title="İlk vakayı ücretsiz dene." />
+      <CTAFooter title="İlk vakayı ücretsiz deneyin." />
     </PageShell>
   );
 }

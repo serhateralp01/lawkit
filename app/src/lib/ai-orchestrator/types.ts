@@ -126,22 +126,73 @@ export interface AiBranchResponse {
   flaggedForReview: boolean;
 }
 
-/* ─────────────── Generate petition template ─────────────── */
+/* ─────────────── Case Generation ─────────────── */
 
-export type LegalBranch =
-  | "is_hukuku"
-  | "borclar"
-  | "medeni"
-  | "medeni_usul"
-  | "ceza"
-  | "idare"
-  | "ticaret";
+export interface GenerateCaseRequest {
+  /** Hangi hukuk dalı */
+  branch: "is_hukuku" | "borclar" | "medeni" | "medeni_usul" | "ceza" | "idare" | "ticaret";
+  /** 1-4 zorluk */
+  difficulty: 1 | 2 | 3 | 4;
+  /** Opsiyonel tema: "fesih", "tazminat", "kıdem" gibi */
+  theme?: string;
+  /** Karakter tonu önerisi: "yaşlı müvekkil", "öğrenci", "esnaf" */
+  characterTone?: string;
+  /** İlgili kaynak ID'leri (RAG ile çekilmiş, prompt'a verilecek) */
+  contextSourceIds: string[];
+}
+
+export interface GenerateCaseResponse {
+  /** Üretilen vaka — tam LegalCase objesi */
+  legalCase: LegalCase;
+  /** Quality auditor skoru 0-1 */
+  qualityScore: number;
+  /** Auditor reddetti mi */
+  flaggedForReview: boolean;
+  /** AI'ın kullandığı raw context (debug için) */
+  usedSources: string[];
+}
+
+/* ─────────────── Question Generation ─────────────── */
+
+export interface GenerateQuestionRequest {
+  /** Hangi hukuk dalı */
+  branch: string;
+  /** 1-4 zorluk */
+  difficulty: 1 | 2 | 3 | 4;
+  /** Kaç soru üretilecek */
+  count: number;
+  /** Bu sorulardan farklı olsun (önceki soru ID'leri) */
+  excludeIds?: string[];
+  /** İlgili kaynak ID'leri (RAG) */
+  contextSourceIds: string[];
+}
+
+export interface GeneratedQuestion {
+  id: string;
+  branch: string;
+  difficulty: number;
+  stem: string;
+  choices: { id: string; text: string }[];
+  correctId: string;
+  explanation: string;
+  distractorReasons?: Record<string, string>;
+  sources?: string[];
+}
+
+export interface GenerateQuestionResponse {
+  questions: GeneratedQuestion[];
+  qualityScore: number;
+  flaggedForReview: boolean;
+  usedSources: string[];
+}
+
+/* ─────────────── Petition Generation ─────────────── */
 
 export interface GeneratePetitionRequest {
-  /** Kullanıcının serbest senaryo açıklaması ("kiracım depozitomu vermiyor...") */
-  userScenario: string;
-  /** Hukuki dal — opsiyonel (AI tahmin edebilir) */
-  branch?: LegalBranch;
+  branch: "is_hukuku" | "borclar" | "medeni" | "medeni_usul" | "ceza" | "idare";
+  difficulty: 1 | 2 | 3 | 4;
+  theme?: string;
+  contextSourceIds: string[];
 }
 
 export interface GeneratedPetitionSection {
@@ -150,51 +201,24 @@ export interface GeneratedPetitionSection {
   guidance: string;
   placeholder: string;
   minChars: number;
-  assessDimensions: RubricKey[];
+  assessDimensions: string[];
   graderHint: string;
 }
 
 export interface GeneratePetitionResponse {
-  id: string;
-  title: string;
-  summary: string;
-  branch: LegalBranch;
-  estimatedMinutes: number;
-  difficulty: 1 | 2 | 3 | 4;
-  sections: GeneratedPetitionSection[];
-  /** Auditor: yapı/anahtar dışı tip varsa true */
+  template: {
+    id: string;
+    title: string;
+    category: string;
+    branch: string;
+    summary: string;
+    sections: GeneratedPetitionSection[];
+    estimatedMinutes: number;
+    difficulty: number;
+  };
+  qualityScore: number;
   flaggedForReview: boolean;
-}
-
-/* ─────────────── Generate case ─────────────── */
-
-export interface GenerateCaseRequest {
-  /** Kullanıcının serbest senaryo açıklaması — opsiyonel; branch + theme verilirse boş olabilir */
-  userScenario?: string;
-  branch?: LegalBranch;
-  /** Zorluk talebi (1-4); yoksa orta tutulur */
-  difficulty?: 1 | 2 | 3 | 4;
-  /** Konu/tema vurgusu — örn: "fesih", "miras", "komşuluk" */
-  theme?: string;
-  /** Müvekkil karakter tonu — örn: "yaşlı esnaf", "genç öğrenci" */
-  characterTone?: string;
-}
-
-export interface GeneratedCaseScenario {
-  id: string;
-  title: string;
-  branch: LegalBranch;
-  summary: string;
-  /** Müvekkilin ağzından anlatım — role-play için seed */
-  clientNarrative: string;
-  /** Üzerinde durulacak hukuki meseleler — kısa bullet'lar */
-  keyIssues: string[];
-  /** Öğrenciden beklenen ilk hamleler */
-  expectedFirstMoves: string[];
-  difficulty: 1 | 2 | 3 | 4;
-  estimatedMinutes: number;
-  /** Auditor: kaynak uydurması ya da gerçek dışı içtihat varsa true */
-  flaggedForReview: boolean;
+  usedSources: string[];
 }
 
 /* ─────────────── Adapter ─────────────── */
@@ -212,8 +236,9 @@ export interface AIOrchestrator {
   rolePlay(req: RolePlayRequest): Promise<RolePlayResponse>;
   assess(req: AssessmentRequest): Promise<AssessmentResponse>;
   branch(req: AiBranchRequest): Promise<AiBranchResponse>;
+  generateCase(req: GenerateCaseRequest): Promise<GenerateCaseResponse>;
+  generateQuestions(req: GenerateQuestionRequest): Promise<GenerateQuestionResponse>;
   generatePetition(req: GeneratePetitionRequest): Promise<GeneratePetitionResponse>;
-  generateCase(req: GenerateCaseRequest): Promise<GeneratedCaseScenario>;
 }
 
 /* ─────────────── Auditor ─────────────── */

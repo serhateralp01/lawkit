@@ -10,8 +10,9 @@ import {
   Trophy,
 } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
-import { getAiPetitionTemplate, getPetitionTemplate } from "@/content/petition-templates";
-import type { PetitionTemplate } from "@/content/petition-templates";
+import { BetaGate } from "@/components/site/BetaGate";
+import { getPetitionTemplate } from "@/content/petition-templates";
+import type { PetitionSection } from "@/content/petition-templates";
 import { defaultRubric } from "@/content/rubrics";
 import type { RubricKey } from "@/content/types";
 import { cn } from "@/lib/utils";
@@ -19,10 +20,23 @@ import { aiAssess } from "@/lib/api/aiClient";
 import type { CaseSession } from "@/lib/case-engine";
 import type { AssessmentResponse } from "@/lib/ai-orchestrator/types";
 
+const PET_KEY = "lawkit_gen_petition";
+
 export const Route = createFileRoute("/dilekce-lab/$templateId")({
   loader: ({ params }) => {
-    // SSR yolunda sessionStorage yok — static şablon yoksa boş döneriz
-    // ve component client'ta sessionStorage'tan AI üretimi şablonu yüklenir.
+    if (params.templateId.startsWith("gen_pet_")) {
+      try {
+        const raw = sessionStorage.getItem(PET_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.template) {
+            sessionStorage.removeItem(PET_KEY);
+            return { template: parsed.template };
+          }
+        }
+      } catch { /* sessionStorage unavailable */ }
+      throw notFound();
+    }
     const t = getPetitionTemplate(params.templateId);
     return { template: t ?? null, templateId: params.templateId };
   },
@@ -35,21 +49,15 @@ export const Route = createFileRoute("/dilekce-lab/$templateId")({
       },
     ],
   }),
-  component: PetitionWorkbench,
+  component: PetitionWorkbenchGated,
 });
 
-function useResolvedTemplate(
-  staticTemplate: PetitionTemplate | null,
-  templateId: string,
-): PetitionTemplate | null {
-  const [resolved, setResolved] = useState<PetitionTemplate | null>(staticTemplate);
-  // Client mount: eğer static şablon yoksa AI üretimi şablonu sessionStorage'tan ara.
-  useEffect(() => {
-    if (staticTemplate) return;
-    const t = getAiPetitionTemplate(templateId);
-    if (t) setResolved(t);
-  }, [staticTemplate, templateId]);
-  return resolved;
+function PetitionWorkbenchGated() {
+  return (
+    <BetaGate feature="Dilekçe Lab">
+      <PetitionWorkbench />
+    </BetaGate>
+  );
 }
 
 interface SectionState {
@@ -118,46 +126,34 @@ function PetitionWorkbench() {
     if (!currentState || currentState.text.trim().length < currentSection.minChars) return;
     update(currentSection.key, { loading: true, error: null, result: null });
 
-    // AI'a verilen "case" yerine şablon bağlamı kullanıyoruz — caseId olarak
-    // sebepsiz_zenginlesme için sample case kullanmak yerine, sentetik bir
-    // session oluşturup template bağlamı geçeriz. Mevcut /api/ai/assess
-    // endpoint'i bir caseId bekliyor; en doğru yol: orada bir 'sample' case
-    // göstermek. Burada is_hukuku_001 gibi mevcut bir caseId kullanırız —
-    // AI sadece userAnswer + dimensions + (varsa) graderHint'i değerlendirir.
-    // Bu çalışıyor çünkü assessor genel rubric tanımıyla puanlar.
-
     try {
-      const sampleSession: CaseSession = {
-        caseId: "is_hukuku_001",
-        startNode: "n1",
-        currentNode: "n1",
-        history: [],
-        ledger: {},
-        done: false,
-        startedAt: Date.now(),
-      };
-
       const userAnswer = [
         `[Dilekçe Lab — Şablon: ${template.title}]`,
         `[Bölüm: ${currentSection.title}]`,
         `[Bölüm rehberi: ${currentSection.guidance}]`,
-        `[Değerlendirme notu: ${currentSection.graderHint}]`,
-        "",
-        "Öğrencinin yazdığı:",
-        currentState.text,
+        currentState.text.trim(),
       ].join("\n");
 
       const res = await aiAssess({
         caseId: "is_hukuku_001",
-        session: sampleSession,
+        session: {
+          caseId: "is_hukuku_001",
+          startNode: "n1",
+          currentNode: "n1",
+          history: [],
+          ledger: {},
+          done: false,
+          startedAt: Date.now(),
+        },
         userAnswer,
-        dimensions: currentSection.assessDimensions,
+        dimensions: currentSection.scoringDimensions as RubricKey[],
       });
-      update(currentSection.key, { result: res, loading: false });
+
+      update(currentSection.key, { loading: false, result: res });
     } catch (e) {
       update(currentSection.key, {
         loading: false,
-        error: e instanceof Error ? e.message : String(e),
+        error: e instanceof Error ? e.message : "Değerlendirme başarısız",
       });
     }
   };

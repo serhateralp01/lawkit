@@ -24,10 +24,12 @@ import type {
   AiBranchResponse,
   AssessmentRequest,
   AssessmentResponse,
-  GeneratedCaseScenario,
   GenerateCaseRequest,
+  GenerateCaseResponse,
   GeneratePetitionRequest,
   GeneratePetitionResponse,
+  GenerateQuestionRequest,
+  GenerateQuestionResponse,
   GroundedRequest,
   GroundedResponse,
   LegalBranch,
@@ -35,6 +37,7 @@ import type {
   RolePlayResponse,
 } from "./types";
 import type { ServerEnv } from "@/lib/env";
+import type { LegalCase } from "@/content/types";
 
 /* ─────────── Zod şemaları ─────────── */
 
@@ -134,12 +137,49 @@ function sanitizeScoreHint(
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
+/* ─────────── Case Generation Zod şeması ─────────── */
+
+// MÜMKÜN OLDUĞUNCA ESNEK — LLM ne döndürürse kabul et, post-process'te düzelt
+const LegalCaseOutputSchema = z.object({
+  id: z.string().optional().default("gen_case"),
+  title: z.string().optional().default("Vaka"),
+  branch: z.string().optional().default("borclar"),
+  difficulty: z.number().int().min(1).max(4).optional().default(2),
+  estimatedMinutes: z.number().int().optional().default(20),
+  rubricId: z.string().optional().default("rubric_v1"),
+  summary: z.string().optional().default(""),
+  facts: z.array(z.unknown()).optional().default([]),
+  startNode: z.string().optional().default("n1"),
+  nodes: z.array(z.object({
+    id: z.string().optional().default("n1"),
+    kind: z.string().optional().default("info"),
+  }).passthrough()).optional().default([]),
+}).passthrough();
+
 /* ─────────── Auditor middleware ─────────── */
 
 function auditSourceRefs(refs: string[]): { kept: string[]; flagged: boolean } {
   const kept = refs.filter((id) => sources[id]);
   const flagged = kept.length < refs.length;
   return { kept, flagged };
+}
+
+function auditCaseSources(caseJson: Record<string, unknown>): boolean {
+  // Tüm node'lardaki source referanslarını topla
+  const allRefs = new Set<string>();
+  const nodes = (caseJson as { nodes?: Array<{ options?: Array<{ sources?: string[] }> }> }).nodes;
+  if (nodes) {
+    for (const n of nodes) {
+      for (const o of n.options ?? []) {
+        for (const s of o.sources ?? []) allRefs.add(s);
+      }
+    }
+  }
+  // Her ref'in sources kaydında var olması gerek
+  for (const ref of allRefs) {
+    if (!sources[ref]) return false;
+  }
+  return true;
 }
 
 /* ─────────── Adapter ─────────── */
@@ -425,92 +465,342 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
       };
     },
 
-    async generatePetition(
-      req: GeneratePetitionRequest,
-    ): Promise<GeneratePetitionResponse> {
+    async generateCase(req: GenerateCaseRequest): Promise<GenerateCaseResponse> {
+      const rB = (b: typeof req.branch) =>
+        b === "is_hukuku"
+          ? "İş Hukuku"
+          : b === "borclar"
+            ? "Borçlar Hukuku"
+            : b === "medeni"
+              ? "Medeni Hukuk"
+              : b === "medeni_usul"
+                ? "Medeni Usul Hukuku"
+                : b === "ceza"
+                  ? "Ceza Hukuku"
+                  : b === "idare"
+                    ? "İdare Hukuku"
+                    : "Ticaret Hukuku";
+
+      const contextBlock = req.contextSourceIds.length > 0
+        ? [
+            "Aşağıdaki mevzuat maddelerini vakaya dayanak olarak KULLANMALISIN:",
+            ...req.contextSourceIds.map((id) => {
+              const s = sources[id];
+              return s ? `- ${s.shortTitle}: ${s.body.slice(0, 300)}` : null;
+            }).filter(Boolean),
+          ].join("\n")
+        : "Hiçbir mevzuat bağlamı verilmedi — mevzuat.gov.tr'deki güncel mevzuatla uyumlu üret.";
+
+      const themeLine = req.theme
+        ? `TEMA: "${req.theme}" — vaka bu konu etrafında dönmeli.`
+        : "TEMA: genel — alanın temel konularından birini seç.";
+      const toneLine = req.characterTone
+        ? `MÜVEKKİL TONU: "${req.characterTone}"`
+        : "";
+
       const system = [
-        "Sen LawKit'in 'Petition Template Generator' ajansısın.",
-        "Kullanıcının senaryosuna göre Türk hukuku açısından uygun bir dilekçe şablonu üret.",
-        "Şablon parça parça (sections) olmalı: mahkeme başlığı, taraflar, konu, vakıalar, hukuki sebepler, deliller, sonuç ve istem benzeri yapı.",
-        "Her bölüm öğrencinin yazacağı bir 'parça' — guidance + placeholder + minChars + grader hint ver.",
-        "DİKKAT: ASLA mevzuat maddesi veya Yargıtay kararı UYDURMA. Genel ilkeler ve şablonik ifadeler kullan.",
-        "JSON şeması:",
-        '{"id": "<kısa-slug>", "title": "<dilekçenin adı>", "summary": "<2-3 cümle>", "branch": "is_hukuku|borclar|medeni|medeni_usul", "estimatedMinutes": 8-30, "difficulty": 1-4, "sections": [{"key": "...", "title": "...", "guidance": "...", "placeholder": "...", "minChars": 40-300, "assessDimensions": [<rubric anahtarlarından>], "graderHint": "..."}]}',
-        "Rubric anahtarları: olay, mesele, usul, maddi, gerekce, risk, ifade.",
-        "Sections en az 3, en çok 10 olsun. Her section minChars=40-300 arası.",
+        "Sen LawKit'in Türk hukuku vaka tasarımcısısın.",
+        "Hukuk öğrencileri için DALLANAN vaka simülasyonları üretiyorsun.",
+        "",
+        "ÜRETİM KURALLARI (KESİN):",
+        "1. Vaka toplam 7-15 node (karar noktası) arasında OLMALI.",
+        "2. Her karar node'unda 2-4 option (seçenek) olmalı.",
+        "3. KESİN branch değerleri (sadece bunlardan biri): is_hukuku, borclar, medeni, medeni_usul, ceza, idare, ticaret",
+        "4. mood değerleri (sadece bunlar): triumph, neutral, warning, loss",
+        "5. verdict değerleri (sadece bunlar): good, partial, bad",
+        "6. 'good' seçenek mevzuata DAYALI olmalı.",
+        "7. 'bad' seçenek tipik öğrenci hatası olmalı.",
+        "8. Başlangıç node'u 'n1' olmalı (kind: 'info').",
+        "9. İlk karar node'u genelde 'n2' olur (kind: 'decision').",
+        "10. Zorluk 1-2 ise 7-10 node, 3-4 ise 10-15 node olsun.",
+        "",
+        "VAKA YAPISI:",
+        "- n1: info — müvekkil olayı anlatır (speaker: 'muvekkil').",
+        "- n2: decision — avukatın ilk stratejik kararı.",
+        "- n3-n5: olgu toplama / usul kararları.",
+        "- n6-n10: esas strateji.",
+        "- n11+: outcome — sonuç.",
+        "",
+        "KAYNAK REFERANSLARI:",
+        "- Verilen mevzuat maddelerinden EN AZ 2 tanesini option'ların sources alanında referansla.",
+        "",
+        "SADECE JSON döndür. Başka hiçbir şey yazma.",
       ].join("\n");
 
       const user = [
-        `Senaryo: ${req.userScenario}`,
-        req.branch ? `Tercih edilen dal: ${req.branch}` : "Dal serbest — sen seç.",
-      ].join("\n");
+        `ALAN: ${rB(req.branch)}`,
+        `ZORLUK: ${req.difficulty} (1=başlangıç, 4=ustalık)`,
+        themeLine,
+        toneLine,
+        `TAHMİNİ SÜRE: ${[12, 25, 35, 50][req.difficulty - 1]} dakika`,
+        "",
+        contextBlock,
+      ].filter(Boolean).join("\n");
+
+      let generated: LegalCase;
+      let qualityScore = 0;
+      let flaggedForReview = false;
 
       try {
-        const raw = await chatJson(GeneratePetitionSchema, system, user);
-        return {
-          id: raw.id,
-          title: raw.title,
-          summary: raw.summary,
-          branch: raw.branch as LegalBranch,
-          estimatedMinutes: raw.estimatedMinutes,
-          difficulty: raw.difficulty as 1 | 2 | 3 | 4,
-          sections: raw.sections.map((s) => ({
-            key: s.key,
-            title: s.title,
-            guidance: s.guidance,
-            placeholder: s.placeholder,
-            minChars: s.minChars,
-            assessDimensions: s.assessDimensions as RubricKey[],
-            graderHint: s.graderHint,
-          })),
-          flaggedForReview: false,
+        const raw = (await chatJson(LegalCaseOutputSchema as z.ZodType<Record<string, unknown>>, system, user)) as Record<string, unknown>;
+
+        // Normalize branch
+        const branchMap: Record<string, string> = {
+          "iş hukuku": "is_hukuku", "is hukuku": "is_hukuku", "iş_hukuku": "is_hukuku",
+          "borçlar hukuku": "borclar", "borclar hukuku": "borclar", "borçlar": "borclar",
+          "medeni hukuk": "medeni", "medeni": "medeni",
+          "medeni usul": "medeni_usul", "medeni usul hukuku": "medeni_usul",
+          "ceza hukuku": "ceza", "ceza": "ceza", "ceza_hukuku": "ceza",
+          "idare hukuku": "idare", "idare": "idare", "idare_hukuku": "idare",
+          "ticaret hukuku": "ticaret", "ticaret": "ticaret", "ticaret_hukuku": "ticaret",
         };
-      } catch (e) {
+        const rawBranch = ((raw.branch ?? raw.branch ?? "") as string).toLowerCase();
+        if (branchMap[rawBranch]) raw.branch = branchMap[rawBranch];
+        if (!["is_hukuku", "borclar", "medeni", "medeni_usul", "ceza", "idare", "ticaret"].includes(raw.branch as string)) {
+          raw.branch = "borclar";
+        }
+
+        // Normalize node kinds (LLM 'result' -> 'outcome')
+        const nodes = (raw.nodes as Array<Record<string, unknown>>) ?? [];
+        const validKinds = new Set(["decision", "outcome", "info", "open_text", "ai_branch", "client_chat", "checkpoint"]);
+        for (const n of nodes) {
+          if (!validKinds.has(n.kind as string)) n.kind = "info";
+          // Fix missing option fields
+          const opts = n.options as Array<Record<string, unknown>> | undefined;
+          if (opts) {
+            for (const o of opts) {
+              if (!o.id) o.id = `opt_${Math.random().toString(36).slice(2, 8)}`;
+              if (!o.label) o.label = "Seçenek";
+              if (!o.next) o.next = n.id as string;
+              if (!o.verdict) o.verdict = "partial";
+              if (!["good", "partial", "bad"].includes(o.verdict as string)) o.verdict = "partial";
+            }
+          }
+          // Ensure node has id
+          if (!n.id) n.id = `n${nodes.indexOf(n) + 1}`;
+        }
+
+        // Ensure startNode exists in nodes
+        const nodeIds = new Set(nodes.map((n) => n.id as string));
+        if (!nodeIds.has(raw.startNode as string)) {
+          raw.startNode = nodes[0]?.id ?? "n1";
+        }
+
+        // Fix outcome moods
+        const outcomes = raw.outcomes as Array<Record<string, unknown>> | undefined;
+        const validMoods = new Set(["triumph", "neutral", "warning", "loss"]);
+        if (outcomes) {
+          for (const o of outcomes) {
+            if (!validMoods.has(o.mood as string)) o.mood = "neutral";
+            if (!o.id) o.id = `outcome_${outcomes.indexOf(o)}`;
+            if (!o.condition) o.condition = { default: outcomes.indexOf(o) === outcomes.length - 1 };
+          }
+        }
+
+        // Cast normalize
+        const cast = raw.cast as Array<Record<string, unknown>> | undefined;
+        if (cast) {
+          for (const c of cast) {
+            if (!c.id) c.id = `char_${cast.indexOf(c)}`;
+          }
+        }
+
+        generated = raw as unknown as LegalCase;
+
+        // Quality audit (basit)
+        const nodeCount = nodes.length;
+        const srcPass = auditCaseSources(raw);
+        const hasOpts = nodes.some((n) => Array.isArray(n.options) && (n.options as unknown[]).length > 0);
+        qualityScore = 0.3 + (nodeCount >= 5 ? 0.2 : 0) + (srcPass ? 0.25 : 0) + (hasOpts ? 0.15 : 0)
+          + (outcomes && outcomes.length > 0 ? 0.1 : 0);
+        flaggedForReview = !srcPass || nodeCount < 3;
+
+      } catch (err) {
         throw new Error(
-          `generatePetition failed: ${e instanceof Error ? e.message : String(e)}`,
+          `Case generation failed: ${err instanceof Error ? err.message : String(err)}`,
         );
       }
+
+      return {
+        legalCase: generated,
+        qualityScore: Number(qualityScore.toFixed(2)),
+        flaggedForReview,
+        usedSources: req.contextSourceIds,
+      };
     },
 
-    async generateCase(req: GenerateCaseRequest): Promise<GeneratedCaseScenario> {
+    async generateQuestions(req: GenerateQuestionRequest): Promise<GenerateQuestionResponse> {
+      const branchLabels: Record<string, string> = {
+        is_hukuku: "İş Hukuku", borclar: "Borçlar Hukuku", medeni: "Medeni Hukuk",
+        medeni_usul: "Medeni Usul", ceza: "Ceza Hukuku", idare: "İdare Hukuku",
+        ticaret: "Ticaret Hukuku", anayasa: "Anayasa", ceza_usul: "Ceza Usul",
+        icra: "İcra İflas",
+      };
+      const label = branchLabels[req.branch] ?? req.branch;
+
+      const contextBlock = req.contextSourceIds.length > 0
+        ? [
+            "Aşağıdaki mevzuat maddelerini sorularına DAYANAK olarak kullan:",
+            ...req.contextSourceIds.map((id) => {
+              const s = sources[id];
+              return s ? `- ${s.shortTitle}: ${s.body.slice(0, 250)}` : null;
+            }).filter(Boolean),
+          ].join("\n")
+        : "";
+
+      const excludeBlock = req.excludeIds?.length
+        ? `Şu soru ID'leriyle aynı konuda soru ÜRETME: ${req.excludeIds.join(", ")}`
+        : "";
+
       const system = [
-        "Sen LawKit'in 'Case Scenario Generator' ajansısın.",
-        "Kullanıcının senaryosuna göre Türk hukuku eğitimi için bir vaka taslağı üret.",
-        "Vaka kısa ve oynanabilir olsun: müvekkilin ağzından bir anlatım, anahtar meseleler, beklenen ilk hamleler.",
-        "DİKKAT: ASLA mevzuat maddesi veya Yargıtay kararı UYDURMA. Mevzuat ismi (TBK, TMK, İş K. gibi) genel referans olabilir; ama somut madde no/karar atfı yok.",
-        "JSON şeması:",
-        '{"id": "<kısa-slug>", "title": "<vaka adı>", "branch": "is_hukuku|borclar|medeni|medeni_usul", "summary": "<2-3 cümle>", "clientNarrative": "<müvekkilin ağzından 4-8 cümle>", "keyIssues": ["<madde>", ...], "expectedFirstMoves": ["<hamle>", ...], "difficulty": 1-4, "estimatedMinutes": 5-30}',
+        "Sen LawKit'in HMGS soru yazarısın.",
+        "Türk hukuku çoktan seçmeli sınav sorusu üretiyorsun.",
+        "",
+        "KURALLAR:",
+        "1. Soru kökü (stem) bir olay veya hukuki mesele içermeli.",
+        "2. 4 şık olmalı (a, b, c, d).",
+        "3. SADECE BİR şık doğru. Diğerleri makul çeldiriciler olmalı.",
+        "4. Doğru cevap mevzuata DAYALI olmalı, ezoterik değil.",
+        "5. Çeldiriciler tipik öğrenci hatalarını yansıtmalı.",
+        "6. Her soruya 2-3 cümle açıklama (explanation) yaz.",
+        "7. Her çeldirici için kısa gerekçe (distractorReasons) yaz.",
+        "8. Kullandığın mevzuat maddelerini sources dizisinde referansla.",
+        "",
+        "ÇIKTI FORMATI — ZORUNLU JSON:",
+        JSON.stringify({
+          questions: [{
+            id: "q_is_001",
+            branch: "is_hukuku",
+            difficulty: 2,
+            stem: "Ali 7 yıldır X A.Ş.'de çalışmaktadır. İşveren... Buna göre aşağıdakilerden hangisi doğrudur?",
+            choices: [
+              { id: "a", text: "Doğru cevap..." },
+              { id: "b", text: "Çeldirici..." },
+              { id: "c", text: "Çeldirici..." },
+              { id: "d", text: "Tuzak..." },
+            ],
+            correctId: "a",
+            explanation: "Doğru cevap a şıkkıdır çünkü İş K. m. 18 uyarınca...",
+            distractorReasons: {
+              b: "B yanlış çünkü ihbar süresi kıdeme göre değişir.",
+              c: "C yanlış çünkü haklı fesih şartları oluşmamıştır.",
+              d: "D yanlış çünkü arabuluculuk dava şartıdır.",
+            },
+            sources: ["is_kanunu_m18"],
+          }],
+        }),
+        "",
+        "SADECE JSON döndür. Başka metin yazma.",
       ].join("\n");
 
       const user = [
-        req.userScenario ? `Senaryo: ${req.userScenario}` : "Senaryo: (kullanıcı belirtmedi — sen üret)",
-        req.branch ? `Tercih edilen dal: ${req.branch}` : "Dal serbest.",
-        req.difficulty ? `Zorluk talebi: ${req.difficulty}/4` : "",
-        req.theme ? `Konu vurgusu: ${req.theme}` : "",
-        req.characterTone ? `Müvekkil karakter tonu: ${req.characterTone}` : "",
-      ]
-        .filter(Boolean)
-        .join("\n");
+        `HUKUK DALI: ${label}`,
+        `ZORLUK: ${req.difficulty} (1=kolay, 4=zor)`,
+        `SORU SAYISI: ${req.count}`,
+        excludeBlock,
+        contextBlock,
+      ].filter(Boolean).join("\n");
 
-      try {
-        const raw = await chatJson(GenerateCaseSchema, system, user);
-        return {
-          id: raw.id,
-          title: raw.title,
-          branch: raw.branch as LegalBranch,
-          summary: raw.summary,
-          clientNarrative: raw.clientNarrative,
-          keyIssues: raw.keyIssues,
-          expectedFirstMoves: raw.expectedFirstMoves,
-          difficulty: raw.difficulty as 1 | 2 | 3 | 4,
-          estimatedMinutes: raw.estimatedMinutes,
-          flaggedForReview: false,
-        };
-      } catch (e) {
-        throw new Error(
-          `generateCase failed: ${e instanceof Error ? e.message : String(e)}`,
-        );
+      const GenQuestionSchema = z.object({
+        questions: z.array(z.object({
+          id: z.string(),
+          branch: z.string(),
+          difficulty: z.number().int().min(1).max(4),
+          stem: z.string().min(1),
+          choices: z.array(z.object({
+            id: z.string(),
+            text: z.string().min(1),
+          })).length(4),
+          correctId: z.string(),
+          explanation: z.string(),
+          distractorReasons: z.record(z.string()).optional(),
+          sources: z.array(z.string()).optional(),
+        })),
+      });
+
+      const raw = await chatJson(GenQuestionSchema, system, user);
+
+      const refSet = new Set(Object.keys(sources));
+      let validSourceCount = 0;
+      let totalSourceCount = 0;
+      for (const q of raw.questions) {
+        for (const s of q.sources ?? []) {
+          totalSourceCount++;
+          if (refSet.has(s)) validSourceCount++;
+        }
       }
+      const sourceQuality = totalSourceCount > 0 ? validSourceCount / totalSourceCount : 0.5;
+      const qualityScore = 0.4
+        + (raw.questions.length >= req.count ? 0.2 : 0)
+        + sourceQuality * 0.2
+        + (raw.questions.every((q) => q.explanation.length > 20) ? 0.2 : 0);
+
+      return {
+        questions: raw.questions as GenerateQuestionResponse["questions"],
+        qualityScore: Number(qualityScore.toFixed(2)),
+        flaggedForReview: sourceQuality < 0.5,
+        usedSources: req.contextSourceIds,
+      };
+    },
+
+    async generatePetition(req: GeneratePetitionRequest): Promise<GeneratePetitionResponse> {
+      const branchLabels: Record<string, string> = {
+        is_hukuku: "İş Hukuku", borclar: "Borçlar Hukuku", medeni: "Medeni Hukuk",
+        medeni_usul: "Medeni Usul", ceza: "Ceza Hukuku", idare: "İdare Hukuku",
+      };
+      const label = branchLabels[req.branch] ?? req.branch;
+      const theme = req.theme ?? `${label} uyuşmazlığı`;
+
+      const contextBlock = req.contextSourceIds.length > 0
+        ? req.contextSourceIds.map((id) => { const s = sources[id]; return s ? `- ${s.shortTitle}: ${s.body.slice(0, 200)}` : null; }).filter(Boolean).join("\n")
+        : "";
+
+      const system = [
+        "Sen LawKit'in dilekçe şablonu tasarımcısısın.",
+        "Hukuk öğrencilerinin pratik yapması için 5 bölümlü dilekçe şablonları üretiyorsun.",
+        "",
+        "HER ŞABLON 5 BÖLÜMDEN oluşmalı:",
+        "1. Mahkeme (görevli/yetkili mahkeme tespiti)",
+        "2. Taraflar (davacı/davalı tanımlama)",
+        "3. Vakıalar (olayların kronolojik dizilimi)",
+        "4. Hukuki Sebepler (dayanak kanun maddeleri)",
+        "5. Talep Sonucu (açık talep)",
+        "",
+        "Her bölüm için: key, title, guidance (yönerge), placeholder (örnek), minChars (10-30), assessDimensions (rubrik boyutları), graderHint (AI değerlendirme notu)",
+        "assessDimensions sadece şunlardan: olay, mesele, usul, maddi, gerekce, risk, ifade",
+        "category değerleri: ise_iade, sebepsiz_zenginlesme, komsuluk, tazminat",
+        "",
+        "SADECE JSON döndür.",
+      ].join("\n");
+
+      const user = `HUKUK DALI: ${label}\nKONU: ${theme}\nZORLUK: ${req.difficulty}\n${contextBlock ? `\nKAYNAKLAR:\n${contextBlock}` : ""}`;
+
+      const schema = z.object({
+        id: z.string().optional().default(`gen_pet_${Date.now()}`),
+        title: z.string().optional().default(`Dilekçe - ${theme}`),
+        category: z.string().optional().default("tazminat"),
+        branch: z.string().optional().default(req.branch),
+        summary: z.string().optional().default(""),
+        estimatedMinutes: z.number().optional().default(20),
+        difficulty: z.number().optional().default(req.difficulty),
+        sections: z.array(z.object({
+          key: z.string(),
+          title: z.string(),
+          guidance: z.string().optional().default(""),
+          placeholder: z.string().optional().default(""),
+          minChars: z.number().optional().default(15),
+          assessDimensions: z.array(z.string()).optional().default(["mesele"]),
+          graderHint: z.string().optional().default(""),
+        }).passthrough()).optional().default([]),
+      }).passthrough();
+
+      const raw = await chatJson(schema, system, user);
+      return {
+        template: raw as GeneratePetitionResponse["template"],
+        qualityScore: (raw.sections as unknown[])?.length >= 4 ? 0.7 : 0.4,
+        flaggedForReview: (raw.sections as unknown[])?.length < 3,
+        usedSources: req.contextSourceIds,
+      };
     },
   };
 }
