@@ -273,13 +273,20 @@ export async function handleAi(
               status: res.flaggedForReview ? "flagged" : "active",
             });
           if (insertErr) {
-            console.error("[api] generated_cases insert error:", insertErr);
+            // PGRST205 = tablo yok (migration apply edilmemiş). Sessizce geç.
+            if (insertErr.code !== "PGRST205") {
+              console.error("[api] generated_cases insert error:", insertErr);
+            }
           } else {
             return json({ ...res, persistedId: caseUuid, caseId: caseWithId.id });
           }
         }
       } catch (persistErr) {
-        console.error("[api] Case persist error:", persistErr);
+        // Tablo/RLS sorunlarında AI cevabını yine döndür, sadece persist'i atla.
+        const msg = persistErr instanceof Error ? persistErr.message : String(persistErr);
+        if (!msg.includes("PGRST205")) {
+          console.error("[api] Case persist error:", msg);
+        }
       }
 
       return json(res);

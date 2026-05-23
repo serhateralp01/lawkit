@@ -54,11 +54,33 @@ function PetitionWorkbenchGated() {
   );
 }
 
+/**
+ * Section normalize — AI üretimi şablonlarda LLM eksik veya boş alanlar
+ * dönebiliyor. Bunları client tarafında doldurarak crash'i önlüyoruz.
+ */
+function normalizeTemplate(t: PetitionTemplate): PetitionTemplate {
+  const sections = (t.sections ?? []).map((s, i) => ({
+    key: s.key && s.key.trim().length > 0 ? s.key : `section_${i}`,
+    title: s.title?.trim() || `Bölüm ${i + 1}`,
+    guidance: s.guidance ?? "",
+    placeholder: s.placeholder ?? "",
+    minChars: typeof s.minChars === "number" && s.minChars > 0 ? s.minChars : 15,
+    assessDimensions:
+      Array.isArray(s.assessDimensions) && s.assessDimensions.length > 0
+        ? s.assessDimensions
+        : ["mesele"],
+    graderHint: s.graderHint ?? "",
+  })) as PetitionTemplate["sections"];
+  return { ...t, sections };
+}
+
 function useResolvedTemplate(
   staticTemplate: PetitionTemplate | null,
   templateId: string,
 ): PetitionTemplate | null {
-  const [resolved, setResolved] = useState<PetitionTemplate | null>(staticTemplate);
+  const [resolved, setResolved] = useState<PetitionTemplate | null>(
+    staticTemplate ? normalizeTemplate(staticTemplate) : null,
+  );
   useEffect(() => {
     if (staticTemplate) return;
     if (!templateId.startsWith("gen_pet_")) return;
@@ -66,7 +88,7 @@ function useResolvedTemplate(
       const raw = sessionStorage.getItem(PET_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as { id?: string; template?: PetitionTemplate };
-        if (parsed.template) setResolved(parsed.template);
+        if (parsed.template) setResolved(normalizeTemplate(parsed.template));
       }
     } catch {
       /* ignore */
@@ -132,6 +154,29 @@ function PetitionWorkbench() {
 
   const currentSection = template.sections[active];
   const currentState = states[currentSection?.key ?? ""];
+
+  // Sections boşsa (AI üretimi başarısız) zarif fallback
+  if (!currentSection || template.sections.length === 0) {
+    return (
+      <PageShell>
+        <div className="mx-auto max-w-3xl px-6 py-20 text-center">
+          <h1 className="font-display text-2xl font-bold text-ink-1">
+            Şablonda bölüm bulunamadı
+          </h1>
+          <p className="mt-3 text-sm text-ink-2">
+            AI üretimi şablon boş veya hatalı geldi. Şablon listesine dönüp
+            tekrar deneyin.
+          </p>
+          <Link
+            to="/dilekce-lab"
+            className="mt-6 inline-block rounded-xl border border-line bg-surface-raised px-5 py-2.5 text-xs font-bold text-ink-1 hover:bg-surface-sunken"
+          >
+            Şablon listesine dön
+          </Link>
+        </div>
+      </PageShell>
+    );
+  }
 
   const update = (key: string, patch: Partial<SectionState>) => {
     setStates((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
