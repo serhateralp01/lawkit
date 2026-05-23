@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, FileText, Sparkles, Loader2, Bot } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PageShell } from "@/components/site/PageShell";
 import { BetaGate } from "@/components/site/BetaGate";
 import { petitionTemplates, type PetitionTemplate } from "@/content/petition-templates";
@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 const PET_KEY = "lawkit_gen_petition";
 
-export const Route = createFileRoute("/dilekce-lab")({
+export const Route = createFileRoute("/dilekce-lab/")({
   head: () => ({
     meta: [
       { title: "Dilekçe Lab | LawKit" },
@@ -32,6 +32,24 @@ function DilekceLabIndex() {
   const navigate = useNavigate();
   const [genLoading, setGenLoading] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
+  const [genElapsedMs, setGenElapsedMs] = useState(0);
+  const genTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const genStartedAt = useRef<number>(0);
+
+  useEffect(() => {
+    if (genLoading) {
+      genStartedAt.current = Date.now();
+      setGenElapsedMs(0);
+      genTickRef.current = setInterval(() => {
+        setGenElapsedMs(Date.now() - genStartedAt.current);
+      }, 200);
+    } else if (genTickRef.current) {
+      clearInterval(genTickRef.current);
+    }
+    return () => {
+      if (genTickRef.current) clearInterval(genTickRef.current);
+    };
+  }, [genLoading]);
 
   const generateWithAI = async () => {
     setGenLoading(true);
@@ -47,6 +65,10 @@ function DilekceLabIndex() {
       setGenLoading(false);
     }
   };
+
+  const genElapsedSec = Math.floor(genElapsedMs / 1000);
+  const genEstimatedSec = 45;
+  const genProgressPct = Math.min(99, Math.round((genElapsedMs / (genEstimatedSec * 1000)) * 100));
 
   return (
     <PageShell>
@@ -86,7 +108,24 @@ function DilekceLabIndex() {
               <div className="flex flex-col items-center rounded-2xl border-2 border-dashed border-gold/40 bg-gold/5 p-10 text-center">
                 <Loader2 className="size-8 animate-spin text-gold" />
                 <p className="mt-4 text-sm font-bold text-ink">AI şablon hazırlıyor...</p>
-                {genError && <p className="mt-2 text-xs text-red-600">{genError}</p>}
+                <p className="mt-1 text-[11px] text-ink/55">
+                  DeepSeek vakaya özgü 5-7 bölüm yazıyor. Tipik ~{genEstimatedSec}s.
+                </p>
+                <div className="mt-4 w-full max-w-xs">
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-line">
+                    <div
+                      className="h-full bg-gold transition-[width] duration-200 ease-linear"
+                      style={{ width: `${genProgressPct}%` }}
+                    />
+                  </div>
+                  <div className="mt-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-ink/40">
+                    <span>%{genProgressPct}</span>
+                    <span>
+                      {genElapsedSec}s / ~{genEstimatedSec}s
+                    </span>
+                  </div>
+                </div>
+                {genError && <p className="mt-3 text-xs text-red-600">{genError}</p>}
               </div>
             ) : (
               <button

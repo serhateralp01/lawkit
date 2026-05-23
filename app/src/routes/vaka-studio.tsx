@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Sparkles, Loader2, Zap, Users, Scale, AlertCircle, Bot } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
@@ -44,7 +44,16 @@ const DIFFICULTY_LABELS: Record<number, string> = {
 };
 
 export const Route = createFileRoute("/vaka-studio")({
-  head: () => ({ meta: [{ title: "Vaka Studio · LawKit" }] }),
+  head: () => ({
+    meta: [
+      { title: "AI Vaka Üretici · Vaka Studio · LawKit" },
+      {
+        name: "description",
+        content:
+          "Vaka Studio'nun alt aracı. Dal, zorluk ve tema seç, AI sana özel bir vaka senaryosu üretsin.",
+      },
+    ],
+  }),
   component: VakaStudioPage,
 });
 
@@ -174,10 +183,22 @@ function VakaStudioInner() {
 
   return (
     <PageShell>
-      <div className="mx-auto max-w-2xl px-6 py-20 lg:px-8">
-        <div className="mb-10 text-center">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-gold">AI Vaka Üretici</p>
-          <h1 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">Size özel vaka yaratalım</h1>
+      <div className="mx-auto max-w-2xl px-6 py-16 lg:px-8">
+        {/* Breadcrumb: Vaka Studio > AI Vaka Üretici */}
+        <Link
+          to="/case-studio"
+          className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-ink/55 hover:text-ink"
+        >
+          ← Vaka Studio
+        </Link>
+
+        <div className="mb-10 mt-4 text-center">
+          <p className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-gold/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
+            <Sparkles className="size-3" /> AI Vaka Üretici · alt araç
+          </p>
+          <h1 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">
+            Sana özel vaka yaratalım
+          </h1>
           <p className="mt-4 leading-relaxed text-ink/55">
             Hukuk dalını, zorluk seviyesini ve isterseniz konuyu seçin. Her seferinde farklı bir senaryo.
           </p>

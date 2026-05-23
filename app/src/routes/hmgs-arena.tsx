@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -62,8 +62,26 @@ function HmgsArenaPage() {
   const [answers, setAnswers] = useState<Record<string, "a" | "b" | "c" | "d">>({});
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [genError, setGenError] = useState<string | null>(null);
+  const [genElapsedMs, setGenElapsedMs] = useState(0);
+  const genTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const genStartedAt = useRef<number>(0);
 
   const totalAvailable = hmgsQuestions.length;
+
+  useEffect(() => {
+    if (phase === "loading") {
+      genStartedAt.current = Date.now();
+      setGenElapsedMs(0);
+      genTickRef.current = setInterval(() => {
+        setGenElapsedMs(Date.now() - genStartedAt.current);
+      }, 200);
+    } else if (genTickRef.current) {
+      clearInterval(genTickRef.current);
+    }
+    return () => {
+      if (genTickRef.current) clearInterval(genTickRef.current);
+    };
+  }, [phase]);
 
   const start = (count: number) => {
     // Direkt sabit havuzdan başlat (hızlı yol)
@@ -118,17 +136,45 @@ function HmgsArenaPage() {
   const restart = () => setPhase("intro");
 
   if (phase === "loading") {
+    const elapsedSec = Math.floor(genElapsedMs / 1000);
+    const estimatedSec = 90;
+    const progressPct = Math.min(99, Math.round((genElapsedMs / (estimatedSec * 1000)) * 100));
+    const overdue = elapsedSec > estimatedSec;
     return (
       <PageShell>
         <section className="mx-auto flex max-w-lg flex-col items-center px-6 py-24 text-center">
           <div className="mb-6 grid size-16 place-items-center rounded-full bg-gold/10">
             <Loader2 className="size-8 animate-spin text-gold" />
           </div>
-          <h1 className="font-display text-2xl font-bold text-ink">Sorular hazırlanıyor</h1>
+          <h1 className="font-display text-2xl font-bold text-ink">
+            AI sorular hazırlıyor
+          </h1>
           <p className="mt-2 text-sm text-ink/55">
-            AI size özel sorular üretiyor. Hukuki kaynaklardan beslenen,
-            daha önce görmediğiniz sorular.
+            DeepSeek hukuki kaynaklardan beslenen, daha önce görmediğin sorular
+            üretiyor. Bu işlem ~{estimatedSec} saniye sürer.
           </p>
+
+          <div className="mt-6 w-full max-w-xs">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-line">
+              <div
+                className="h-full bg-gold transition-[width] duration-200 ease-linear"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+            <div className="mt-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-ink/40">
+              <span>%{progressPct}</span>
+              <span>
+                {elapsedSec}s / ~{estimatedSec}s
+              </span>
+            </div>
+          </div>
+
+          {overdue ? (
+            <p className="mt-4 text-[11px] italic text-ink/45">
+              Karmaşık prompt — AI birkaç saniye daha sürebilir.
+            </p>
+          ) : null}
+
           {genError && (
             <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-700">
               AI bağlantısı kurulamadı — sabit havuzdan devam ediliyor.

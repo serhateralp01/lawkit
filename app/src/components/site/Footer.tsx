@@ -23,10 +23,10 @@ export function Footer() {
           <FooterCol
             title="Ürün"
             links={[
-              { to: "/urun/case-studio", label: "Case Studio" },
-              { to: "/urun/hmgs-arena", label: "HMGS Arena" },
-              { to: "/urun/dilekce-lab", label: "Dilekçe Lab" },
-              { to: "/vaka-studio", label: "Vaka Studio" },
+              { to: "/case-studio", label: "Vaka Studio" },
+              { to: "/vaka-studio", label: "AI Vaka Üretici" },
+              { to: "/dilekce-lab", label: "Dilekçe Lab" },
+              { to: "/hmgs-arena", label: "HMGS Arena" },
               { to: "/fiyatlandirma", label: "Fiyatlandırma" },
             ]}
           />

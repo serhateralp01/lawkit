@@ -4,8 +4,7 @@ import { Menu, X, LogOut, User as UserIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
 const navLinks = [
-  { to: "/case-studio", label: "Case Studio" },
-  { to: "/vaka-studio", label: "Vaka Studio" },
+  { to: "/case-studio", label: "Vaka Studio" },
   { to: "/dilekce-lab", label: "Dilekçe Lab" },
   { to: "/hmgs-arena", label: "HMGS Arena" },
   { to: "/karne", label: "Karne" },

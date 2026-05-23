@@ -20,11 +20,11 @@ type BranchFilter = "all" | "is_hukuku" | "borclar" | "medeni";
 export const Route = createFileRoute("/case-studio")({
   head: () => ({
     meta: [
-      { title: "Case Studio · LawKit" },
+      { title: "Vaka Studio · LawKit" },
       {
         name: "description",
         content:
-          "LawKit'in vaka çalışma giriş ekranı: hazır demo vakalar, sana özel öneri ve AI ile yeni vaka üretimi tek yerde.",
+          "Vaka Studio: hazır demo vakalar, sana özel öneri ve AI Vaka Üretici alt aracı tek yerde.",
       },
     ],
   }),
@@ -70,7 +70,7 @@ function CaseStudioPage() {
           className="mb-8 space-y-2"
         >
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-indigo">
-            Case Studio
+            Vaka Studio
           </p>
           <h1 className="font-display text-3xl font-semibold text-ink-1 lg:text-4xl">
             Bir vaka seç, oynamaya başla
@@ -78,9 +78,9 @@ function CaseStudioPage() {
           <p className="max-w-2xl text-sm leading-relaxed text-ink-2">
             Hazır demo vakalardan çalış, beceri haritanı geliştir — istediğin an{" "}
             <Link to="/vaka-studio" className="font-semibold text-indigo hover:underline">
-              Vaka Studio
+              AI Vaka Üretici
             </Link>
-            'da AI ile sana özel yeni bir vaka üret.
+            'ye geç, sana özel yeni bir vaka üret.
           </p>
         </motion.header>
 
@@ -97,21 +97,22 @@ function CaseStudioPage() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo">
-                AI ile yeni vaka
+                Vaka Studio · Alt araç
               </p>
               <p className="mt-0.5 font-display text-base font-semibold text-ink-1">
-                Hazır vakalardan birini değil de tam sana özel olanı mı istersin?
+                AI Vaka Üretici
               </p>
               <p className="mt-1 text-xs leading-relaxed text-ink-2">
-                Dal, zorluk ve isterseniz konu/karakter tonu seç — saniyeler
-                içinde sana özel bir senaryo üretsin.
+                Hazır demo vakalardan birini değil de tam sana özel olanı mı
+                istersin? Dal, zorluk ve isterseniz konu/karakter tonu seç —
+                AI saniyeler içinde sana özel bir senaryo üretsin.
               </p>
             </div>
             <Link
               to="/vaka-studio"
               className="inline-flex items-center gap-1.5 rounded-md bg-indigo px-4 py-2 text-xs font-bold text-surface-raised hover:opacity-90"
             >
-              Vaka Studio'ya git <ArrowRight className="size-3.5" />
+              AI ile vaka üret <ArrowRight className="size-3.5" />
             </Link>
           </div>
         </motion.div>
