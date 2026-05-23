@@ -19,6 +19,8 @@ import type {
   AssessmentRequest,
   AssessmentResponse,
   DimensionScore,
+  GenerateCaseRequest,
+  GenerateCaseResponse,
   GroundedRequest,
   GroundedResponse,
   RolePlayRequest,
@@ -96,6 +98,29 @@ export const mockAdapter: AIOrchestrator = {
       scoreHint: {},
       verdict: good?.verdict ?? "partial",
       flaggedForReview: false,
+    };
+  },
+
+  async generateCase(req: GenerateCaseRequest): Promise<GenerateCaseResponse> {
+    // Mock: hardcoded vaka şablonunu döndür (DeepSeek olmadığında dev için)
+    return {
+      legalCase: {
+        id: `mock_${req.branch}_${Date.now()}`,
+        title: `Mock ${req.branch} vakası — ${req.theme ?? "genel"}`,
+        branch: req.branch,
+        difficulty: req.difficulty,
+        estimatedMinutes: 10,
+        rubricId: "rubric_v1",
+        summary: "Mock vaka (gerçek LLM bağlanmadı).",
+        facts: ["Mock olgu 1", "Mock olgu 2"],
+        startNode: "n1",
+        nodes: [
+          { id: "n1", kind: "outcome", prompt: "Mock vaka", summary: "Bitti", idealAnswer: "—" },
+        ],
+      },
+      qualityScore: 0.5,
+      flaggedForReview: true,
+      usedSources: req.contextSourceIds,
     };
   },
 };

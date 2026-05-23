@@ -9,9 +9,11 @@
 import { z } from "zod";
 import { getOrchestrator } from "@/lib/ai-orchestrator";
 import { getCase } from "@/content/cases";
+import { searchSources } from "@/content/sources";
 import type {
   AiBranchRequest,
   AssessmentRequest,
+  GenerateCaseRequest,
   GroundedRequest,
   RolePlayRequest,
 } from "@/lib/ai-orchestrator/types";
@@ -81,6 +83,21 @@ const BranchBody = z.object({
   scoreDimensions: z
     .array(z.enum(["olay", "mesele", "usul", "maddi", "gerekce", "risk", "ifade"]))
     .optional(),
+});
+
+const GenerateCaseBody = z.object({
+  branch: z.enum([
+    "is_hukuku",
+    "borclar",
+    "medeni",
+    "medeni_usul",
+    "ceza",
+    "idare",
+    "ticaret",
+  ]),
+  difficulty: z.number().int().min(1).max(4),
+  theme: z.string().optional(),
+  characterTone: z.string().optional(),
 });
 
 async function readBody(req: Request) {
@@ -174,6 +191,25 @@ export async function handleAi(
         dimensions: parsed.data.dimensions,
       };
       const res = await orchestrator.assess(req);
+      return json(res);
+    }
+
+    if (pathname === "/api/ai/generate-case") {
+      const parsed = GenerateCaseBody.safeParse(body);
+      if (!parsed.success) {
+        return json({ error: parsed.error.flatten() }, { status: 400 });
+      }
+      // RAG: tema + dal ile ilgili mevzuat maddelerini çek
+      const query = parsed.data.theme ?? parsed.data.branch;
+      const relevantSources = searchSources(query, parsed.data.branch, 8);
+      const req: GenerateCaseRequest = {
+        branch: parsed.data.branch,
+        difficulty: parsed.data.difficulty,
+        theme: parsed.data.theme,
+        characterTone: parsed.data.characterTone,
+        contextSourceIds: relevantSources.map((s) => s.id),
+      };
+      const res = await orchestrator.generateCase(req);
       return json(res);
     }
 

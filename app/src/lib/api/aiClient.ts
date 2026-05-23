@@ -7,6 +7,8 @@ import type { CaseSession } from "@/lib/case-engine";
 import type {
   AiBranchResponse,
   AssessmentResponse,
+  GenerateCaseRequest,
+  GenerateCaseResponse,
   GroundedResponse,
   Persona,
   RolePlayResponse,
@@ -74,4 +76,8 @@ export function aiBranch(args: {
   scoreDimensions?: RubricKey[];
 }) {
   return post<AiBranchResponse>("/api/ai/branch", args);
+}
+
+export function aiGenerateCase(args: GenerateCaseRequest) {
+  return post<GenerateCaseResponse>("/api/ai/generate-case", args);
 }

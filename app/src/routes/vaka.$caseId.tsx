@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createFileRoute, notFound } from "@tanstack/react-router";
-import { AlertCircle, ArrowRight, CheckCircle2, Circle, XCircle } from "lucide-react";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import { AlertCircle, ArrowRight, CheckCircle2, Circle, XCircle, Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getCase } from "@/content/cases";
 import { sources } from "@/content/sources";
@@ -28,18 +28,30 @@ import { BetaGate } from "@/components/site/BetaGate";
 import type { CaseOption, CharacterDef, LegalCase } from "@/content/types";
 import { cn } from "@/lib/utils";
 
+const GEN_KEY = "lawkit_generated_case";
+
 export const Route = createFileRoute("/vaka/$caseId")({
   loader: ({ params }) => {
-    const c = getCase(params.caseId);
-    if (!c) throw notFound();
-    return { case: c };
+    const isGen = params.caseId.startsWith("gen-");
+    if (!isGen) {
+      const c = getCase(params.caseId);
+      if (!c) throw notFound();
+      return { case: c, isGenerated: false as const };
+    }
+    return { case: null, isGenerated: true as const, caseId: params.caseId };
   },
   head: ({ loaderData }) => ({
     meta: [
-      { title: `${loaderData?.case.title} · LawKit Vaka` },
+      {
+        title: loaderData?.case
+          ? `${loaderData.case.title} · LawKit Vaka`
+          : "Vaka · LawKit",
+      },
       {
         name: "description",
-        content: `${loaderData?.case.summary} — eğitim amaçlı vaka simülasyonu.`,
+        content: loaderData?.case
+          ? `${loaderData.case.summary} — eğitim amaçlı vaka simülasyonu.`
+          : "AI tarafından üretilen vaka simülasyonu.",
       },
     ],
   }),
@@ -55,8 +67,67 @@ function CasePage() {
 }
 
 function CasePageInner() {
-  const { case: legalCase } = Route.useLoaderData();
+  const navigate = useNavigate();
+  const loaderData = Route.useLoaderData();
+  const { isGenerated, caseId } = loaderData as {
+    case: LegalCase | null;
+    isGenerated: boolean;
+    caseId?: string;
+  };
 
+  const [legalCase, setLegalCase] = useState<LegalCase | null>(loaderData.case);
+  const [genLoading, setGenLoading] = useState(isGenerated);
+
+  useEffect(() => {
+    if (!isGenerated || !caseId) return;
+    try {
+      const raw = sessionStorage.getItem(GEN_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as { case: LegalCase };
+        if (parsed.case && parsed.case.nodes) {
+          setLegalCase(parsed.case);
+          sessionStorage.removeItem(GEN_KEY);
+        }
+      }
+    } catch {
+      // sessionStorage parse error — redirect
+    }
+    setGenLoading(false);
+  }, [isGenerated, caseId]);
+
+  if (genLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="mx-auto size-8 animate-spin text-gold" />
+          <p className="mt-4 text-sm text-ink/45">Vaka yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!legalCase) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+        <AlertCircle className="size-12 text-ink/20" />
+        <p className="text-sm text-ink/45">
+          Vaka bulunamadı veya süresi doldu.{" "}
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/vaka-studio" })}
+            className="underline underline-offset-2 hover:text-gold"
+          >
+            Yeni vaka üret
+          </button>
+        </p>
+      </div>
+    );
+  }
+
+  return <LoadedCasePage legalCase={legalCase} />;
+}
+
+function LoadedCasePage({ legalCase }: { legalCase: LegalCase }) {
   // Intro durumu — sadece client'ta okunur (SSR safe).
   const [introDone, setIntroDone] = useState<boolean | null>(null);
   useEffect(() => {

@@ -126,6 +126,32 @@ export interface AiBranchResponse {
   flaggedForReview: boolean;
 }
 
+/* ─────────────── Case Generation ─────────────── */
+
+export interface GenerateCaseRequest {
+  /** Hangi hukuk dalı */
+  branch: "is_hukuku" | "borclar" | "medeni" | "medeni_usul" | "ceza" | "idare" | "ticaret";
+  /** 1-4 zorluk */
+  difficulty: 1 | 2 | 3 | 4;
+  /** Opsiyonel tema: "fesih", "tazminat", "kıdem" gibi */
+  theme?: string;
+  /** Karakter tonu önerisi: "yaşlı müvekkil", "öğrenci", "esnaf" */
+  characterTone?: string;
+  /** İlgili kaynak ID'leri (RAG ile çekilmiş, prompt'a verilecek) */
+  contextSourceIds: string[];
+}
+
+export interface GenerateCaseResponse {
+  /** Üretilen vaka — tam LegalCase objesi */
+  legalCase: LegalCase;
+  /** Quality auditor skoru 0-1 */
+  qualityScore: number;
+  /** Auditor reddetti mi */
+  flaggedForReview: boolean;
+  /** AI'ın kullandığı raw context (debug için) */
+  usedSources: string[];
+}
+
 /* ─────────────── Adapter ─────────────── */
 
 /**
@@ -141,6 +167,7 @@ export interface AIOrchestrator {
   rolePlay(req: RolePlayRequest): Promise<RolePlayResponse>;
   assess(req: AssessmentRequest): Promise<AssessmentResponse>;
   branch(req: AiBranchRequest): Promise<AiBranchResponse>;
+  generateCase(req: GenerateCaseRequest): Promise<GenerateCaseResponse>;
 }
 
 /* ─────────────── Auditor ─────────────── */
