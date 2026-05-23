@@ -21,10 +21,17 @@ async function post<T>(
   const headers: Record<string, string> = {
     "content-type": "application/json",
   };
-  if (auth && hasSupabaseConfig()) {
-    const { data } = await supabaseBrowser().auth.getSession();
-    if (data.session?.access_token) {
-      headers["authorization"] = `Bearer ${data.session.access_token}`;
+  if (auth) {
+    try {
+      if (hasSupabaseConfig()) {
+        const sb = supabaseBrowser();
+        const { data } = await sb.auth.getSession();
+        if (data.session?.access_token) {
+          headers["authorization"] = `Bearer ${data.session.access_token}`;
+        }
+      }
+    } catch {
+      // Auth token alınamazsa devam et — sunucu zaten kontrol eder
     }
   }
   const res = await fetch(path, {

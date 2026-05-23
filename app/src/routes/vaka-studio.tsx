@@ -1,13 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Sparkles, Loader2, Zap, Users, Scale, AlertCircle } from "lucide-react";
+import { Sparkles, Loader2, Zap, Users, Scale, AlertCircle, Bot } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
 import { BetaGate } from "@/components/site/BetaGate";
 import { aiGenerateCase } from "@/lib/api/aiClient";
+import { mockAdapter } from "@/lib/ai-orchestrator/mockAdapter";
 import type { LegalCase } from "@/content/types";
 import { cn } from "@/lib/utils";
 
 const GEN_KEY = "lawkit_generated_case";
+const TIMEOUT_MS = 90_000;
 
 const PHASES = [
   "Müvekkilini yaratıyoruz...",
@@ -25,31 +27,18 @@ const BRANCHES: {
   { id: "is_hukuku", label: "İş Hukuku", desc: "Fesih, kıdem, ihbar, işe iade" },
   { id: "borclar", label: "Borçlar Hukuku", desc: "Sözleşme, haksız fiil, sebepsiz zenginleşme" },
   { id: "medeni", label: "Medeni Hukuk", desc: "Aile, miras, mülkiyet, komşuluk" },
-  {
-    id: "medeni_usul",
-    label: "Medeni Usul",
-    desc: "HMK, yetki, ispat, dava şartı, tedbir",
-  },
+  { id: "medeni_usul", label: "Medeni Usul", desc: "HMK, yetki, ispat, dava şartı, tedbir" },
   { id: "ceza", label: "Ceza Hukuku", desc: "Suç tipleri, kast/taksir, teşebbüs" },
-  {
-    id: "idare",
-    label: "İdare Hukuku",
-    desc: "İdari işlem, iptal davası, İYUK",
-  },
+  { id: "idare", label: "İdare Hukuku", desc: "İdari işlem, iptal davası, İYUK" },
   { id: "ticaret", label: "Ticaret Hukuku", desc: "Şirketler, kambiyo, TTK" },
 ];
 
 const DIFFICULTY_LABELS: Record<number, string> = {
-  1: "Başlangıç",
-  2: "Orta",
-  3: "İleri",
-  4: "Ustalık",
+  1: "Başlangıç", 2: "Orta", 3: "İleri", 4: "Ustalık",
 };
 
 export const Route = createFileRoute("/vaka-studio")({
-  head: () => ({
-    meta: [{ title: "Vaka Studio · LawKit" }],
-  }),
+  head: () => ({ meta: [{ title: "Vaka Studio · LawKit" }] }),
   component: VakaStudioPage,
 });
 
@@ -71,6 +60,7 @@ function VakaStudioInner() {
   const [error, setError] = useState<string | null>(null);
   const [phaseIdx, setPhaseIdx] = useState(0);
   const phaseTimer = useRef<ReturnType<typeof setInterval>>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
     if (loading) {
@@ -80,6 +70,7 @@ function VakaStudioInner() {
     }
     return () => {
       if (phaseTimer.current) clearInterval(phaseTimer.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [loading]);
 
@@ -87,6 +78,12 @@ function VakaStudioInner() {
     setLoading(true);
     setError(null);
     setPhaseIdx(0);
+
+    timeoutRef.current = setTimeout(() => {
+      setError("İstek zaman aşımına uğradı. Sunucu yanıt vermiyor. Sayfayı yenileyip tekrar deneyin.");
+      setLoading(false);
+    }, TIMEOUT_MS);
+
     try {
       const result = await aiGenerateCase({
         branch,
@@ -95,21 +92,22 @@ function VakaStudioInner() {
         characterTone: tone.trim() || undefined,
         contextSourceIds: [],
       });
-      if (result.flaggedForReview) {
-        console.warn("[vaka-studio] Case flagged for review, quality:", result.qualityScore);
-      }
+      clearTimeout(timeoutRef.current);
+
       const caseId = result.caseId ?? `gen-${Date.now()}`;
       sessionStorage.setItem(GEN_KEY, JSON.stringify({ case: result.legalCase }));
-      if (result.persistedId) {
-        sessionStorage.setItem(
-          "lawkit_gen_persisted",
-          JSON.stringify({ id: result.persistedId, caseId }),
-        );
-      }
       navigate({ to: "/vaka/$caseId", params: { caseId } });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Bilinmeyen hata");
+      clearTimeout(timeoutRef.current);
       setLoading(false);
+      const msg = e instanceof Error ? e.message : "Bilinmeyen hata";
+
+      // Hata mesajına göre spesifik yönlendirme
+      if (msg.includes("fetch") || msg.includes("Network") || msg.includes("status")) {
+        setError("AI sunucusuna bağlanılamadı. Sunucunun çalıştığından emin olun.");
+      } else {
+        setError(msg);
+      }
     }
   };
 
@@ -121,12 +119,8 @@ function VakaStudioInner() {
             <div className="mx-auto mb-6 grid size-16 place-items-center rounded-full bg-gold/10">
               <Loader2 className="size-8 animate-spin text-gold" />
             </div>
-            <h2 className="font-display text-2xl font-bold text-ink">
-              Vakanız hazırlanıyor
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-ink/55">
-              {PHASES[phaseIdx]}
-            </p>
+            <h2 className="font-display text-2xl font-bold text-ink">Vakanız hazırlanıyor</h2>
+            <p className="mt-3 text-sm leading-relaxed text-ink/55">{PHASES[phaseIdx]}</p>
             <div className="mt-6 flex justify-center gap-1.5">
               {PHASES.map((_, i) => (
                 <span
@@ -139,9 +133,6 @@ function VakaStudioInner() {
                 />
               ))}
             </div>
-            <p className="mt-4 text-[10px] uppercase tracking-widest text-ink/30">
-              {difficultyToTime(difficulty)} dakika
-            </p>
           </div>
         </div>
       </PageShell>
@@ -152,24 +143,16 @@ function VakaStudioInner() {
     <PageShell>
       <div className="mx-auto max-w-2xl px-6 py-20 lg:px-8">
         <div className="mb-10 text-center">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
-            AI Vaka Üretici
-          </p>
-          <h1 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">
-            Size özel vaka yaratalım
-          </h1>
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-gold">AI Vaka Üretici</p>
+          <h1 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">Size özel vaka yaratalım</h1>
           <p className="mt-4 leading-relaxed text-ink/55">
-            Hukuk dalını, zorluk seviyesini ve isterseniz konuyu seçin. LawKit AI size özel,
-            dallanan bir hukuk vakası üretecek. Her seferinde farklı bir senaryo.
+            Hukuk dalını, zorluk seviyesini ve isterseniz konuyu seçin. Her seferinde farklı bir senaryo.
           </p>
         </div>
 
         <div className="space-y-8 rounded-2xl border border-line bg-white p-8 shadow-sm">
-          {/* Branch */}
           <fieldset>
-            <legend className="mb-3 text-sm font-bold text-ink/70">
-              Hukuk dalını seçin
-            </legend>
+            <legend className="mb-3 text-sm font-bold text-ink/70">Hukuk dalı</legend>
             <div className="grid gap-2 sm:grid-cols-2">
               {BRANCHES.map((b) => (
                 <button
@@ -183,44 +166,30 @@ function VakaStudioInner() {
                       : "border-line hover:border-ink/20",
                   )}
                 >
-                  <span className="block text-sm font-bold text-ink">
-                    {b.label}
-                  </span>
-                  <span className="block mt-0.5 text-xs text-ink/45">
-                    {b.desc}
-                  </span>
+                  <span className="block text-sm font-bold text-ink">{b.label}</span>
+                  <span className="block mt-0.5 text-xs text-ink/45">{b.desc}</span>
                 </button>
               ))}
             </div>
           </fieldset>
 
-          {/* Difficulty */}
           <div>
             <label className="mb-3 block text-sm font-bold text-ink/70">
               Zorluk: {DIFFICULTY_LABELS[difficulty]}
             </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min={1}
-                max={4}
-                value={difficulty}
-                onChange={(e) => setDifficulty(Number(e.target.value))}
-                className="h-2 w-full cursor-pointer appearance-none rounded-full bg-line accent-gold"
-              />
-            </div>
-            <div className="mt-1 flex justify-between text-[10px] font-bold uppercase tracking-wider text-ink/30">
-              {[1, 2, 3, 4].map((d) => (
-                <span key={d}>{DIFFICULTY_LABELS[d]}</span>
-              ))}
-            </div>
+            <input
+              type="range"
+              min={1}
+              max={4}
+              value={difficulty}
+              onChange={(e) => setDifficulty(Number(e.target.value))}
+              className="h-2 w-full cursor-pointer appearance-none rounded-full bg-line accent-gold"
+            />
           </div>
 
-          {/* Theme */}
           <div>
             <label className="mb-2 flex items-center gap-2 text-sm font-bold text-ink/70">
-              <Scale className="size-4" />
-              Konu (opsiyonel)
+              <Scale className="size-4" /> Konu (opsiyonel)
             </label>
             <input
               type="text"
@@ -231,11 +200,9 @@ function VakaStudioInner() {
             />
           </div>
 
-          {/* Character tone */}
           <div>
             <label className="mb-2 flex items-center gap-2 text-sm font-bold text-ink/70">
-              <Users className="size-4" />
-              Müvekkil tonu (opsiyonel)
+              <Users className="size-4" /> Müvekkil tonu (opsiyonel)
             </label>
             <input
               type="text"
@@ -246,7 +213,6 @@ function VakaStudioInner() {
             />
           </div>
 
-          {/* Error */}
           {error && (
             <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               <AlertCircle className="mt-0.5 size-4 shrink-0" />
@@ -254,25 +220,18 @@ function VakaStudioInner() {
             </div>
           )}
 
-          {/* Generate button */}
           <button
             type="button"
             onClick={handleGenerate}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-gold py-3.5 text-sm font-bold text-white transition hover:bg-gold/90 disabled:opacity-50"
           >
-            <Sparkles className="size-4" />
-            Vaka üret
-            <Zap className="size-4" />
+            <Bot className="size-4" /> Vaka üret <Sparkles className="size-4" />
           </button>
           <p className="text-center text-[10px] uppercase tracking-widest text-ink/25">
-            Tahmini süre: 12-50 dk (zorluğa göre) · AI ile üretilir · Hukukçu incelemesi beklemede
+            12-50 dk (zorluğa göre) · AI ile üretilir
           </p>
         </div>
       </div>
     </PageShell>
   );
-}
-
-function difficultyToTime(d: number) {
-  return [12, 25, 35, 50][d - 1];
 }
