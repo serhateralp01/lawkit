@@ -10,6 +10,7 @@ import { z } from "zod";
 import { getOrchestrator } from "@/lib/ai-orchestrator";
 import { getCase } from "@/content/cases";
 import { searchSources } from "@/content/sources";
+import { supabaseAdmin } from "@/lib/supabase/server";
 import type {
   AiBranchRequest,
   AssessmentRequest,
@@ -17,6 +18,8 @@ import type {
   GroundedRequest,
   RolePlayRequest,
 } from "@/lib/ai-orchestrator/types";
+import type { ServerEnv } from "@/lib/env";
+import { readServerEnv } from "@/lib/env";
 
 const json = (data: unknown, init: ResponseInit = {}) =>
   new Response(JSON.stringify(data), {
@@ -103,6 +106,23 @@ const GenerateCaseBody = z.object({
 async function readBody(req: Request) {
   try {
     return await req.json();
+  } catch {
+    return null;
+  }
+}
+
+async function userIdFromRequest(
+  req: Request,
+  env: ServerEnv,
+): Promise<string | null> {
+  const auth = req.headers.get("authorization");
+  if (!auth || !auth.startsWith("Bearer ")) return null;
+  const token = auth.slice(7);
+  try {
+    const sb = supabaseAdmin(env);
+    const { data, error } = await sb.auth.getUser(token);
+    if (error || !data.user) return null;
+    return data.user.id;
   } catch {
     return null;
   }
@@ -210,6 +230,42 @@ export async function handleAi(
         contextSourceIds: relevantSources.map((s) => s.id),
       };
       const res = await orchestrator.generateCase(req);
+
+      // Persist to Supabase (eğer erişim varsa)
+      const serverEnv = readServerEnv(workerEnv);
+      try {
+        const userId = await userIdFromRequest(request, serverEnv);
+        if (userId && serverEnv.SUPABASE_URL && serverEnv.SUPABASE_SERVICE_ROLE_KEY) {
+          const sb = supabaseAdmin(serverEnv);
+          const caseUuid = crypto.randomUUID();
+          const caseWithId = {
+            ...(res.legalCase as Record<string, unknown>),
+            id: `gen_${caseUuid.slice(0, 8)}`,
+          };
+          const { error: insertErr } = await sb
+            .from("generated_cases")
+            .insert({
+              id: caseUuid,
+              user_id: userId,
+              case_json: caseWithId,
+              params: {
+                branch: parsed.data.branch,
+                difficulty: parsed.data.difficulty,
+                theme: parsed.data.theme ?? null,
+              },
+              quality_score: res.qualityScore,
+              status: res.flaggedForReview ? "flagged" : "active",
+            });
+          if (insertErr) {
+            console.error("[api] generated_cases insert error:", insertErr);
+          } else {
+            return json({ ...res, persistedId: caseUuid, caseId: caseWithId.id });
+          }
+        }
+      } catch (persistErr) {
+        console.error("[api] Case persist error:", persistErr);
+      }
+
       return json(res);
     }
 

@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = supabaseBrowser();
     let mounted = true;
 
-    const fetchAdminFlag = async (userId: string | undefined) => {
+    const fetchProfile = async (userId: string | undefined, email: string | undefined) => {
       if (!userId) {
         setIsAdmin(false);
         return;
@@ -63,7 +63,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select("is_admin")
         .eq("id", userId)
         .single();
-      if (mounted) {
+
+      if (error && error.code === "PGRST116") {
+        // Profil satırı yok → trigger tetiklenmemiş → manuel oluştur
+        console.warn("[auth] Profil bulunamadı, manuel oluşturuluyor:", userId);
+        const displayName = email?.split("@")[0] ?? "Kullanıcı";
+        const { error: insertErr } = await supabase
+          .from("profiles")
+          .insert({ id: userId, display_name: displayName, is_admin: false });
+        if (!insertErr) {
+          setIsAdmin(false);
+        } else {
+          console.error("[auth] Profil oluşturulamadı:", insertErr);
+          setIsAdmin(false);
+        }
+      } else if (mounted) {
         setIsAdmin(!error && !!data?.is_admin);
       }
     };
@@ -71,14 +85,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!mounted) return;
       setSession(data.session);
-      await fetchAdminFlag(data.session?.user?.id);
+      await fetchProfile(data.session?.user?.id, data.session?.user?.email);
       setLoading(false);
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (_event, s) => {
       if (!mounted) return;
       setSession(s);
-      await fetchAdminFlag(s?.user?.id);
+      await fetchProfile(s?.user?.id, s?.user?.email);
     });
 
     return () => {

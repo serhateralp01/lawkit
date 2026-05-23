@@ -98,8 +98,14 @@ function VakaStudioInner() {
       if (result.flaggedForReview) {
         console.warn("[vaka-studio] Case flagged for review, quality:", result.qualityScore);
       }
-      const caseId = `gen-${Date.now()}`;
+      const caseId = result.caseId ?? `gen-${Date.now()}`;
       sessionStorage.setItem(GEN_KEY, JSON.stringify({ case: result.legalCase }));
+      if (result.persistedId) {
+        sessionStorage.setItem(
+          "lawkit_gen_persisted",
+          JSON.stringify({ id: result.persistedId, caseId }),
+        );
+      }
       navigate({ to: "/vaka/$caseId", params: { caseId } });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Bilinmeyen hata");

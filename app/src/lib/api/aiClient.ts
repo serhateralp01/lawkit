@@ -1,8 +1,3 @@
-/**
- * Tarayıcı tarafı AI client'ı.
- * /api/ai/* uçlarına fetch atar; sırlar asla client'a sızmaz.
- */
-
 import type { CaseSession } from "@/lib/case-engine";
 import type {
   AiBranchResponse,
@@ -14,11 +9,25 @@ import type {
   RolePlayResponse,
 } from "@/lib/ai-orchestrator/types";
 import type { RubricKey } from "@/content/types";
+import { supabaseBrowser, hasSupabaseConfig } from "@/lib/supabase/client";
 
-async function post<T>(path: string, body: unknown): Promise<T> {
+async function post<T>(
+  path: string,
+  body: unknown,
+  auth = false,
+): Promise<T> {
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+  };
+  if (auth && hasSupabaseConfig()) {
+    const { data } = await supabaseBrowser().auth.getSession();
+    if (data.session?.access_token) {
+      headers["authorization"] = `Bearer ${data.session.access_token}`;
+    }
+  }
   const res = await fetch(path, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers,
     body: JSON.stringify(body),
   });
   if (!res.ok) {
@@ -78,6 +87,11 @@ export function aiBranch(args: {
   return post<AiBranchResponse>("/api/ai/branch", args);
 }
 
+export interface GenerateCaseResult extends GenerateCaseResponse {
+  persistedId?: string;
+  caseId?: string;
+}
+
 export function aiGenerateCase(args: GenerateCaseRequest) {
-  return post<GenerateCaseResponse>("/api/ai/generate-case", args);
+  return post<GenerateCaseResult>("/api/ai/generate-case", args, true);
 }
