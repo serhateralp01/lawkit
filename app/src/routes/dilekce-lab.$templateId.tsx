@@ -71,46 +71,34 @@ function PetitionWorkbench() {
     if (!currentState || currentState.text.trim().length < currentSection.minChars) return;
     update(currentSection.key, { loading: true, error: null, result: null });
 
-    // AI'a verilen "case" yerine şablon bağlamı kullanıyoruz — caseId olarak
-    // sebepsiz_zenginlesme için sample case kullanmak yerine, sentetik bir
-    // session oluşturup template bağlamı geçeriz. Mevcut /api/ai/assess
-    // endpoint'i bir caseId bekliyor; en doğru yol: orada bir 'sample' case
-    // göstermek. Burada is_hukuku_001 gibi mevcut bir caseId kullanırız —
-    // AI sadece userAnswer + dimensions + (varsa) graderHint'i değerlendirir.
-    // Bu çalışıyor çünkü assessor genel rubric tanımıyla puanlar.
-
     try {
-      const sampleSession: CaseSession = {
-        caseId: "is_hukuku_001",
-        startNode: "n1",
-        currentNode: "n1",
-        history: [],
-        ledger: {},
-        done: false,
-        startedAt: Date.now(),
-      };
-
       const userAnswer = [
         `[Dilekçe Lab — Şablon: ${template.title}]`,
         `[Bölüm: ${currentSection.title}]`,
         `[Bölüm rehberi: ${currentSection.guidance}]`,
-        `[Değerlendirme notu: ${currentSection.graderHint}]`,
-        "",
-        "Öğrencinin yazdığı:",
-        currentState.text,
+        currentState.text.trim(),
       ].join("\n");
 
       const res = await aiAssess({
         caseId: "is_hukuku_001",
-        session: sampleSession,
+        session: {
+          caseId: "is_hukuku_001",
+          startNode: "n1",
+          currentNode: "n1",
+          history: [],
+          ledger: {},
+          done: false,
+          startedAt: Date.now(),
+        },
         userAnswer,
-        dimensions: currentSection.assessDimensions,
+        dimensions: currentSection.scoringDimensions as RubricKey[],
       });
-      update(currentSection.key, { result: res, loading: false });
+
+      update(currentSection.key, { loading: false, result: res });
     } catch (e) {
       update(currentSection.key, {
         loading: false,
-        error: e instanceof Error ? e.message : String(e),
+        error: e instanceof Error ? e.message : "Değerlendirme başarısız",
       });
     }
   };

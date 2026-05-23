@@ -265,7 +265,7 @@ function VakaStudioInner() {
             <Zap className="size-4" />
           </button>
           <p className="text-center text-[10px] uppercase tracking-widest text-ink/25">
-            Tahmini süre: {difficultyToTime(difficulty)} dakika · AI ile üretilir · Hukukçu incelemesi beklemede
+            Tahmini süre: 12-50 dk (zorluğa göre) · AI ile üretilir · Hukukçu incelemesi beklemede
           </p>
         </div>
       </div>

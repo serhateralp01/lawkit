@@ -438,49 +438,49 @@ function Pricing() {
       </div>
 
       <div className="grid gap-5 md:grid-cols-3">
-        <PriceCard
-          name="Sprint"
-          desc="Sınav öncesi yoğun"
-          price="₺50"
-          period="7 gün"
-          features={[
-            "7 gün sınırsız AI vaka",
-            "Tüm dilekçe şablonları",
-            "AI Tutor sınırsız",
-            "Tek seferlik, otomatik yenilenmez",
-          ]}
-          cta="Sprint başlat"
-          variant="primary"
-        />
-        <PriceCard
-          name="Core"
-          desc="Düzenli çalışma planı"
-          price="₺250"
-          period="ay"
-          features={[
-            "Sprint'teki her şey, süresiz",
-            "Sınırsız AI vaka (günlük 10)",
-            "Karne, radar ve mastery rozetleri",
-            "Yeni vakalar otomatik açılır",
-          ]}
-          cta="Core'a geç"
-          variant="dark"
-          badge="Popüler"
-        />
-        <PriceCard
-          name="Pro"
-          desc="Daha fazla AI ve analiz"
-          price="₺400"
-          period="ay"
-          features={[
-            "Core'daki her şey +",
-            "Günlük 20 AI vaka hakkı",
-            "Öncelikli AI yanıt süresi",
-            "Detaylı performans analizi",
-          ]}
-          cta="Pro'ya geç"
-          variant="primary"
-        />
+          <PriceCard
+            name="Sprint"
+            desc="Sınav öncesi yoğun"
+            price="₺50"
+            period="7 gün"
+            features={[
+              "7 gün boyunca günlük 10 AI vaka",
+              "Tüm dilekçe şablonları",
+              "AI Tutor sınırsız",
+              "Tek seferlik, otomatik yenilenmez",
+            ]}
+            cta="Sprint başlat"
+            variant="primary"
+          />
+          <PriceCard
+            name="Core"
+            desc="Düzenli çalışma planı"
+            price="₺250"
+            period="ay"
+            features={[
+              "Sprint'teki her şey +",
+              "Günlük 10 AI vaka",
+              "Karne, radar ve mastery rozetleri",
+              "Yeni vakalar otomatik açılır",
+            ]}
+            cta="Core'a geç"
+            variant="dark"
+            badge="Popüler"
+          />
+          <PriceCard
+            name="Pro"
+            desc="Daha fazla AI ve analiz"
+            price="₺400"
+            period="ay"
+            features={[
+              "Core'daki her şey +",
+              "Günlük 20 AI vaka",
+              "Detaylı performans analizi",
+              "Boyut bazlı ilerleme raporları",
+            ]}
+            cta="Pro'ya geç"
+            variant="primary"
+          />
       </div>
       <p className="mt-8 text-center text-xs text-ink/45">
         Ücretsiz başlayın — ayda 3 AI vaka. KDV dahil. İlk 7 gün koşulsuz iade.{" "}

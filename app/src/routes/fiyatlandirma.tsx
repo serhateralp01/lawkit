@@ -52,9 +52,9 @@ const PLANS: Plan[] = [
     description: "Sınav öncesi yoğun hazırlık.",
     price: "50",
     period: "7 gün",
-    includes: "Free'deki her şey",
+    includes: "Free'deki her şey +",
     features: [
-      "7 gün sınırsız AI vaka",
+      "7 gün boyunca günlük 10 AI vaka",
       "Tüm dilekçe şablonları",
       "AI Tutor sınırsız",
       "Tek seferlik — otomatik yenilenmez",
@@ -70,9 +70,9 @@ const PLANS: Plan[] = [
     price: "250",
     period: "ay",
     yearly: { price: "2.490", saving: "%17" },
-    includes: "Sprint'teki her şey, süresiz +",
+    includes: "Sprint'teki her şey +",
     features: [
-      "Sınırsız AI vaka (günlük 10)",
+      "Günlük 10 AI vaka",
       "Karne, radar ve mastery rozetleri",
       "Yeni vakalar otomatik açılır",
     ],
@@ -89,9 +89,9 @@ const PLANS: Plan[] = [
     yearly: { price: "3.990", saving: "%17" },
     includes: "Core'daki her şey +",
     features: [
-      "Günlük 20 AI vaka hakkı",
-      "Öncelikli AI yanıt süresi",
+      "Günlük 20 AI vaka",
       "Detaylı performans analizi",
+      "Boyut bazlı ilerleme raporları",
       "Erken erişim özellikler",
     ],
     cta: "Pro'ya geç",
@@ -161,7 +161,7 @@ function PricingPage() {
           />
           <FaqItem
             q="Pro'daki performans analizi ne içerir?"
-            a="Pro kullanıcıları boyut bazlı (olay, mesele, usul, maddi, gerekçe, risk, ifade) ilerleme grafiklerine, haftalık gelişim raporlarına ve zayıf alan kırılımına erişir. Ayrıca günlük AI vaka hakkı 20'ye çıkar ve yanıt süresi önceliklidir."
+            a="Pro kullanıcıları boyut bazlı (olay, mesele, usul, maddi, gerekçe, risk, ifade) ilerleme grafiklerine, haftalık gelişim raporlarına ve zayıf alan kırılımına erişir. Ayrıca günlük AI vaka hakkı 20'ye çıkar."
           />
           <FaqItem
             q="İade koşulları nedir?"
