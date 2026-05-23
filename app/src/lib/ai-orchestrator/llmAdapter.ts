@@ -230,6 +230,15 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
     } catch {
       throw new Error(`LLM response not valid JSON: ${text.slice(0, 200)}`);
     }
+    // LLM bazen object beklenirken array dönüyor (örn nodes'u root'a koyuyor).
+    // Single-element array ise unwrap et; çoklu array ise nodes wrapper'ı dene.
+    if (Array.isArray(parsed)) {
+      if (parsed.length === 1 && parsed[0] && typeof parsed[0] === "object") {
+        parsed = parsed[0];
+      } else {
+        parsed = { nodes: parsed };
+      }
+    }
     const result = schema.safeParse(parsed);
     if (!result.success) {
       throw new Error(`LLM response failed schema: ${result.error.message}`);
@@ -513,6 +522,9 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
         "8. Başlangıç node'u 'n1' olmalı (kind: 'info').",
         "9. İlk karar node'u genelde 'n2' olur (kind: 'decision').",
         "10. Zorluk 1-2 ise 7-10 node, 3-4 ise 10-15 node olsun.",
+        "11. ZORUNLU üst seviye alanlar: title (string, vakayı özetler), summary (2-3 cümle), branch, difficulty, estimatedMinutes, rubricId (\"rubric_v1\"), facts (string array), startNode, nodes (array).",
+        "12. Node alan adları: id, kind, prompt (TEXT İÇERİĞİ — 'text' DEĞİL 'prompt' kullan!), speaker, options.",
+        "13. Option alan adları: id, label (BUTONA YAZILACAK METİN — 'text' değil 'label'!), next (NEXT NODE ID — 'nextNode' değil 'next'!), verdict, sources.",
         "",
         "VAKA YAPISI:",
         "- n1: info — müvekkil olayı anlatır (speaker: 'muvekkil').",
@@ -564,13 +576,27 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
         const nodes = (raw.nodes as Array<Record<string, unknown>>) ?? [];
         const validKinds = new Set(["decision", "outcome", "info", "open_text", "ai_branch", "client_chat", "checkpoint"]);
         for (const n of nodes) {
+          // Field alias mapping: LLM "text" → bizim "prompt"
+          if (!n.prompt && typeof n.text === "string") n.prompt = n.text;
+          if (!n.prompt && typeof (n as Record<string, unknown>).content === "string") {
+            n.prompt = (n as Record<string, unknown>).content;
+          }
           if (!validKinds.has(n.kind as string)) n.kind = "info";
           // Fix missing option fields
           const opts = n.options as Array<Record<string, unknown>> | undefined;
           if (opts) {
             for (const o of opts) {
+              // Field alias: LLM "text" → bizim "label" (görünen şık metni)
+              if (!o.label && typeof o.text === "string") o.label = o.text;
+              if (!o.label && typeof (o as Record<string, unknown>).content === "string") {
+                o.label = (o as Record<string, unknown>).content;
+              }
               if (!o.id) o.id = `opt_${Math.random().toString(36).slice(2, 8)}`;
               if (!o.label) o.label = "Seçenek";
+              // next: LLM bazen "nextNode" kullanıyor
+              if (!o.next && typeof (o as Record<string, unknown>).nextNode === "string") {
+                o.next = (o as Record<string, unknown>).nextNode;
+              }
               if (!o.next) o.next = n.id as string;
               if (!o.verdict) o.verdict = "partial";
               if (!["good", "partial", "bad"].includes(o.verdict as string)) o.verdict = "partial";
@@ -578,6 +604,36 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
           }
           // Ensure node has id
           if (!n.id) n.id = `n${nodes.indexOf(n) + 1}`;
+        }
+
+        // Ensure case has meaningful title + summary
+        if (!raw.title || typeof raw.title !== "string" || (raw.title as string).trim().length < 3) {
+          const themeStr = req.theme ? ` — ${req.theme}` : "";
+          raw.title = `${rB(req.branch)} Vakası${themeStr}`;
+        }
+        if (!raw.summary || typeof raw.summary !== "string" || (raw.summary as string).trim().length < 10) {
+          const firstInfo = nodes.find((n) => n.kind === "info" && typeof n.prompt === "string");
+          raw.summary = firstInfo
+            ? ((firstInfo.prompt as string).slice(0, 200) + "…")
+            : `${rB(req.branch)} alanında ${req.theme ?? "genel"} konulu bir uyuşmazlık.`;
+        }
+        // facts boşsa LLM'in olay özetinden çıkar
+        if (!Array.isArray(raw.facts) || (raw.facts as unknown[]).length === 0) {
+          const firstInfoText =
+            (nodes.find((n) => n.kind === "info")?.prompt as string | undefined) ?? "";
+          raw.facts = firstInfoText
+            ? [firstInfoText.slice(0, 240)]
+            : [`Müvekkilin durumu: ${req.theme ?? "incelemeye alındı"}.`];
+        }
+        // rubricId şart
+        if (!raw.rubricId) raw.rubricId = "rubric_v1";
+        // estimatedMinutes
+        if (!raw.estimatedMinutes || typeof raw.estimatedMinutes !== "number") {
+          raw.estimatedMinutes = [12, 25, 35, 50][req.difficulty - 1];
+        }
+        // difficulty
+        if (!raw.difficulty || typeof raw.difficulty !== "number") {
+          raw.difficulty = req.difficulty;
         }
 
         // Ensure startNode exists in nodes
