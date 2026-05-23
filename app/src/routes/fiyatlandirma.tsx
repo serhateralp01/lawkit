@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { motion } from "framer-motion";
 import { CheckCircle2, Sparkles, ArrowRight } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
 import { cn } from "@/lib/utils";
@@ -123,9 +124,9 @@ function PricingPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
-        <div className="grid gap-5 lg:grid-cols-4">
-          {PLANS.map((p) => (
-            <PlanCard key={p.name} plan={p} />
+        <div className="grid items-stretch gap-5 lg:grid-cols-4">
+          {PLANS.map((p, i) => (
+            <PlanCard key={p.name} plan={p} index={i} />
           ))}
         </div>
 
@@ -181,21 +182,25 @@ function PricingPage() {
   );
 }
 
-function PlanCard({ plan }: { plan: Plan }) {
+function PlanCard({ plan, index }: { plan: Plan; index: number }) {
   const isDark = plan.variant === "core" || plan.variant === "pro";
   const isFeatured = plan.variant === "core";
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.05 + index * 0.06, duration: 0.4, ease: "easeOut" }}
+      whileHover={{ y: -4 }}
       className={cn(
-        "relative flex flex-col rounded-2xl p-7 transition-all duration-300",
+        "relative flex h-full flex-col rounded-2xl p-7 shadow-sm transition-shadow duration-300 hover:shadow-xl",
         isFeatured
-          ? "bg-ink text-paper shadow-2xl shadow-ink/20 ring-2 ring-gold scale-[1.02] hover:scale-[1.03]"
+          ? "bg-ink text-paper shadow-ink/20 ring-2 ring-gold"
           : plan.variant === "sprint"
-            ? "border-2 border-gold bg-white text-ink shadow-sm hover:shadow-lg"
+            ? "border-2 border-gold bg-white text-ink"
             : plan.variant === "pro"
-              ? "bg-gradient-to-b from-ink to-ink/90 text-paper shadow-lg shadow-ink/10 hover:shadow-xl"
-              : "border border-line bg-white text-ink shadow-sm hover:shadow-md",
+              ? "bg-gradient-to-b from-ink to-ink/90 text-paper shadow-ink/10"
+              : "border border-line bg-white text-ink",
       )}
     >
       {plan.badge ? (
@@ -213,7 +218,7 @@ function PlanCard({ plan }: { plan: Plan }) {
         <h3 className="font-display text-xl font-extrabold">{plan.name}</h3>
         <p
           className={cn(
-            "mt-1 text-xs leading-relaxed",
+            "mt-1 min-h-[2.5rem] text-xs leading-relaxed",
             isDark ? "text-paper/55" : "text-ink/55",
           )}
         >
@@ -232,24 +237,27 @@ function PlanCard({ plan }: { plan: Plan }) {
             </span>
           )}
         </div>
-        {plan.yearly ? (
-          <p className={cn("mt-1 text-[10px]", isDark ? "text-paper/45" : "text-ink/45")}>
-            Yıllık ₺{plan.yearly.price} ({plan.yearly.saving} indirim)
-          </p>
-        ) : null}
+        <p
+          className={cn(
+            "mt-1 min-h-[1rem] text-[10px]",
+            isDark ? "text-paper/45" : "text-ink/45",
+          )}
+        >
+          {plan.yearly
+            ? `Yıllık ₺${plan.yearly.price} (${plan.yearly.saving} indirim)`
+            : " "}
+        </p>
       </div>
 
       <ul className="mb-6 flex-1 space-y-2.5">
-        {plan.includes && (
-          <li
-            className={cn(
-              "border-b pb-2 text-[10px] font-bold uppercase tracking-wider",
-              isDark ? "border-paper/10 text-paper/40" : "border-line text-ink/35",
-            )}
-          >
-            {plan.includes}
-          </li>
-        )}
+        <li
+          className={cn(
+            "border-b pb-2 text-[10px] font-bold uppercase tracking-wider",
+            isDark ? "border-paper/10 text-paper/40" : "border-line text-ink/35",
+          )}
+        >
+          {plan.includes ?? " "}
+        </li>
         {plan.features.map((f) => (
           <li key={f} className="flex items-start gap-2 text-xs">
             <CheckCircle2
@@ -266,7 +274,7 @@ function PlanCard({ plan }: { plan: Plan }) {
       <Link
         to={plan.ctaHref}
         className={cn(
-          "block rounded-xl px-4 py-3 text-center text-xs font-bold transition",
+          "mt-auto block rounded-xl px-4 py-3 text-center text-xs font-bold transition-colors duration-200",
           plan.variant === "free"
             ? "border border-line bg-white text-ink hover:bg-ink/5"
             : plan.variant === "sprint"
@@ -278,7 +286,7 @@ function PlanCard({ plan }: { plan: Plan }) {
       >
         {plan.cta}
       </Link>
-    </div>
+    </motion.div>
   );
 }
 

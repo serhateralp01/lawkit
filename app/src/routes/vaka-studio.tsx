@@ -9,13 +9,20 @@ import { cn } from "@/lib/utils";
 
 const GEN_KEY = "lawkit_generated_case";
 const TIMEOUT_MS = 180_000;
+/** Optimist tahmin: tipik full LegalCase üretimi ~90s sürer. */
+const ESTIMATED_MS = 90_000;
 
-const PHASES = [
-  "Müvekkilini yaratıyoruz...",
-  "Olay örgüsünü kuruyoruz...",
-  "Hukuki dayanakları kontrol ediyoruz...",
-  "Karakterleri çiziyoruz...",
-  "Dallanan senaryoları hazırlıyoruz...",
+/**
+ * Phase boundaries — elapsed ms cinsinden. Geçen süre boundary'i aşınca
+ * bir sonraki faza geçiyoruz. Son fazda kalıp "neredeyse hazır" diyoruz.
+ */
+const PHASES: { atMs: number; label: string }[] = [
+  { atMs: 0, label: "Müvekkilini yaratıyoruz..." },
+  { atMs: 15_000, label: "Olay örgüsünü kuruyoruz..." },
+  { atMs: 30_000, label: "Hukuki dayanakları kontrol ediyoruz..." },
+  { atMs: 50_000, label: "Karakterleri çiziyoruz..." },
+  { atMs: 70_000, label: "Dallanan senaryoları hazırlıyoruz..." },
+  { atMs: 90_000, label: "Neredeyse hazır, son rötuşlar..." },
 ];
 
 const BRANCHES: {
@@ -57,26 +64,39 @@ function VakaStudioInner() {
   const [tone, setTone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [phaseIdx, setPhaseIdx] = useState(0);
-  const phaseTimer = useRef<ReturnType<typeof setInterval>>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const tickTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startedAtRef = useRef<number>(0);
 
   useEffect(() => {
     if (loading) {
-      phaseTimer.current = setInterval(() => {
-        setPhaseIdx((i) => Math.min(i + 1, PHASES.length - 1));
-      }, 8000);
+      startedAtRef.current = Date.now();
+      setElapsedMs(0);
+      tickTimer.current = setInterval(() => {
+        setElapsedMs(Date.now() - startedAtRef.current);
+      }, 200);
+    } else {
+      if (tickTimer.current) clearInterval(tickTimer.current);
     }
     return () => {
-      if (phaseTimer.current) clearInterval(phaseTimer.current);
+      if (tickTimer.current) clearInterval(tickTimer.current);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [loading]);
 
+  const currentPhase = (() => {
+    let idx = 0;
+    for (let i = 0; i < PHASES.length; i++) {
+      if (elapsedMs >= PHASES[i].atMs) idx = i;
+    }
+    return { idx, label: PHASES[idx].label };
+  })();
+  const progressPct = Math.min(99, Math.round((elapsedMs / ESTIMATED_MS) * 100));
+
   const handleGenerate = async () => {
     setLoading(true);
     setError(null);
-    setPhaseIdx(0);
 
     timeoutRef.current = setTimeout(() => {
       setError("İstek zaman aşımına uğradı. Sunucu yanıt vermiyor. Sayfayı yenileyip tekrar deneyin.");
@@ -111,27 +131,41 @@ function VakaStudioInner() {
   };
 
   if (loading) {
+    const elapsedSec = Math.floor(elapsedMs / 1000);
+    const overdue = elapsedMs > ESTIMATED_MS;
     return (
       <PageShell>
-        <div className="flex min-h-[80vh] items-center justify-center">
-          <div className="max-w-lg rounded-2xl border border-line bg-white p-10 text-center shadow-sm">
+        <div className="flex min-h-[80vh] items-center justify-center px-6">
+          <div className="w-full max-w-lg rounded-2xl border border-line bg-white p-10 text-center shadow-sm">
             <div className="mx-auto mb-6 grid size-16 place-items-center rounded-full bg-gold/10">
               <Loader2 className="size-8 animate-spin text-gold" />
             </div>
             <h2 className="font-display text-2xl font-bold text-ink">Vakanız hazırlanıyor</h2>
-            <p className="mt-3 text-sm leading-relaxed text-ink/55">{PHASES[phaseIdx]}</p>
-            <div className="mt-6 flex justify-center gap-1.5">
-              {PHASES.map((_, i) => (
-                <span
-                  key={i}
-                  className={cn(
-                    "block h-1.5 w-12 rounded-full transition-colors",
-                    i <= phaseIdx ? "bg-gold" : "bg-line",
-                    i === phaseIdx && "animate-pulse",
-                  )}
+            <p className="mt-3 min-h-[1.25rem] text-sm leading-relaxed text-ink/55">
+              {currentPhase.label}
+            </p>
+
+            {/* Gerçek elapsed-tabanlı progress bar */}
+            <div className="mt-6">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-line">
+                <div
+                  className="h-full bg-gold transition-[width] duration-200 ease-linear"
+                  style={{ width: `${progressPct}%` }}
                 />
-              ))}
+              </div>
+              <div className="mt-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-ink/40">
+                <span>%{progressPct}</span>
+                <span>
+                  {elapsedSec}s / ~{Math.round(ESTIMATED_MS / 1000)}s
+                </span>
+              </div>
             </div>
+
+            {overdue ? (
+              <p className="mt-4 text-[11px] italic text-ink/45">
+                Karmaşık senaryolar daha uzun sürebilir — sabret, yakında.
+              </p>
+            ) : null}
           </div>
         </div>
       </PageShell>
