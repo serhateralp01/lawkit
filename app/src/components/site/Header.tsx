@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 
 const navLinks = [
   { to: "/urun/case-studio", label: "Case Studio" },
-  { to: "/urun/hmgs-arena", label: "HMGS Arena" },
+  { to: "/hmgs-arena", label: "HMGS Arena" },
   { to: "/dilekce-lab", label: "Dilekçe Lab" },
   { to: "/karne", label: "Karne" },
   { to: "/metodoloji", label: "Metodoloji" },

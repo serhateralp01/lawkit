@@ -473,43 +473,62 @@ function Pricing() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-3">
         <PriceCard
           name="Sprint"
-          desc="8 haftalık sınav kampı"
-          price="₺2.490"
-          period="tek seferlik"
+          desc="HMGS öncesi yoğun"
+          price="₺50"
+          period="7 gün"
           features={[
-            "Haftalık 2 deneme sınavı",
-            "500+ odaklanmış vaka sorusu",
-            "Zayıf konu haritası",
-            "Hızlı tekrar notları (PDF)",
-            "Topluluk forumu erişimi",
+            "7 gün sınırsız AI vakası",
+            "Tüm dilekçe şablonları",
+            "AI Tutor sınırsız",
+            "Otomatik yenilenmez",
           ]}
-          cta="Kampa katıl"
+          cta="Sprint başlat"
           variant="primary"
-          badge="Popüler"
+          badge="Sınav haftası"
         />
         <PriceCard
           name="Core"
-          desc="Yıllık akademik üyelik"
-          price="₺5.990"
-          period="yıllık"
+          desc="Ana plan"
+          price="₺250"
+          period="ay"
           features={[
-            "Tüm modüllere sınırsız erişim",
-            "AI dilekçe analizi (sınırsız)",
-            "Tüm Case Studio vakaları",
-            "Mentor desteği (aylık 2 görüşme)",
-            "Staj portalı erişimi",
+            "Sınırsız vaka (10/gün)",
+            "Tüm dilekçe şablonları",
+            "AI Tutor sınırsız",
+            "Karne + radar + mastery",
+            "Yeni vakalar otomatik",
           ]}
           cta="Core'a geç"
           variant="dark"
+          badge="Popüler"
+        />
+        <PriceCard
+          name="Pro"
+          desc="Premium AI"
+          price="₺400"
+          period="ay"
+          features={[
+            "Core'un tamamı",
+            "Claude 3.5 Sonnet opsiyon",
+            "Öncelikli AI yanıt",
+            "Detaylı performans analizi",
+          ]}
+          cta="Pro'ya geç"
+          variant="primary"
         />
       </div>
       <p className="mt-8 text-center text-xs text-ink/45">
-        KDV dahildir. İlk 7 gün ücretsiz iade. Fakülte ve baro lisansı için{" "}
+        Ücretsiz başla — ayda 3 AI vaka. KDV dahildir. İlk 7 gün ücretsiz iade.{" "}
+        <Link to="/fiyatlandirma" className="underline hover:text-gold">
+          Detay
+        </Link>
+        {" "}·{" "}
+        Fakülte/baro için{" "}
         <Link to="/iletisim" className="underline hover:text-gold">
-          iletişime geçin
+          iletişime geç
         </Link>
         .
       </p>
