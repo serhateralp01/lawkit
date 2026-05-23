@@ -561,19 +561,27 @@ function CaseSidePanel({
 
       {/* Belgeler — accordion */}
       {legalCase.documents && legalCase.documents.length > 0 ? (
-        <details className="group rounded-md border border-line bg-surface-sunken/30 px-3 py-2 open:bg-surface-sunken/50">
-          <summary className="flex cursor-pointer items-center justify-between text-[10px] font-bold uppercase tracking-widest text-ink-3 outline-none [&::-webkit-details-marker]:hidden">
+        <details
+          open
+          className="group overflow-hidden rounded-xl border border-line bg-surface-raised"
+        >
+          <summary className="flex cursor-pointer items-center justify-between border-b border-line/60 bg-surface-sunken/40 px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-ink-3 outline-none transition-colors hover:bg-surface-sunken/60 [&::-webkit-details-marker]:hidden">
             <span>Dosyadaki Belgeler ({legalCase.documents.length})</span>
             <span className="text-ink-3 transition-transform group-open:rotate-180">▾</span>
           </summary>
-          <ul className="mt-2 space-y-1 text-xs text-ink-2">
+          <dl className="divide-y divide-line/40 text-xs">
             {legalCase.documents.map((d) => (
-              <li key={d.label} className="flex justify-between gap-2">
-                <span className="font-medium">{d.label}</span>
-                {d.ref ? <span className="text-ink-3">{d.ref}</span> : null}
-              </li>
+              <div
+                key={d.label}
+                className="grid grid-cols-[1fr_1.2fr] items-baseline gap-3 px-3.5 py-2.5"
+              >
+                <dt className="font-semibold leading-snug text-ink-1">{d.label}</dt>
+                <dd className="text-right leading-snug text-ink-2">
+                  {d.ref ?? "—"}
+                </dd>
+              </div>
             ))}
-          </ul>
+          </dl>
         </details>
       ) : null}
     </div>

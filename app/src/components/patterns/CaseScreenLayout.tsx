@@ -1,5 +1,6 @@
 import type { LegalCase } from "@/content/types";
 import { Clock, FileText, Layers } from "lucide-react";
+import { Header } from "@/components/site/Header";
 
 interface Props {
   case: LegalCase;
@@ -15,11 +16,14 @@ interface Props {
  * Orta (esnek): aktif sahne — tek mikro-görev, geniş
  * Sağ (300px): beceriler + ipuçları + ilerleme
  *
+ * Header sticky kalır — global nav her zaman erişilebilir.
  * Mobile breakpoint yok; yatay tablet 1024px+ optimum, desktop 1440px+ ideal.
  */
 export function CaseScreenLayout({ case: c, left, center, right }: Props) {
   return (
-    <div className="mx-auto max-w-[1560px] px-6 pb-16 pt-8 xl:px-10">
+    <div className="min-h-screen bg-paper">
+      <Header />
+      <div className="mx-auto max-w-[1560px] px-6 pb-16 pt-8 xl:px-10">
       {/* Künye */}
       <header className="mb-8 flex items-center justify-between gap-4 border-b border-line pb-5">
         <div>
@@ -64,6 +68,7 @@ export function CaseScreenLayout({ case: c, left, center, right }: Props) {
       <p className="mt-8 text-center text-[10px] uppercase tracking-widest text-ink-3">
         Eğitim amaçlı simülasyon · LawKit gerçek hukuki tavsiye vermez
       </p>
+      </div>
     </div>
   );
 }

@@ -4,12 +4,11 @@ import { Sparkles, Loader2, Zap, Users, Scale, AlertCircle, Bot } from "lucide-r
 import { PageShell } from "@/components/site/PageShell";
 import { BetaGate } from "@/components/site/BetaGate";
 import { aiGenerateCase } from "@/lib/api/aiClient";
-import { mockAdapter } from "@/lib/ai-orchestrator/mockAdapter";
 import type { LegalCase } from "@/content/types";
 import { cn } from "@/lib/utils";
 
 const GEN_KEY = "lawkit_generated_case";
-const TIMEOUT_MS = 90_000;
+const TIMEOUT_MS = 180_000;
 
 const PHASES = [
   "Müvekkilini yaratıyoruz...",

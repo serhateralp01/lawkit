@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -12,7 +12,7 @@ import {
 import { PageShell } from "@/components/site/PageShell";
 import { BetaGate } from "@/components/site/BetaGate";
 import { getPetitionTemplate } from "@/content/petition-templates";
-import type { PetitionSection } from "@/content/petition-templates";
+import type { PetitionSection, PetitionTemplate } from "@/content/petition-templates";
 import { defaultRubric } from "@/content/rubrics";
 import type { RubricKey } from "@/content/types";
 import { cn } from "@/lib/utils";
@@ -24,21 +24,15 @@ const PET_KEY = "lawkit_gen_petition";
 
 export const Route = createFileRoute("/dilekce-lab/$templateId")({
   loader: ({ params }) => {
+    // SSR güvenli: sessionStorage'a SADECE client'ta erişilir.
+    // AI üretimi şablonlar (gen_pet_*) için null dönüyoruz; component
+    // mount sonrası sessionStorage'tan çekiyor.
     if (params.templateId.startsWith("gen_pet_")) {
-      try {
-        const raw = sessionStorage.getItem(PET_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed.template) {
-            sessionStorage.removeItem(PET_KEY);
-            return { template: parsed.template };
-          }
-        }
-      } catch { /* sessionStorage unavailable */ }
-      throw notFound();
+      return { template: null, templateId: params.templateId };
     }
     const t = getPetitionTemplate(params.templateId);
-    return { template: t ?? null, templateId: params.templateId };
+    if (!t) throw notFound();
+    return { template: t, templateId: params.templateId };
   },
   head: ({ loaderData }) => ({
     meta: [
@@ -58,6 +52,27 @@ function PetitionWorkbenchGated() {
       <PetitionWorkbench />
     </BetaGate>
   );
+}
+
+function useResolvedTemplate(
+  staticTemplate: PetitionTemplate | null,
+  templateId: string,
+): PetitionTemplate | null {
+  const [resolved, setResolved] = useState<PetitionTemplate | null>(staticTemplate);
+  useEffect(() => {
+    if (staticTemplate) return;
+    if (!templateId.startsWith("gen_pet_")) return;
+    try {
+      const raw = sessionStorage.getItem(PET_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as { id?: string; template?: PetitionTemplate };
+        if (parsed.template) setResolved(parsed.template);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [staticTemplate, templateId]);
+  return resolved;
 }
 
 interface SectionState {
@@ -146,7 +161,7 @@ function PetitionWorkbench() {
           startedAt: Date.now(),
         },
         userAnswer,
-        dimensions: currentSection.scoringDimensions as RubricKey[],
+        dimensions: (currentSection.assessDimensions ?? []) as RubricKey[],
       });
 
       update(currentSection.key, { loading: false, result: res });
