@@ -57,9 +57,65 @@ function PetitionWorkbenchGated() {
 /**
  * Section normalize — AI üretimi şablonlarda LLM eksik veya boş alanlar
  * dönebiliyor. Bunları client tarafında doldurarak crash'i önlüyoruz.
+ * Eğer sections tamamen boş gelirse, standart 5 bölümlük dilekçe iskeletini
+ * fallback olarak veriyoruz ki kullanıcı yine pratik yapabilsin.
  */
+const DEFAULT_SECTIONS: PetitionTemplate["sections"] = [
+  {
+    key: "mahkeme",
+    title: "Mahkeme",
+    guidance: "Görevli ve yetkili mahkemeyi açıkça belirt.",
+    placeholder: "Örnek: İstanbul Anadolu 5. İş Mahkemesi",
+    minChars: 20,
+    assessDimensions: ["usul"],
+    graderHint: "Görevli mahkeme + yetki kuralı doğru mu?",
+  },
+  {
+    key: "taraflar",
+    title: "Taraflar",
+    guidance: "Davacı ve davalı bilgilerini eksiksiz yaz.",
+    placeholder: "Davacı: ...\nDavalı: ...",
+    minChars: 30,
+    assessDimensions: ["ifade", "maddi"],
+    graderHint: "Tarafların kimlik bilgileri ve sıfatları net mi?",
+  },
+  {
+    key: "vakialar",
+    title: "Vakıalar",
+    guidance: "Olayları kronolojik sırayla, somut tarih ve tutarlarla anlat.",
+    placeholder: "1. ... tarihinde müvekkilim ...\n2. ...",
+    minChars: 60,
+    assessDimensions: ["olay", "maddi"],
+    graderHint: "Olaylar mantıklı kronolojiyle ve yeterli detayla sunulmuş mu?",
+  },
+  {
+    key: "hukuki_sebepler",
+    title: "Hukuki Sebepler",
+    guidance: "Dayanak kanun maddelerini ve varsa Yargıtay kararlarını yaz.",
+    placeholder: "İK m. 18 vd., HMK m. 6, ...",
+    minChars: 40,
+    assessDimensions: ["mesele", "gerekce"],
+    graderHint: "İlgili mevzuat ve içtihatlara atıf yapılmış mı?",
+  },
+  {
+    key: "talep_sonucu",
+    title: "Talep Sonucu",
+    guidance: "Mahkemeden ne istediğini açık ve net belirt.",
+    placeholder:
+      "Yukarıda açıklanan nedenlerle ... talep ederiz. Yargılama giderleri ...",
+    minChars: 30,
+    assessDimensions: ["ifade", "risk"],
+    graderHint: "Talep açık, fer'iler ve giderler dahil mi?",
+  },
+];
+
 function normalizeTemplate(t: PetitionTemplate): PetitionTemplate {
-  const sections = (t.sections ?? []).map((s, i) => ({
+  const rawSections = Array.isArray(t.sections) ? t.sections : [];
+  // AI hiç sections döndürmediyse standart iskeleti kullan (UX'i bozma).
+  if (rawSections.length === 0) {
+    return { ...t, sections: DEFAULT_SECTIONS };
+  }
+  const sections = rawSections.map((s, i) => ({
     key: s.key && s.key.trim().length > 0 ? s.key : `section_${i}`,
     title: s.title?.trim() || `Bölüm ${i + 1}`,
     guidance: s.guidance ?? "",
@@ -164,15 +220,32 @@ function PetitionWorkbench() {
             Şablonda bölüm bulunamadı
           </h1>
           <p className="mt-3 text-sm text-ink-2">
-            AI üretimi şablon boş veya hatalı geldi. Şablon listesine dönüp
-            tekrar deneyin.
+            AI üretimi şablon eksik geldi — bazen LLM bölümleri JSON'a yazamıyor.
+            Hemen tekrar dene, genelde ikinci denemede düzeliyor.
           </p>
-          <Link
-            to="/dilekce-lab"
-            className="mt-6 inline-block rounded-xl border border-line bg-surface-raised px-5 py-2.5 text-xs font-bold text-ink-1 hover:bg-surface-sunken"
-          >
-            Şablon listesine dön
-          </Link>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              to="/dilekce-lab"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-ink-1 px-5 py-2.5 text-xs font-bold text-surface-raised hover:bg-ink-1/90"
+            >
+              Şablon listesine dön ve tekrar dene
+            </Link>
+          </div>
+          <details className="mx-auto mt-6 max-w-md text-left text-[10px] text-ink-3">
+            <summary className="cursor-pointer">Teknik detay</summary>
+            <pre className="mt-2 overflow-x-auto rounded-md border border-line bg-surface-sunken/30 p-3">
+{JSON.stringify(
+  {
+    templateId,
+    hasTemplate: !!template,
+    sectionsLength: template?.sections?.length ?? 0,
+    title: template?.title,
+  },
+  null,
+  2,
+)}
+            </pre>
+          </details>
         </div>
       </PageShell>
     );

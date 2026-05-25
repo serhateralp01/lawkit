@@ -32,7 +32,10 @@ const GEN_KEY = "lawkit_generated_case";
 
 export const Route = createFileRoute("/vaka/$caseId")({
   loader: ({ params }) => {
-    const isGen = params.caseId.startsWith("gen-");
+    // gen- (client-side fallback) ve gen_ (Supabase persist sonrası) ikisini de
+    // generated-case olarak tanı; aksi halde statik vaka aranır.
+    const isGen =
+      params.caseId.startsWith("gen-") || params.caseId.startsWith("gen_");
     if (!isGen) {
       const c = getCase(params.caseId);
       if (!c) throw notFound();
