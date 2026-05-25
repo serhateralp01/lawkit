@@ -168,21 +168,19 @@ function PetitionWorkbench() {
   const { template: staticTemplate, templateId } = Route.useLoaderData();
   const template = useResolvedTemplate(staticTemplate, templateId);
   const [active, setActive] = useState(0);
-  const [states, setStates] = useState<Record<string, SectionState>>(() => {
-    if (!staticTemplate) return {};
-    const m: Record<string, SectionState> = {};
-    for (const s of staticTemplate.sections) m[s.key] = emptySection();
-    return m;
-  });
+  // states'i her render'da template'i baz alarak hesapla — useState/useEffect
+  // race olmasın. Section başına TEK persistent state lazım olduğu için
+  // useState + useEffect yerine sectionStatesRef pattern kullanıyoruz.
+  const [states, setStates] = useState<Record<string, SectionState>>({});
 
-  // Client'ta AI üretimi şablon resolve olduğunda eksik section state'ini doldur.
+  // Template değiştiğinde eksik section state'lerini doldur.
   useEffect(() => {
     if (!template) return;
     setStates((prev) => {
       const m = { ...prev };
       let changed = false;
-      for (const s of template.sections) {
-        if (!m[s.key]) {
+      for (const s of template.sections ?? []) {
+        if (s && typeof s.key === "string" && !m[s.key]) {
           m[s.key] = emptySection();
           changed = true;
         }
@@ -346,7 +344,9 @@ function PetitionWorkbench() {
               Bölümler
             </p>
             {template.sections.map((s, i) => {
-              const st = states[s.key];
+              // states bazen undefined olabilir — AI üretimi şablonda
+              // first render'da useEffect henüz states'i doldurmadı.
+              const st = states[s.key] ?? emptySection();
               const isActive = i === active;
               const isDone = !!st.result;
               return (

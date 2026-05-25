@@ -604,13 +604,25 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
           const opts = n.options as Array<Record<string, unknown>> | undefined;
           if (opts) {
             for (const o of opts) {
-              // Field alias: LLM "text" → bizim "label" (görünen şık metni)
-              if (!o.label && typeof o.text === "string") o.label = o.text;
-              if (!o.label && typeof (o as Record<string, unknown>).content === "string") {
-                o.label = (o as Record<string, unknown>).content;
-              }
+              // Field alias: LLM hem "text" (asıl içerik) hem "label" (generic "Seçenek")
+              // dönebiliyor. text varsa ve daha uzunsa text'i tercih et.
+              const oText = typeof o.text === "string" ? o.text : undefined;
+              const oContent =
+                typeof (o as Record<string, unknown>).content === "string"
+                  ? ((o as Record<string, unknown>).content as string)
+                  : undefined;
+              const oLabel = typeof o.label === "string" ? o.label : undefined;
+              const genericLabels = new Set(["Seçenek", "Option", "Choice", "secenek"]);
+              const labelIsGeneric =
+                !oLabel || oLabel.trim().length < 5 || genericLabels.has(oLabel);
+              const bestLabel =
+                labelIsGeneric && oText
+                  ? oText
+                  : labelIsGeneric && oContent
+                    ? oContent
+                    : oLabel ?? oText ?? oContent ?? "Seçenek";
+              o.label = bestLabel;
               if (!o.id) o.id = `opt_${Math.random().toString(36).slice(2, 8)}`;
-              if (!o.label) o.label = "Seçenek";
               // next: LLM bazen "nextNode" kullanıyor
               if (!o.next && typeof (o as Record<string, unknown>).nextNode === "string") {
                 o.next = (o as Record<string, unknown>).nextNode;

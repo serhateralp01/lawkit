@@ -34,18 +34,45 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
+  console.error("[ErrorComponent]", error);
   const router = useRouter();
+  const isDev =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname.startsWith("192.168.") ||
+      window.location.hostname === "127.0.0.1");
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+      <div className="max-w-2xl text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          Sayfa yüklenmedi
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          Bir şeyler ters gitti — tarayıcı konsolunu açıp hata mesajını bana
+          gönderebilirsen tam olarak nerede çöktüğünü görürüm.
         </p>
+
+        {/* Hatayı daima göster — debug için kritik */}
+        <details
+          open={isDev}
+          className="mx-auto mt-5 max-w-xl rounded-md border border-input bg-card text-left text-xs"
+        >
+          <summary className="cursor-pointer border-b border-input/50 px-3 py-2 font-semibold">
+            Hata detayı (developer)
+          </summary>
+          <div className="space-y-2 p-3">
+            <p className="font-mono break-words text-destructive">
+              {error?.name}: {error?.message}
+            </p>
+            {error?.stack ? (
+              <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words text-[10px] leading-relaxed text-muted-foreground">
+                {error.stack}
+              </pre>
+            ) : null}
+          </div>
+        </details>
+
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -54,13 +81,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Try again
+            Tekrar dene
           </button>
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Go home
+            Ana sayfa
           </a>
         </div>
       </div>
