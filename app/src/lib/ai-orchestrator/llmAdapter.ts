@@ -636,6 +636,33 @@ export function createLlmAdapter(env: ServerEnv): AIOrchestrator {
           if (!n.id) n.id = `n${nodes.indexOf(n) + 1}`;
         }
 
+        // Info node'lara sentetik "next" ekle — engine.advance() info için
+        // options[0].next bekliyor. LLM info'ya options koymadıysa, sıradaki
+        // node id'sine pointing eden tek option ekle.
+        for (let i = 0; i < nodes.length; i++) {
+          const n = nodes[i];
+          if (n.kind === "info") {
+            const hasNext =
+              Array.isArray(n.options) &&
+              n.options.length > 0 &&
+              typeof (n.options[0] as Record<string, unknown>).next === "string";
+            if (!hasNext) {
+              const nextN = nodes[i + 1];
+              if (nextN && typeof nextN.id === "string") {
+                n.options = [
+                  {
+                    id: `opt_next_${nextN.id}`,
+                    label: "Devam",
+                    next: nextN.id,
+                    verdict: "partial",
+                    sources: [],
+                  },
+                ];
+              }
+            }
+          }
+        }
+
         // Ensure case has meaningful title + summary
         if (!raw.title || typeof raw.title !== "string" || (raw.title as string).trim().length < 3) {
           const themeStr = req.theme ? ` — ${req.theme}` : "";

@@ -347,17 +347,48 @@ function CaseRunner({ legalCase }: { legalCase: LegalCase }) {
                     </div>
                   ) : null}
 
-                  <ul className="space-y-2 pt-1">
-                    {shuffledBySeed(node.options ?? [], `${session.startedAt}-${node.id}`).map((o) => (
-                      <OptionRow
-                        key={o.id}
-                        option={o}
-                        picked={chosenOption?.id === o.id}
-                        disabled={!!currentStep?.chosenOptionId && chosenOption?.id !== o.id}
-                        onPick={() => pick(o)}
-                      />
-                    ))}
-                  </ul>
+                  {node.kind === "info" ? (
+                    /* Info node — sadece "Devam et" butonu, options gizli */
+                    <motion.button
+                      type="button"
+                      onClick={advance}
+                      whileHover={{ x: 2 }}
+                      className="inline-flex items-center gap-1.5 rounded-md bg-ink-1 px-4 py-2 text-xs font-bold text-surface-raised hover:bg-ink-1/90"
+                    >
+                      Devam et <ArrowRight className="size-3.5" />
+                    </motion.button>
+                  ) : (
+                    <ul className="space-y-2 pt-1">
+                      {shuffledBySeed(
+                        node.options ?? [],
+                        `${session.startedAt}-${node.id}`,
+                      ).map((o) => (
+                        <OptionRow
+                          key={o.id}
+                          option={o}
+                          picked={chosenOption?.id === o.id}
+                          disabled={
+                            !!currentStep?.chosenOptionId &&
+                            chosenOption?.id !== o.id
+                          }
+                          onPick={() => pick(o)}
+                        />
+                      ))}
+                      {/* Decision'da options boşsa fallback */}
+                      {(!node.options || node.options.length === 0) ? (
+                        <li>
+                          <motion.button
+                            type="button"
+                            onClick={advance}
+                            whileHover={{ x: 2 }}
+                            className="inline-flex items-center gap-1.5 rounded-md bg-ink-1 px-4 py-2 text-xs font-bold text-surface-raised hover:bg-ink-1/90"
+                          >
+                            Devam et <ArrowRight className="size-3.5" />
+                          </motion.button>
+                        </li>
+                      ) : null}
+                    </ul>
+                  )}
 
                   <AnimatePresence>
                     {chosenOption?.feedback ? (
